@@ -364,16 +364,25 @@ eos
     rest_predicate = mapping_predicates()["REST"][0]
     classes = mapping.classes
     classes.each do |c|
-      sub = c.submission
-      unless sub.id.to_s["latest"].nil?
-        #the submission in the class might point to latest
-        sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
-                .first
-                .latest_submission
+      if c.respond_to?(:submission)
+        sub = c.submission
+        unless sub.id.to_s["latest"].nil?
+          #the submission in the class might point to latest
+          sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
+                    .first
+                    .latest_submission
+        end
+        del_from_graph = sub.id
+      elsif c.respond_to?(:source)
+        # If it is an InterportalClass
+        del_from_graph = RDF::URI.new("http://data.bioontology.org/metadata/InterportalMappings/#{c.source}")
+      else
+        # If it is an ExternalClass
+        del_from_graph = RDF::URI.new("http://data.bioontology.org/metadata/ExternalMappings")
       end
       graph_delete = RDF::Graph.new
       graph_delete << [c.id, RDF::URI.new(rest_predicate), mapping.id]
-      Goo.sparql_update_client.delete_data(graph_delete, graph: sub.id)
+      Goo.sparql_update_client.delete_data(graph_delete, graph: del_from_graph)
     end
     mapping.process.delete
     backup = LinkedData::Models::RestBackupMapping.find(mapping_id).first
