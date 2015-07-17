@@ -273,16 +273,17 @@ eos
       if classId.nil?
         s1 = sol[:s1]
       end
-      classes = [ read_only_class(s1.to_s,sub1.id.to_s),
-                read_only_class(sol[:s2].to_s,graph2.to_s) ]
 
       backup_mapping = nil
       mapping = nil
       if sol[:source].to_s == "REST"
         backup_mapping = LinkedData::Models::RestBackupMapping
-                      .find(sol[:o]).include(:process).first
+                      .find(sol[:o]).include(:process, :class_urns).first
         backup_mapping.process.bring_remaining
       end
+
+      classes = get_mapping_classes(s1.to_s, sub1.id.to_s, sol[:s2].to_s, graph2, backup_mapping)
+
       if backup_mapping.nil?
         mapping = LinkedData::Models::Mapping.new(
                     classes,sol[:source].to_s)
