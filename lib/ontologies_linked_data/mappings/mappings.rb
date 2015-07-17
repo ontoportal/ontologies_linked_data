@@ -382,6 +382,55 @@ eos
     return mapping
   end
 
+  # A method that generate classes depending on the nature of the mapping : Internal, External or Interportal
+  def self.get_mapping_classes(c1, g1, c2, g2, backup)
+    if g1.start_with?("http://data.bioontology.org/metadata/InterportalMappings") || g2.start_with?("http://data.bioontology.org/metadata/InterportalMappings")
+      # Generate an InterportalClass if it is a mapping to a concept out of the BioPortal
+      if g1.start_with?("http://data.bioontology.org/metadata/InterportalMappings")
+        c_ext = c1
+        c = c2
+        g = g2
+      else
+        c_ext = c2
+        c = c1
+        g = g1
+      end
+      external_ontology = ""
+      external_source = ""
+      backup.class_urns.each do |class_urn|
+        if !class_urn.start_with?("urn:")
+          external_source = class_urn.split(":")[0]
+          external_ontology = class_urn.split(":")[1]
+        end
+      end
+      classes = [ read_only_class(c,g),
+                  LinkedData::Models::InterportalClass.new(c_ext, external_ontology, external_source) ]
+    elsif g1 == "http://data.bioontology.org/metadata/ExternalMappings" || g2 == "http://data.bioontology.org/metadata/ExternalMappings"
+      # Generate an ExternalClass if it is a mapping to a concept out of the BioPortal
+      if g1 == "http://data.bioontology.org/metadata/ExternalMappings"
+        c_ext = c1
+        c = c2
+        g = g2
+      else
+        c_ext = c2
+        c = c1
+        g = g1
+      end
+      external_ontology = ""
+      backup.class_urns.each do |class_urn|
+        if !class_urn.start_with?("urn:")
+          external_ontology = class_urn.split(":")[1]
+        end
+      end
+      classes = [ read_only_class(c,g),
+                  LinkedData::Models::ExternalClass.new(c_ext, external_ontology) ]
+    else
+      classes = [ read_only_class(c1,g1),
+                  read_only_class(c2,g2) ]
+    end
+    return classes
+  end
+
   def self.get_rest_mapping(mapping_id)
     backup = LinkedData::Models::RestBackupMapping.find(mapping_id).first
     if backup.nil?
