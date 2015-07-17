@@ -443,6 +443,7 @@ eos
       end
     end
     backup_mapping.class_urns = class_urns
+    # Insert backup into 4store
     backup_mapping.save
 
     #second add the mapping id to current submission graphs
