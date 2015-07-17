@@ -438,7 +438,8 @@ eos
           LinkedData::Models::Class.urn_id(acronym,c.id.to_s))
 
       else
-        class_urns << RDF::URI.new(c.urn_id())
+        # Generate classes urns using the source (e.g.: ncbo or ext), the ontology acronym and the class id
+        class_urns << RDF::URI.new("#{c[:source]}:#{c[:ontology]}:#{c[:id]}")
       end
     end
     backup_mapping.class_urns = class_urns
@@ -447,18 +448,33 @@ eos
     #second add the mapping id to current submission graphs
     rest_predicate = mapping_predicates()["REST"][0]
     classes.each do |c|
-      sub = c.submission
-      unless sub.id.to_s["latest"].nil?
-        #the submission in the class might point to latest
-        sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
-                .first
-                .latest_submission
+      if c.instance_of?LinkedData::Models::Class
+        sub = c.submission
+        unless sub.id.to_s["latest"].nil?
+          #the submission in the class might point to latest
+          sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
+                    .first
+                    .latest_submission
+        end
+        c_id = c.id
+        graph_id = sub.id
+      else
+        if LinkedData.settings.interportal_hash.has_key?(c[:source])
+          # If it is a mapping from another Bioportal
+          c_id = RDF::URI.new(c[:id])
+          graph_id = RDF::URI.new("http://data.bioontology.org/metadata/InterportalMappings/#{c[:source]}")
+        else
+          # If it is an external mapping
+          c_id = RDF::URI.new(c[:id])
+          graph_id = RDF::URI.new("http://data.bioontology.org/metadata/ExternalMappings")
+        end
       end
       graph_insert = RDF::Graph.new
-      graph_insert << [c.id, RDF::URI.new(rest_predicate), backup_mapping.id]
-      Goo.sparql_update_client.insert_data(graph_insert, graph: sub.id)
+      graph_insert << [c_id, RDF::URI.new(rest_predicate), backup_mapping.id]
+      Goo.sparql_update_client.insert_data(graph_insert, graph: graph_id)
     end
     mapping = LinkedData::Models::Mapping.new(classes,"REST",process)
+
     return mapping
   end
 
