@@ -17,6 +17,10 @@ module LinkedData
         @ontology = RDF::URI.new(CGI.unescape(ontology))
         @type_uri = RDF::URI.new("http://www.w3.org/2002/07/owl#Class")
       end
+
+      def self.graph_uri
+        RDF::URI.new("http://data.bioontology.org/metadata/ExternalMappings")
+      end
     end
   end
 end

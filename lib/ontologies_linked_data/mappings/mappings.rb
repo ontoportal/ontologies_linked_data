@@ -49,7 +49,7 @@ module Mappings
     latest = retrieve_latest_submissions()
     counts = {}
     # Counting for External mappings
-    external_uri = RDF::URI.new("http://data.bioontology.org/metadata/ExternalMappings")
+    external_uri = LinkedData::Models::ExternalClass.graph_uri
     exter_counts = mapping_ontologies_count(external_uri,nil,reload_cache=reload_cache)
     exter_total = 0
     exter_counts.each do |k,v|
@@ -58,7 +58,7 @@ module Mappings
     counts[external_uri.to_s] = exter_total if exter_total>0
     # Counting for Interportal mappings
     LinkedData.settings.interportal_hash.each_key do |acro|
-      interportal_uri = RDF::URI.new("http://data.bioontology.org/metadata/InterportalMappings/#{acro}")
+      interportal_uri = LinkedData::Models::InterportalClass.graph_uri(acro)
       inter_counts = mapping_ontologies_count(interportal_uri,nil,reload_cache=reload_cache)
       inter_total = 0
       inter_counts.each do |k,v|
@@ -128,7 +128,7 @@ eos
         filter += "FILTER (?s1 != ?s2)"
       end
       if sub2.nil?
-        if sub1.to_s != "http://data.bioontology.org/metadata/ExternalMappings"
+        if sub1.to_s != LinkedData::Models::ExternalClass.graph_uri.to_s
           ont_id = sub1.to_s.split("/")[0..-3].join("/")
           #STRSTARTS is used to not count older graphs
           filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}'))"
@@ -155,7 +155,7 @@ eos
         solutions.each do |sol|
           graph2 = sol[:g].to_s
           acr = ""
-          if graph2.start_with?("http://data.bioontology.org/metadata/InterportalMappings") || graph2 == "http://data.bioontology.org/metadata/ExternalMappings"
+          if graph2.start_with?(LinkedData::Models::InterportalClass.graph_base_str) || graph2 == LinkedData::Models::ExternalClass.graph_uri.to_s
             acr = graph2
           else
             acr = graph2.to_s.split("/")[-3]
@@ -407,10 +407,10 @@ eos
         del_from_graph = sub.id
       elsif c.respond_to?(:source)
         # If it is an InterportalClass
-        del_from_graph = RDF::URI.new("http://data.bioontology.org/metadata/InterportalMappings/#{c.source}")
+        del_from_graph = LinkedData::Models::InterportalClass.graph_uri(c.source)
       else
         # If it is an ExternalClass
-        del_from_graph = RDF::URI.new("http://data.bioontology.org/metadata/ExternalMappings")
+        del_from_graph = LinkedData::Models::ExternalClass.graph_uri
       end
       graph_delete = RDF::Graph.new
       graph_delete << [c.id, RDF::URI.new(rest_predicate), mapping.id]
@@ -426,9 +426,9 @@ eos
 
   # A method that generate classes depending on the nature of the mapping : Internal, External or Interportal
   def self.get_mapping_classes(c1, g1, c2, g2, backup)
-    if g1.start_with?("http://data.bioontology.org/metadata/InterportalMappings") || g2.start_with?("http://data.bioontology.org/metadata/InterportalMappings")
+    if g1.start_with?(LinkedData::Models::InterportalClass.graph_base_str) || g2.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
       # Generate an InterportalClass if it is a mapping to a concept out of the BioPortal
-      if g1.start_with?("http://data.bioontology.org/metadata/InterportalMappings")
+      if g1.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
         c_ext = c1
         c = c2
         g = g2
@@ -447,9 +447,9 @@ eos
       end
       classes = [ read_only_class(c,g),
                   LinkedData::Models::InterportalClass.new(c_ext, external_ontology, external_source) ]
-    elsif g1 == "http://data.bioontology.org/metadata/ExternalMappings" || g2 == "http://data.bioontology.org/metadata/ExternalMappings"
+    elsif g1 == LinkedData::Models::ExternalClass.graph_uri.to_s || g2 == LinkedData::Models::ExternalClass.graph_uri.to_s
       # Generate an ExternalClass if it is a mapping to a concept out of the BioPortal
-      if g1 == "http://data.bioontology.org/metadata/ExternalMappings"
+      if g1 == LinkedData::Models::ExternalClass.graph_uri.to_s
         c_ext = c1
         c = c2
         g = g2
@@ -553,11 +553,11 @@ eos
         if LinkedData.settings.interportal_hash.has_key?(c[:source])
           # If it is a mapping from another Bioportal
           c_id = RDF::URI.new(c[:id])
-          graph_id = RDF::URI.new("http://data.bioontology.org/metadata/InterportalMappings/#{c[:source]}")
+          graph_id = LinkedData::Models::InterportalClass.graph_uri(c[:source])
         else
           # If it is an external mapping
           c_id = RDF::URI.new(c[:id])
-          graph_id = RDF::URI.new("http://data.bioontology.org/metadata/ExternalMappings")
+          graph_id = LinkedData::Models::ExternalClass.graph_uri
         end
       end
       graph_insert = RDF::Graph.new

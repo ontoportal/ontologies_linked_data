@@ -28,6 +28,13 @@ module LinkedData
         @source = source
       end
 
+      def self.graph_uri(acronym)
+        RDF::URI.new("http://data.bioontology.org/metadata/InterportalMappings/#{acronym}")
+      end
+
+      def self.graph_base_str
+        "http://data.bioontology.org/metadata/InterportalMappings"
+      end
     end
   end
 end
