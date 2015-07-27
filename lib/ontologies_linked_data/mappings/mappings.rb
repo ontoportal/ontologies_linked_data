@@ -127,7 +127,13 @@ eos
         solutions = epr.query(query,
                               graphs: graphs, reload_cache: reload_cache)
         solutions.each do |sol|
-          acr = sol[:g].to_s.split("/")[-3]
+          graph2 = sol[:g].to_s
+          acr = ""
+          if graph2.start_with?("http://data.bioontology.org/metadata/InterportalMappings") || graph2 == "http://data.bioontology.org/metadata/ExternalMappings"
+            acr = graph2
+          else
+            acr = graph2.to_s.split("/")[-3]
+          end
           if group_count[acr].nil?
             group_count[acr] = 0
           end
@@ -660,6 +666,7 @@ eos
   end
 
   def self.create_mapping_counts(logger)
+    # Create mapping counts for ontology alone
     new_counts = LinkedData::Mappings.mapping_counts(
                                         enable_debug=true,logger=logger,
                                         reload_cache=true)
@@ -699,6 +706,7 @@ eos
       end
     end
 
+    # Create mapping counts for pair ontologies
     retrieve_latest_submissions.each do |acr,sub|
 
       new_counts = LinkedData::Mappings
