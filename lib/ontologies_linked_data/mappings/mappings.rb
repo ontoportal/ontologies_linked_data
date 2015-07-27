@@ -49,12 +49,24 @@ module Mappings
     latest = retrieve_latest_submissions()
     counts = {}
     # Counting for External mappings
-    exter_counts = mapping_ontologies_count("http://data.bioontology.org/metadata/ExternalMappings",nil,reload_cache=reload_cache)
+    external_uri = RDF::URI.new("http://data.bioontology.org/metadata/ExternalMappings")
+    exter_counts = mapping_ontologies_count(external_uri,nil,reload_cache=reload_cache)
     exter_total = 0
     exter_counts.each do |k,v|
       exter_total += v
     end
-    counts["http://data.bioontology.org/metadata/ExternalMappings"] = exter_total
+    counts[external_uri.to_s] = exter_total if exter_total>0
+    # Counting for Interportal mappings
+    LinkedData.settings.interportal_hash.each_key do |acro|
+      interportal_uri = RDF::URI.new("http://data.bioontology.org/metadata/InterportalMappings/#{acro}")
+      inter_counts = mapping_ontologies_count(interportal_uri,nil,reload_cache=reload_cache)
+      inter_total = 0
+      inter_counts.each do |k,v|
+        inter_total += v
+      end
+      counts[interportal_uri.to_s] = inter_total if inter_total>0
+    end
+    # Counting for mappings between the ontologies hosted by the BioPortal appliance
     i = 0
     latest.each do |acro,sub|
       t0 = Time.now
@@ -81,7 +93,7 @@ module Mappings
     if sub1.instance_of?(LinkedData::Models::OntologySubmission)
       sub1 = sub1.id
     else
-      sub1 = RDF::URI.new(sub1)
+      sub1 = sub1
     end
     template = <<-eos
 {
