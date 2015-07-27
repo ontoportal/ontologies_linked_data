@@ -49,6 +49,7 @@ module Mappings
     latest = retrieve_latest_submissions()
     counts = {}
     # Counting for External mappings
+    t0 = Time.now
     external_uri = LinkedData::Models::ExternalClass.graph_uri
     exter_counts = mapping_ontologies_count(external_uri,nil,reload_cache=reload_cache)
     exter_total = 0
@@ -56,8 +57,12 @@ module Mappings
       exter_total += v
     end
     counts[external_uri.to_s] = exter_total if exter_total>0
+    if enable_debug
+      logger.info("Time for External Mappings took #{Time.now - t0} sec. records #{exter_total}")
+    end
     # Counting for Interportal mappings
     LinkedData.settings.interportal_hash.each_key do |acro|
+      t0 = Time.now
       interportal_uri = LinkedData::Models::InterportalClass.graph_uri(acro)
       inter_counts = mapping_ontologies_count(interportal_uri,nil,reload_cache=reload_cache)
       inter_total = 0
@@ -65,6 +70,9 @@ module Mappings
         inter_total += v
       end
       counts[interportal_uri.to_s] = inter_total if inter_total>0
+      if enable_debug
+        logger.info("Time for #{interportal_uri.to_s} took #{Time.now - t0} sec. records #{inter_total}")
+      end
     end
     # Counting for mappings between the ontologies hosted by the BioPortal appliance
     i = 0
