@@ -48,6 +48,13 @@ module Mappings
     t = Time.now
     latest = retrieve_latest_submissions()
     counts = {}
+    # Counting for External mappings
+    exter_counts = mapping_ontologies_count("http://data.bioontology.org/metadata/ExternalMappings",nil,reload_cache=reload_cache)
+    exter_total = 0
+    exter_counts.each do |k,v|
+      exter_total += v
+    end
+    counts["http://data.bioontology.org/metadata/ExternalMappings"] = exter_total
     i = 0
     latest.each do |acro,sub|
       t0 = Time.now
@@ -71,9 +78,14 @@ module Mappings
   end
 
   def self.mapping_ontologies_count(sub1,sub2,reload_cache=false)
+    if sub1.instance_of?(LinkedData::Models::OntologySubmission)
+      sub1 = sub1.id
+    else
+      sub1 = RDF::URI.new(sub1)
+    end
     template = <<-eos
 {
-  GRAPH <#{sub1.id.to_s}> {
+  GRAPH <#{sub1.to_s}> {
       ?s1 <predicate> ?o .
   }
   GRAPH graph {
@@ -104,9 +116,11 @@ eos
         filter += "FILTER (?s1 != ?s2)"
       end
       if sub2.nil?
-        ont_id = sub1.id.to_s.split("/")[0..-3].join("/")
-        #STRSTARTS is used to not count older graphs
-        filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}'))"
+        if sub1.to_s != "http://data.bioontology.org/metadata/ExternalMappings"
+          ont_id = sub1.to_s.split("/")[0..-3].join("/")
+          #STRSTARTS is used to not count older graphs
+          filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}'))"
+        end
         query = query.sub("graph","?g")
         query = query.sub("filter",filter)
         query = query.sub("variables","?g (count(?s1) as ?c)")
@@ -118,7 +132,7 @@ eos
         query = query.sub("group","")
       end
       epr = Goo.sparql_query_client(:main)
-      graphs = [sub1.id, LinkedData::Models::MappingProcess.type_uri]
+      graphs = [sub1, LinkedData::Models::MappingProcess.type_uri]
       unless sub2.nil?
         graphs << sub2.id
       end

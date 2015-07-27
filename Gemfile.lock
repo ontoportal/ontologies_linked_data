@@ -155,6 +155,3 @@ DEPENDENCIES
   rubyzip (~> 1.0)
   simplecov
   sparql-client!
-
-BUNDLED WITH
-   1.10.5
