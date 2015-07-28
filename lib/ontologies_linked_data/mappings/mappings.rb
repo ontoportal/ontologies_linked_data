@@ -444,50 +444,47 @@ eos
 
   # A method that generate classes depending on the nature of the mapping : Internal, External or Interportal
   def self.get_mapping_classes(c1, g1, c2, g2, backup)
-    if g1.start_with?(LinkedData::Models::InterportalClass.graph_base_str) || g2.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
-      # Generate an InterportalClass if it is a mapping to a concept out of the BioPortal
-      if g1.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
-        c_ext = c1
-        c = c2
-        g = g2
-      else
-        c_ext = c2
-        c = c1
-        g = g1
+    # Generate classes if g1 is interportal or external
+    if g1.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
+      backup.class_urns.each do |class_urn|
+        # get source and ontology from the backup URI from 4store (source(like urn):ontology(like STY):class)
+        if !class_urn.start_with?("urn:")
+          external_source = class_urn.split(":")[0]
+          external_ontology = class_urn.split(":")[1]
+        end
       end
-      external_ontology = ""
-      external_source = ""
+      classes = [ LinkedData::Models::InterportalClass.new(c1, external_ontology, external_source),
+                  read_only_class(c2,g2)]
+    elsif g1 == LinkedData::Models::ExternalClass.graph_uri.to_s
+      backup.class_urns.each do |class_urn|
+        if !class_urn.start_with?("urn:")
+          external_ontology = class_urn.split(":")[1]
+        end
+      end
+      classes = [ LinkedData::Models::ExternalClass.new(c1, external_ontology),
+                  read_only_class(c2,g2)]
+    end
+
+    # Generate classes if g2 is interportal or external
+    if g2.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
       backup.class_urns.each do |class_urn|
         if !class_urn.start_with?("urn:")
           external_source = class_urn.split(":")[0]
           external_ontology = class_urn.split(":")[1]
         end
       end
-      classes = [ read_only_class(c,g),
-                  LinkedData::Models::InterportalClass.new(c_ext, external_ontology, external_source) ]
-    elsif g1 == LinkedData::Models::ExternalClass.graph_uri.to_s || g2 == LinkedData::Models::ExternalClass.graph_uri.to_s
-      # Generate an ExternalClass if it is a mapping to a concept out of the BioPortal
-      if g1 == LinkedData::Models::ExternalClass.graph_uri.to_s
-        c_ext = c1
-        c = c2
-        g = g2
-      else
-        c_ext = c2
-        c = c1
-        g = g1
-      end
-      external_ontology = ""
+      classes = [ read_only_class(c1,g1),
+                  LinkedData::Models::InterportalClass.new(c2, external_ontology, external_source)]
+    elsif g2 == LinkedData::Models::ExternalClass.graph_uri.to_s
       backup.class_urns.each do |class_urn|
         if !class_urn.start_with?("urn:")
           external_ontology = class_urn.split(":")[1]
         end
       end
-      classes = [ read_only_class(c,g),
-                  LinkedData::Models::ExternalClass.new(c_ext, external_ontology) ]
-    else
       classes = [ read_only_class(c1,g1),
-                  read_only_class(c2,g2) ]
+                  LinkedData::Models::ExternalClass.new(c2, external_ontology)]
     end
+
     return classes
   end
 
