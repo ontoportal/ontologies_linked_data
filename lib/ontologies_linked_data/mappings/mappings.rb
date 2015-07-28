@@ -195,9 +195,24 @@ eos
   end
 
   def self.mappings_ontologies(sub1,sub2,page,size,classId=nil,reload_cache=false)
+    if sub1.respond_to?(:id)
+      # Case where sub1 is a Submission
+      sub1 = sub1.id
+      acr1 = sub1.to_s.split("/")[-3]
+    else
+      acr1 = sub1.to_s
+    end
+    if sub2.respond_to?(:id)
+      # Case where sub2 is a Submission
+      sub2 = sub2.id
+      acr2 = sub2.to_s.split("/")[-3]
+    else
+      acr2 = sub2.to_s
+    end
+
     union_template = <<-eos
 {
-  GRAPH <#{sub1.id.to_s}> {
+  GRAPH <#{sub1.to_s}> {
       classId <predicate> ?o .
   }
   GRAPH graph {
@@ -209,12 +224,7 @@ eos
     blocks = []
     mappings = []
     persistent_count = 0
-    acr1 = sub1.id.to_s.split("/")[-3]
     if classId.nil?
-      acr2 = nil
-      if not sub2.nil?
-        acr2 = sub2.id.to_s.split("/")[-3]
-      end
       pcount = LinkedData::Models::MappingCount.where(
           ontologies: acr1
       )
@@ -247,7 +257,7 @@ eos
       if sub2.nil?
         union_block = union_block.sub("graph","?g")
       else
-        union_block = union_block.sub("graph","<#{sub2.id.to_s}>")
+        union_block = union_block.sub("graph","<#{sub2.to_s}>")
       end
       blocks << union_block
     end
@@ -274,7 +284,7 @@ eos
     end
     if sub2.nil?
       query = query.sub("graph","?g")
-      ont_id = sub1.id.to_s.split("/")[0..-3].join("/")
+      ont_id = sub1.to_s.split("/")[0..-3].join("/")
       #STRSTARTS is used to not count older graphs
       #no need since now we delete older graphs
       filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}'))"
@@ -293,9 +303,9 @@ eos
       query = query.sub("page_group","")
     end
     epr = Goo.sparql_query_client(:main)
-    graphs = [sub1.id]
+    graphs = [sub1]
     unless sub2.nil?
-      graphs << sub2.id
+      graphs << sub2
     end
     solutions = epr.query(query,
                           graphs: graphs, reload_cache: reload_cache)
@@ -308,7 +318,7 @@ eos
       if sub2.nil?
         graph2 = sol[:g]
       else
-        graph2 = sub2.id
+        graph2 = sub2
       end
       if classId.nil?
         s1 = sol[:s1]
@@ -322,7 +332,7 @@ eos
         backup_mapping.process.bring_remaining
       end
 
-      classes = get_mapping_classes(s1.to_s, sub1.id.to_s, sol[:s2].to_s, graph2, backup_mapping)
+      classes = get_mapping_classes(s1.to_s, sub1.to_s, sol[:s2].to_s, graph2, backup_mapping)
 
       if backup_mapping.nil?
         mapping = LinkedData::Models::Mapping.new(

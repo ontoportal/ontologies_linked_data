@@ -31,9 +31,16 @@ module LinkedData
       def self.graph_uri(acronym)
         RDF::URI.new("http://data.bioontology.org/metadata/InterportalMappings/#{acronym}")
       end
-
       def self.graph_base_str
         "http://data.bioontology.org/metadata/InterportalMappings"
+      end
+
+      def self.url_param_str(acronym)
+        # a little string to get interportal mappings in URL parameters
+        RDF::URI.new("interportal:#{acronym}")
+      end
+      def self.base_url_param_str
+        RDF::URI.new("interportal:")
       end
     end
   end

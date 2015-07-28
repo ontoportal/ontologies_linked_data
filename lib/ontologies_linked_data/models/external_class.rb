@@ -21,6 +21,10 @@ module LinkedData
       def self.graph_uri
         RDF::URI.new("http://data.bioontology.org/metadata/ExternalMappings")
       end
+      def self.url_param_str
+        # a little string to get external mappings in URL parameters
+        RDF::URI.new("mappings:external")
+      end
     end
   end
 end
