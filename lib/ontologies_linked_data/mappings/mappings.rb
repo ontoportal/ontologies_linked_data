@@ -444,6 +444,8 @@ eos
 
   # A method that generate classes depending on the nature of the mapping : Internal, External or Interportal
   def self.get_mapping_classes(c1, g1, c2, g2, backup)
+    external_source = nil
+    external_ontology = nil
     # Generate classes if g1 is interportal or external
     if g1.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
       backup.class_urns.each do |class_urn|
@@ -463,10 +465,9 @@ eos
       end
       classes = [ LinkedData::Models::ExternalClass.new(c1, external_ontology),
                   read_only_class(c2,g2)]
-    end
 
     # Generate classes if g2 is interportal or external
-    if g2.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
+    elsif g2.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
       backup.class_urns.each do |class_urn|
         if !class_urn.start_with?("urn:")
           external_source = class_urn.split(":")[0]
@@ -483,6 +484,10 @@ eos
       end
       classes = [ read_only_class(c1,g1),
                   LinkedData::Models::ExternalClass.new(c2, external_ontology)]
+
+    else
+      classes = [ read_only_class(c1,g1),
+                  read_only_class(c2,g2) ]
     end
 
     return classes
