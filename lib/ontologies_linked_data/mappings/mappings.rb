@@ -653,15 +653,15 @@ eos
     procs = procs.map { |x| "?o = #{x.to_ntriples}" }.join " || "
     rest_predicate = mapping_predicates()["REST"][0]
     qmappings = <<-eos
-SELECT DISTINCT ?ont1 ?c1 ?ont2 ?c2 ?o ?uuid
+SELECT DISTINCT ?ont1 ?c1 ?s1 ?ont2 ?c2 ?s2 ?o ?uuid
 WHERE {
   ?uuid <http://data.bioontology.org/metadata/process> ?o .
 
-  ?s1 <http://data.bioontology.org/metadata/ontology> ?ont1 .
+  OPTIONAL { ?s1 <http://data.bioontology.org/metadata/ontology> ?ont1 . }
   GRAPH ?s1 {
     ?c1 <#{rest_predicate}> ?uuid .
   }
-  ?s2 <http://data.bioontology.org/metadata/ontology> ?ont2 .
+  OPTIONAL { ?s2 <http://data.bioontology.org/metadata/ontology> ?ont2 . }
   GRAPH ?s2 {
     ?c2 <#{rest_predicate}> ?uuid .
   }
@@ -674,8 +674,21 @@ eos
     mappings = []
     epr.query(qmappings,
               graphs: graphs,query_options: {rules: :NONE}).each do |sol|
-      classes = [ read_only_class(sol[:c1].to_s,sol[:ont1].to_s),
-                read_only_class(sol[:c2].to_s,sol[:ont2].to_s) ]
+      if sol[:ont1].nil?
+        ont1 = sol[:s1].to_s
+      else
+        ont1 = sol[:ont1].to_s
+      end
+      if sol[:ont2].nil?
+        ont2 = sol[:s2].to_s
+      else
+        ont2 = sol[:ont2].to_s
+      end
+
+      mapping_id = RDF::URI.new(sol[:uuid].to_s)
+      backup = LinkedData::Models::RestBackupMapping.find(mapping_id).include(:class_urns).first
+      classes = get_mapping_classes(sol[:c1].to_s, ont1, sol[:c2].to_s, ont2, backup)
+
       process = proc_object[sol[:o].to_s]
       mapping = LinkedData::Models::Mapping.new(classes,"REST",
                                                 process,
