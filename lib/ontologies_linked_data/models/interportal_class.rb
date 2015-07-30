@@ -5,12 +5,12 @@ module LinkedData
       # For class mapped to internal class that are inside another BioPortal appliance
       # We are generating the same link than a normal class but pointing to the other appliance
 
-      attr_reader :id, :ontology, :type_uri, :source, :ui_link
+      attr_reader :id, :ontology, :type_uri, :source, :ui_link, :self
       attr_accessor :prefLabel
 
-      serialize_never :id, :ontology, :type_uri, :source, :ui_link
+      serialize_never :id, :ontology, :type_uri, :source, :ui_link, :self
 
-      link_to LinkedData::Hypermedia::Link.new("self", lambda {|ec| "#{ec.ontology.to_s}/classes/#{CGI.escape(ec.id.to_s)}"}, "http://www.w3.org/2002/07/owl#Class"),
+      link_to LinkedData::Hypermedia::Link.new("self", lambda {|ec| "#{ec.self.to_s}"}, "http://www.w3.org/2002/07/owl#Class"),
               LinkedData::Hypermedia::Link.new("ontology", lambda {|ec| ec.ontology.to_s}, Goo.vocabulary["Ontology"]),
               LinkedData::Hypermedia::Link.new("children", lambda {|ec| "#{ec.ontology.to_s}/classes/#{CGI.escape(ec.id.to_s)}/children"}, "http://www.w3.org/2002/07/owl#Class"),
               LinkedData::Hypermedia::Link.new("parents", lambda {|ec| "#{ec.ontology.to_s}/classes/#{CGI.escape(ec.id.to_s)}/parents"}, "http://www.w3.org/2002/07/owl#Class"),
@@ -24,13 +24,20 @@ module LinkedData
       def initialize(id, ontology, source)
         @id = id
         @ontology = "#{LinkedData.settings.interportal_hash[source]["api"]}/ontologies/#{ontology}"
+        @self = "#{@ontology}/classes/#{CGI.escape(id.to_s)}"
         @ui_link = "#{LinkedData.settings.interportal_hash[source]["ui"]}/ontologies/#{ontology}?p=classes&conceptid=#{CGI.escape(id)}"
         @type_uri = RDF::URI.new("http://www.w3.org/2002/07/owl#Class")
         @source = source
       end
 
       def getPrefLabel
-        @prefLabel = id.split("/")[-1]
+        # Get the prefLabel from the source bioportal, if error it generates the label from the last part of the URL
+        begin
+          json_class = JSON.parse(Net::HTTP.get(URI.parse("#{@self}?apikey=#{LinkedData.settings.interportal_hash[@source]["apikey"]}")))
+          @prefLabel = json_class["prefLabel"]
+        rescue
+          @prefLabel = id.split("/")[-1]
+        end
       end
 
       def self.graph_uri(acronym)

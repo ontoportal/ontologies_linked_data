@@ -20,6 +20,7 @@ module LinkedData
       end
 
       def getPrefLabel
+        # take the last part of the URL to generate the prefLabel
         @prefLabel = id.split("/")[-1]
       end
 
