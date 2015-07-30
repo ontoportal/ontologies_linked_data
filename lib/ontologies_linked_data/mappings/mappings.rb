@@ -675,7 +675,8 @@ eos
     epr.query(qmappings,
               graphs: graphs,query_options: {rules: :NONE}).each do |sol|
       if sol[:ont1].nil?
-        ont1 = sol[:s1].to_s
+        # if the 1st class is from External or Interportal we don't want it to be in the list of recent, it has to be in 2nd
+        next
       else
         ont1 = sol[:ont1].to_s
       end
