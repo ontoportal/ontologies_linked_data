@@ -5,7 +5,8 @@ module LinkedData
       # For class mapped to internal class that are inside another BioPortal appliance
       # We are generating the same link than a normal class but pointing to the other appliance
 
-      attr_reader :id, :ontology, :type_uri, :source, :ui_link, :prefLabel
+      attr_reader :id, :ontology, :type_uri, :source, :ui_link
+      attr_accessor :prefLabel
 
       serialize_never :id, :ontology, :type_uri, :source, :ui_link
 
@@ -22,11 +23,14 @@ module LinkedData
 
       def initialize(id, ontology, source)
         @id = id
-        @prefLabel = id.split("/")[-1]
         @ontology = "#{LinkedData.settings.interportal_hash[source]["api"]}/ontologies/#{ontology}"
         @ui_link = "#{LinkedData.settings.interportal_hash[source]["ui"]}/ontologies/#{ontology}?p=classes&conceptid=#{CGI.escape(id)}"
         @type_uri = RDF::URI.new("http://www.w3.org/2002/07/owl#Class")
         @source = source
+      end
+
+      def getPrefLabel
+        @prefLabel = id.split("/")[-1]
       end
 
       def self.graph_uri(acronym)
