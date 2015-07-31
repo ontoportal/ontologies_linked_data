@@ -202,7 +202,9 @@ eos
     else
       acr1 = sub1.to_s
     end
-    if sub2.respond_to?(:id)
+    if sub2.nil?
+      acr2 = nil
+    elsif sub2.respond_to?(:id)
       # Case where sub2 is a Submission
       sub2 = sub2.id
       acr2 = sub2.to_s.split("/")[-3]
