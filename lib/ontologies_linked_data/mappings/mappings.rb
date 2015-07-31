@@ -56,7 +56,7 @@ module Mappings
     exter_counts.each do |k,v|
       exter_total += v
     end
-    counts[external_uri.to_s] = exter_total if exter_total>0
+    counts[external_uri.to_s] = exter_total
     if enable_debug
       logger.info("Time for External Mappings took #{Time.now - t0} sec. records #{exter_total}")
     end
@@ -69,7 +69,7 @@ module Mappings
       inter_counts.each do |k,v|
         inter_total += v
       end
-      counts[interportal_uri.to_s] = inter_total if inter_total>0
+      counts[interportal_uri.to_s] = inter_total
       if enable_debug
         logger.info("Time for #{interportal_uri.to_s} took #{Time.now - t0} sec. records #{inter_total}")
       end
@@ -746,7 +746,9 @@ eos
       new_count = new_counts[acr]
       if persistent_counts.include?(acr)
         inst = persistent_counts[acr]
-        if new_count != inst.count
+        if new_count == 0
+          inst.delete
+        elsif new_count != inst.count
           inst.bring_remaining
           inst.count = new_count
           if not inst.valid? && logger
@@ -790,7 +792,9 @@ eos
         new_count = new_counts[other]
         if persistent_counts.include?(other)
           inst = persistent_counts[other]
-          if new_count != inst.count
+          if new_count == 0
+            inst.delete
+          elsif new_count != inst.count
             inst.bring_remaining
             inst.count = new_count
             inst.save
