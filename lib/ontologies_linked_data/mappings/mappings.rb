@@ -758,14 +758,16 @@ eos
           end
         end
       else
-        m = LinkedData::Models::MappingCount.new
-        m.ontologies = [acr]
-        m.pair_count = false
-        m.count = new_count
-        if not m.valid? && logger
-          logger.info("Error saving #{inst.id.to_s} #{inst.errors}")
-        else
-           m.save
+        if new_count != 0
+          m = LinkedData::Models::MappingCount.new
+          m.ontologies = [acr]
+          m.pair_count = false
+          m.count = new_count
+          if not m.valid? && logger
+            logger.info("Error saving #{inst.id.to_s} #{inst.errors}")
+          else
+            m.save
+          end
         end
       end
     end
@@ -800,11 +802,13 @@ eos
             inst.save
           end
         else
-          m = LinkedData::Models::MappingCount.new
-          m.count = new_count
-          m.ontologies = [acr,other]
-          m.pair_count = true
-          m.save
+          if new_count != 0
+            m = LinkedData::Models::MappingCount.new
+            m.count = new_count
+            m.ontologies = [acr,other]
+            m.pair_count = true
+            m.save
+          end
         end
       end
     end
