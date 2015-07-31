@@ -811,6 +811,15 @@ eos
           end
         end
       end
+
+      # Remove persistent_counts that are not in new_counts (because no mappings anymore)
+      persistent_counts.each_key do |count_key|
+        if !new_counts.include?(count_key)
+          inst = persistent_counts[count_key]
+          inst.delete
+        end
+      end
+
     end
   end
 
