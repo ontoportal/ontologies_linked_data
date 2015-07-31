@@ -250,7 +250,7 @@ class TestMapping < LinkedData::TestOntologyCommon
     3.times do |i|
       process = LinkedData::Models::MappingProcess.new
       process.name = "proc#{i}"
-      process.relation = RDF::URI.new(relations[i])
+      process.relation = [RDF::URI.new(relations[i])]
       process.creator= user
       process.save
       classes = []
