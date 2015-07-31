@@ -34,7 +34,11 @@ module LinkedData
         # Get the prefLabel from the source bioportal, if error it generates the label from the last part of the URL
         begin
           json_class = JSON.parse(Net::HTTP.get(URI.parse("#{@self}?apikey=#{LinkedData.settings.interportal_hash[@source]["apikey"]}")))
-          @prefLabel = json_class["prefLabel"]
+          if !json_class["prefLabel"].nil?
+            @prefLabel = json_class["prefLabel"]
+          else
+            @prefLabel = id.split("/")[-1]
+          end
         rescue
           @prefLabel = id.split("/")[-1]
         end
