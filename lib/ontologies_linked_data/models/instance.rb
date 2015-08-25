@@ -3,8 +3,15 @@ module LinkedData
   module Models
     class Instance
       include LinkedData::Hypermedia::Resource
+      include LinkedData::HTTPCache::CacheableResource
 
+      attr_reader :id, :properties
+      attr_accessor :label
       serialize_default :id, :label, :properties
+
+      # HTTP cache settings
+      cache_timeout 86400
+      cache_segment_keys [:instance]
 
       def initialize(id,label,properties)
         @id = id
@@ -17,18 +24,6 @@ module LinkedData
         end
         @label = label
         @properties = properties
-      end
-
-      def id
-        return @id
-      end
-
-      def label
-        return @label
-      end
-
-      def properties
-        return @properties
       end
 
       def add_property_value(p,o)
@@ -84,13 +79,16 @@ eos
         inst = LinkedData::Models::Instance.new(r[:s],nil,{})
         instances << inst
       end
+      
+      if instances.empty? 
+        return []
+      end
+      
       include_instance_properties(submission_id,instances)
       return instances
     end
 
     def self.get_instances_by_ontology(submission_id,page_no,size)
-      offset = (page_no-1) * size
-      limit = size
       query = <<-eos
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 SELECT ?s ?label WHERE
@@ -99,18 +97,27 @@ SELECT ?s ?label WHERE
         ?s a owl:NamedIndividual .
     }
   }
-  OFFSET #{offset} LIMIT #{limit}
 eos
       epr = Goo.sparql_query_client(:main)
       graphs = [submission_id]
       resultset = epr.query(query, graphs: graphs)
+
+      total_size = resultset.size
+      range_start = (page_no - 1) * size
+      range_end = (page_no * size) - 1
+      resultset = resultset[range_start..range_end]
+
       instances = []
       resultset.each do |r|
         inst = LinkedData::Models::Instance.new(r[:s],r[:label],{})
         instances << inst
+      end unless resultset.nil?
+      
+      if instances.size > 0
+        include_instance_properties(submission_id,instances)
       end
-      include_instance_properties(submission_id,instances)
-      page = Goo::Base::Page.new(page_no,size,nil,instances)
+      
+      page = Goo::Base::Page.new(page_no,size,total_size,instances)
       return page
     end
 

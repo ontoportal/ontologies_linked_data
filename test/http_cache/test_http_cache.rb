@@ -1,5 +1,10 @@
 require_relative "../test_case"
 
+class DummyCacheSetup
+  include LinkedData::HTTPCache::CacheableResource
+  cache_segment_keys [:test_key]
+end
+
 class TestHTTPCache < LinkedData::TestCase
 
   def self.before_suite
@@ -42,6 +47,13 @@ class TestHTTPCache < LinkedData::TestCase
     assert @@ontology.last_modified
     @@ontology.cache_invalidate
     assert_nil @@ontology.last_modified
+  end
+
+  def test_cache_segment_proper_setup
+    dummy = DummyCacheSetup.new
+    assert_raises(LinkedData::HTTPCache::CacheableResourceRequirementsError) do
+      dummy.cache_segment
+    end
   end
 
   def test_cache_segment_invalidate

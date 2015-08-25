@@ -140,7 +140,10 @@ module LinkedData
           return false
         elsif self.pullLocation
           self.errors[:pullLocation] = ["File at #{self.pullLocation.to_s} does not exist"]
-          return remote_file_exists?(self.pullLocation.to_s)
+          if self.uploadFilePath.nil?
+            return remote_file_exists?(self.pullLocation.to_s)
+          end
+          return true
         end
 
         zip = LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)

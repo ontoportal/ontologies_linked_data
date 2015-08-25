@@ -64,6 +64,9 @@ module LinkedData
                   property: lambda {|x| self.tree_view_property(x) },
                   inverse: { on: :class , :attribute => :parents }
 
+      attribute :subClassOf, namespace: :rdfs,
+                 enforce: [:list, :uri]
+
       attribute :ancestors, namespace: :rdfs, property: :subClassOf, handler: :retrieve_ancestors
 
       attribute :descendants, namespace: :rdfs, property: :subClassOf,
@@ -95,6 +98,7 @@ module LinkedData
               LinkedData::Hypermedia::Link.new("parents", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}/parents"}, self.uri_type),
               LinkedData::Hypermedia::Link.new("descendants", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}/descendants"}, self.uri_type),
               LinkedData::Hypermedia::Link.new("ancestors", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}/ancestors"}, self.uri_type),
+              LinkedData::Hypermedia::Link.new("instances", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}/instances"}, Goo.vocabulary["Instance"]),
               LinkedData::Hypermedia::Link.new("tree", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}/tree"}, self.uri_type),
               LinkedData::Hypermedia::Link.new("notes", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}/notes"}, LinkedData::Models::Note.type_uri),
               LinkedData::Hypermedia::Link.new("mappings", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}/mappings"}, Goo.vocabulary["Mapping"]),
@@ -227,9 +231,8 @@ module LinkedData
 
       def self.partially_load_children(models,threshold,
                                        submission)
-
         ld = [:prefLabel, :definition, :synonym]
-
+        ld << :subClassOf if submission.hasOntologyLanguage.obo?
         single_load = []
         query = self.in(submission)
               .models(models)
@@ -259,7 +262,7 @@ module LinkedData
         if single_load.length > 0
           self.in(submission)
                 .models(single_load)
-                .include(children: [:prefLabel]).all
+                .include(ld << {children: [:prefLabel]}).all
         end
       end
 
@@ -289,9 +292,11 @@ module LinkedData
           items_hash[t.id.to_s] = t
         end
 
+        attrs_to_load = [:prefLabel,:synonym,:obsolete]
+        attrs_to_load << :subClassOf if submission.hasOntologyLanguage.obo?
         self.class.in(submission)
               .models(items_hash.values)
-              .include(:prefLabel,:synonym,:obsolete).all
+              .include(attrs_to_load).all
 
         LinkedData::Models::Class
           .partially_load_children(items_hash.values,threshhold,self.submission)
