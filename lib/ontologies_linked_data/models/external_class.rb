@@ -20,8 +20,12 @@ module LinkedData
       end
 
       def getPrefLabel
-        # take the last part of the URL to generate the prefLabel
-        @prefLabel = id.split("/")[-1]
+        # take the last part of the URL to generate the prefLabel (the one after the last #, or if not after the last /)
+        if id.include? "#"
+          @prefLabel = id.split("#")[-1]
+        else
+          @prefLabel = id.split("/")[-1]
+        end
       end
 
       def self.graph_uri
