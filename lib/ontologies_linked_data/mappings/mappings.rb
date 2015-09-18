@@ -539,6 +539,7 @@ eos
                            "Request contains #{classes.length} classes."
     end
     #first create back up mapping that lives across submissions
+    LinkedData.settings.interportal_hash ||= {}
     backup_mapping = LinkedData::Models::RestBackupMapping.new
     backup_mapping.uuid = UUID.new.generate
     backup_mapping.process = process
