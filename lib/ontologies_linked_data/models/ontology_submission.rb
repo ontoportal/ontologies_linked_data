@@ -59,7 +59,7 @@ module LinkedData
       embed :contact, :ontology
       embed_values :submissionStatus => [:code], :hasOntologyLanguage => [:acronym]
       serialize_default :contact, :ontology, :hasOntologyLanguage, :released, :creationDate, :homepage,
-                        :publication, :documentation, :version, :description, :status, :submissionId
+                        :publication, :documentation, :version, :description, :naturalLanguage, :status, :submissionId
 
       # Links
       links_load :submissionId, ontology: [:acronym]
