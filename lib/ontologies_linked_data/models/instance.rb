@@ -9,9 +9,8 @@ module LinkedData
       attr_accessor :label
       serialize_default :id, :label, :properties
 
-      # HTTP cache settings
-      cache_timeout 86400
-      cache_segment_keys [:instance]
+      # HTTP cache settings.
+      cache_timeout 14400
 
       def initialize(id,label,properties)
         @id = id

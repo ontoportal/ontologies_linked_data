@@ -1,7 +1,7 @@
 GIT
   remote: git://github.com/ncbo/goo.git
-  revision: 22fd8973768c3f21a2bb1e62e8197778656c31cf
-  branch: master
+  revision: d180856010dc43141d27a19c73bcfe3d0b01a11b
+  branch: staging
   specs:
     goo (0.0.2)
       addressable (= 2.3.5)
@@ -29,8 +29,8 @@ GIT
 
 GIT
   remote: git://github.com/ncbo/sparql-client.git
-  revision: 962e5af6615045a437d79fe27a7301df69d31012
-  branch: master
+  revision: ead7d226ff679969cbbb789c33d5660b45d5a521
+  branch: staging
   specs:
     sparql-client (1.0.4.1)
       json_pure (>= 1.4)
@@ -54,18 +54,18 @@ GEM
     docile (1.1.5)
     domain_name (0.5.24)
       unf (>= 0.0.5, < 1.0.0)
-    elasticsearch (1.0.12)
-      elasticsearch-api (= 1.0.12)
-      elasticsearch-transport (= 1.0.12)
-    elasticsearch-api (1.0.12)
+    elasticsearch (1.0.13)
+      elasticsearch-api (= 1.0.13)
+      elasticsearch-transport (= 1.0.13)
+    elasticsearch-api (1.0.13)
       multi_json
-    elasticsearch-transport (1.0.12)
+    elasticsearch-transport (1.0.13)
       faraday
       multi_json
     email_spec (1.6.0)
       launchy (~> 2.1)
       mail (~> 2.2)
-    ethon (0.7.4)
+    ethon (0.8.0)
       ffi (>= 1.3.0)
     faraday (0.9.1)
       multipart-post (>= 1.2, < 3)
@@ -83,17 +83,17 @@ GEM
     mail (2.6.3)
       mime-types (>= 1.16, < 3)
     method_source (0.8.2)
-    mime-types (2.6.1)
+    mime-types (2.6.2)
     minitest (4.7.5)
     multi_json (1.11.2)
     multipart-post (2.0.0)
-    mysql2 (0.3.19)
+    mysql2 (0.4.1)
     net-http-persistent (2.9.4)
     netrc (0.10.3)
-    oj (2.12.11)
+    oj (2.12.14)
     pony (1.11)
       mail (>= 2.0)
-    pry (0.10.1)
+    pry (0.10.2)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
       slop (~> 3.4)
@@ -113,7 +113,7 @@ GEM
       builder (>= 2.1.2)
     ruby-xxHash (0.4.0.1)
     rubyzip (1.1.7)
-    sequel (4.25.0)
+    sequel (4.27.0)
     simplecov (0.10.0)
       docile (~> 1.1.0)
       json (~> 1.8)
@@ -122,8 +122,8 @@ GEM
     slop (3.6.0)
     systemu (2.6.5)
     thread_safe (0.3.5)
-    typhoeus (0.7.2)
-      ethon (>= 0.7.4)
+    typhoeus (0.8.0)
+      ethon (>= 0.8.0)
     tzinfo (0.3.44)
     unf (0.1.4)
       unf_ext

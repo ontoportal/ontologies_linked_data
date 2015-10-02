@@ -46,9 +46,10 @@ module LinkedData
 
       attribute :viewOf, enforce: [:ontology]
       attribute :views, :inverse => { on: :ontology, attribute: :viewOf }
+      attribute :ontologyType, enforce: [:ontology_type], default: lambda { |record| LinkedData::Models::OntologyType.find("ONTOLOGY").include(:code).first }
 
       # Hypermedia settings
-      serialize_default :administeredBy, :acronym, :name, :summaryOnly
+      serialize_default :administeredBy, :acronym, :name, :summaryOnly, :ontologyType
       links_load :acronym
       link_to LinkedData::Hypermedia::Link.new("submissions", lambda {|s| "ontologies/#{s.acronym}/submissions"}, LinkedData::Models::OntologySubmission.uri_type),
               LinkedData::Hypermedia::Link.new("properties", lambda {|s| "ontologies/#{s.acronym}/properties"}, "#{Goo.namespaces[:metadata].to_s}Property"),
