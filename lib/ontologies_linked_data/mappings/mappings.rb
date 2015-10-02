@@ -61,11 +61,13 @@ module Mappings
       if enable_debug
         logger.info("#{i}/#{latest.count} " +
             "Time for #{acro} took #{Time.now - t0} sec. records #{s_total}")
+        logger.flush
       end
       sleep(5)
     end
     if enable_debug
       logger.info("Total time #{Time.now - t} sec.")
+      logger.flush
     end
     return counts
   end
