@@ -21,8 +21,8 @@ gem 'pry', :group => :test
 gem 'email_spec', :group => :test
 
 # NCBO gems (can be from a local dev path or from rubygems/git)
-gem 'goo', github: 'ncbo/goo', branch: 'master'
-gem 'sparql-client', github: 'ncbo/sparql-client', branch: 'master'
+gem 'goo', github: 'ncbo/goo', branch: 'staging'
+gem 'sparql-client', github: 'ncbo/sparql-client', branch: 'staging'
 
 # ResourceIndex dependencies (managed per-platform)
 gem 'ncbo_resource_index', github: 'ncbo/resource_index'

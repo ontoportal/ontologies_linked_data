@@ -180,14 +180,18 @@ eos
     end
     assert count == 1
 
-    sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: "TAO-TEST"]).first
+    sub = LinkedData::Models::OntologySubmission
+        .where(ontology: [acronym: "TAO-TEST"]).first
     n_roots = sub.roots.length
-    assert n_roots == 3 #just 3 with latest modifications.
+    assert n_roots == 4
     #strict comparison to be sure the merge with the tree_view branch goes fine
 
     LinkedData::Models::Class.where.in(sub)
       .include(:prefLabel,:synonym,:notation).each do |cls|
         assert_instance_of String,cls.prefLabel
+        if cls.notation.nil?
+          binding.pry
+        end
         assert_instance_of String,cls.notation
         assert cls.notation[-6..-1] == cls.id.to_s[-6..-1]
         #NCBO-1007 - hasNarrowSynonym
@@ -217,8 +221,10 @@ eos
     assert bm.children.first.id == RDF::URI.new("http://purl.obolibrary.org/obo/GO_0043931")
     assert bm.parents.first.id == RDF::URI.new("http://purl.obolibrary.org/obo/GO_0060348")
     roots = sub.roots
-    assert roots.length == 3
-    assert roots.map { |x| x.id.to_s }.sort == ["http://purl.obolibrary.org/obo/PATO_0000001",
+    assert roots.length == 4
+    assert roots.map { |x| x.id.to_s }.sort ==
+      ["http://purl.obolibrary.org/obo/PATO_0000001",
+      "http://purl.obolibrary.org/obo/PATO_0000014",
       "http://purl.obolibrary.org/obo/CARO_0000000",
       "http://purl.obolibrary.org/obo/GO_0008150"].sort
   end
