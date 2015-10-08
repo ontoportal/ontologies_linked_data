@@ -315,11 +315,49 @@ module LinkedData
           logger.flush
         end
         delete_and_append(triples_file_path, logger, mime_type)
+        extract_metadata()
         version_info = extract_version()
         if version_info
           self.version = version_info
         end
       end
+
+      # Extract metadata about the ontology (omv metadata)
+      def extract_metadata
+        ontology_uri = extract_ontology_uri()
+
+        if self.documentation.nil?
+          query_documentation_info = <<eos
+SELECT ?documentation
+FROM #{self.id.to_ntriples}
+WHERE {
+<#{ontology_uri}> <http://omv.ontoware.org/2005/05/ontology#documentation> ?documentation .
+}
+eos
+          doc = nil
+          Goo.sparql_query_client.query(query_documentation_info).each_solution do |sol|
+            doc = sol[:documentation].to_s
+            break
+          end
+          self.documentation = doc
+        end
+      end
+
+      # Extract the ontology URI to use it to extract ontology metadata
+      def extract_ontology_uri
+        query_get_onto_uri = <<eos
+SELECT DISTINCT ?uri
+FROM #{self.id.to_ntriples}
+WHERE {
+<http://bioportal.bioontology.org/ontologies/versionSubject> <http://omv.ontoware.org/2005/05/ontology#URI> ?uri .
+}
+eos
+        Goo.sparql_query_client.query(query_get_onto_uri).each_solution do |sol|
+          return sol[:uri].to_s
+        end
+        return nil
+      end
+
 
       def extract_version
 
