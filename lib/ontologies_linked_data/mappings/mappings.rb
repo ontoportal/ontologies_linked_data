@@ -532,7 +532,7 @@ eos
     return mapping
   end
 
-  def generate_class_urns(classes)
+  def self.generate_class_urns(classes)
     class_urns = []
     classes.each do |c|
       if c.instance_of?LinkedData::Models::Class
