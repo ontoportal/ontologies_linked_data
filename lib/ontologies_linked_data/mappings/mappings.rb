@@ -532,6 +532,21 @@ eos
     return mapping
   end
 
+  def generate_class_urns(classes)
+    class_urns = []
+    classes.each do |c|
+      if c.instance_of?LinkedData::Models::Class
+        acronym = c.submission.id.to_s.split("/")[-3]
+        class_urns << RDF::URI.new(
+            LinkedData::Models::Class.urn_id(acronym,c.id.to_s))
+      else
+        # Generate classes urns using the source (e.g.: ncbo or ext), the ontology acronym and the class id
+        class_urns << RDF::URI.new("#{c[:source]}:#{c[:ontology]}:#{c[:id]}")
+      end
+    end
+    return class_urns
+  end
+
   def self.create_rest_mapping(classes,process)
     unless process.instance_of? LinkedData::Models::MappingProcess
       raise ArgumentError, "Process should be instance of MappingProcess"
@@ -545,18 +560,7 @@ eos
     backup_mapping = LinkedData::Models::RestBackupMapping.new
     backup_mapping.uuid = UUID.new.generate
     backup_mapping.process = process
-    class_urns = []
-    classes.each do |c|
-      if c.instance_of?LinkedData::Models::Class
-        acronym = c.submission.id.to_s.split("/")[-3]
-        class_urns << RDF::URI.new(
-          LinkedData::Models::Class.urn_id(acronym,c.id.to_s))
-
-      else
-        # Generate classes urns using the source (e.g.: ncbo or ext), the ontology acronym and the class id
-        class_urns << RDF::URI.new("#{c[:source]}:#{c[:ontology]}:#{c[:id]}")
-      end
-    end
+    class_urns = generate_class_urns(classes)
     backup_mapping.class_urns = class_urns
     # Insert backup into 4store
     backup_mapping.save
