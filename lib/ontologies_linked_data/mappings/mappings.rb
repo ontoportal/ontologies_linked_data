@@ -446,6 +446,44 @@ eos
     return mapping
   end
 
+  # A function only used in ncbo_cron. To make sure all triples that link mappings to class are well deleted (use of metadata/def/mappingRest predicate)
+  def self.delete_all_rest_mappings_from_sparql
+    rest_predicate = mapping_predicates()["REST"][0]
+    actual_graph = ""
+    count = 0
+    qmappings = <<-eos
+SELECT DISTINCT ?g ?class_uri ?backup_mapping
+WHERE {
+  GRAPH ?g {
+    ?class_uri <#{rest_predicate}> ?backup_mapping .
+  }
+}
+    eos
+    epr = Goo.sparql_query_client(:main)
+    epr.query(qmappings).each do |sol|
+      if actual_graph == sol[:g].to_s && count < 4000
+        # Trying to delete more than 4995 triples at the same time cause a memory error. So 4000 by 4000. Or until we met a new graph
+        graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
+      else
+        if count == 0
+          graph_delete = RDF::Graph.new
+          graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
+        else
+          Goo.sparql_update_client.delete_data(graph_delete, graph: RDF::URI.new(actual_graph))
+          graph_delete = RDF::Graph.new
+          graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
+        end
+        count = 0
+        actual_graph = sol[:g].to_s
+      end
+      count = count + 1
+    end
+    if count > 0
+      Goo.sparql_update_client.delete_data(graph_delete, graph: RDF::URI.new(actual_graph))
+    end
+  end
+
+
   # A method that generate classes depending on the nature of the mapping : Internal, External or Interportal
   def self.get_mapping_classes(c1, g1, c2, g2, backup)
     external_source = nil
