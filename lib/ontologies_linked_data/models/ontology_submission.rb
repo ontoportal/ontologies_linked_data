@@ -335,18 +335,26 @@ module LinkedData
       # Extract metadata about the ontology (omv metadata)
       def extract_omv_metadata
         ontology_uri = extract_ontology_uri()
-        array_omv_metadata = ["endorsedBy", "designedForOntologyTask", "hasContributor", "hasCreator", "hasDomain"]
-        single_omv_metadata = ["hasFormalityLevel", "hasLicense", "isOfType"]
+        omv_array_metadata = ["endorsedBy", "designedForOntologyTask", "hasContributor", "hasCreator", "hasDomain"]
+        omv_single_metadata = ["hasFormalityLevel", "hasLicense", "isOfType"]
 
-        array_omv_metadata.each do |metadata_name|
+        omv_array_metadata.each do |metadata_name|
           extract_omv_array_metadata(ontology_uri, metadata_name)
         end
 
+        omv_single_metadata.each do |metadata_name|
+          extract_omv_single_metadata(ontology_uri, metadata_name)
+        end
       end
 
+      # A function to extract omv metadata in array
+      # Take the literal data if the property is pointing to a literal
+      # If pointing to an URI: first it takes the omv:name of the object pointed by the property,
+      # if nil it takes the omv:firstName + omv:lastName (for omv:Person)
+      # If not found it check for rdfs:label of this object. And to finish it takes the
       def extract_omv_array_metadata(ontology_uri, metadata_name)
 
-        self.instance_variable_get("@#{metadata_name}").nil?
+        if self.send(metadata_name).nil?
           query_metadata = <<eos
 PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -373,23 +381,70 @@ eos
                 metadata_value = sol[:rdfslabel].to_s
               elsif !sol[:omvfirstname].nil?
                 metadata_value = sol[:omvfirstname].to_s
-              elsif !sol[:omvlastname].nil?
-                if metadata_value != ""
-                  metadata_value = metadata_value + " "
+                if !sol[:omvlastname].nil?
+                  metadata_value = metadata_value + " " + sol[:omvlastname].to_s
                 end
-                metadata_value = metadata_value + sol[:omvlastname].to_s
+              elsif !sol[:omvlastname].nil?
+                metadata_value = sol[:omvlastname].to_s
+              else
+                metadata_value = sol[:metadataUri].to_s
               end
             else
               metadata_value = sol[:metadataUri].to_s
             end
             metadata_values.push(metadata_value)
-
-            self.checkType = sol[:omvname].class.to_s
-
           end
           self.send("#{metadata_name}=", metadata_values)
         end
+      end
 
+      # A function to extract single omv metadata
+      # Take the literal data if the property is pointing to a literal
+      # If pointing to an URI: first it takes the omv:name of the object pointed by the property,
+      # if nil it takes the omv:firstName + omv:lastName (for omv:Person)
+      # If not found it check for rdfs:label of this object. And to finish it takes the
+      def extract_omv_single_metadata(ontology_uri, metadata_name)
+
+        if self.send(metadata_name).nil?
+          query_metadata = <<eos
+PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?metadataUri ?omvname ?omvfirstname ?omvlastname ?rdfslabel
+FROM #{self.id.to_ntriples}
+WHERE {
+<#{ontology_uri}> omv:#{metadata_name} ?metadataUri .
+OPTIONAL { ?metadataUri omv:name ?omvname } .
+OPTIONAL { ?metadataUri omv:firstName ?omvfirstname } .
+OPTIONAL { ?metadataUri omv:lastName ?omvlastname } .
+OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
+}
+eos
+          Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
+            metadata_value = ""
+            if sol[:metadataUri].is_a?(RDF::URI)
+              if !sol[:omvname].nil?
+                metadata_value = sol[:omvname].to_s
+              elsif !sol[:rdfslabel].nil?
+                metadata_value = sol[:rdfslabel].to_s
+              elsif !sol[:omvfirstname].nil?
+                metadata_value = sol[:omvfirstname].to_s
+                if !sol[:omvlastname].nil?
+                  metadata_value = metadata_value + " " + sol[:omvlastname].to_s
+                end
+              elsif !sol[:omvlastname].nil?
+                metadata_value = sol[:omvlastname].to_s
+              else
+                metadata_value = sol[:metadataUri].to_s
+              end
+            else
+              metadata_value = sol[:metadataUri].to_s
+            end
+            break
+          end
+          self.send("#{metadata_name}=", metadata_value)
+        end
       end
 
       # Extract the ontology URI to use it to extract ontology metadata
