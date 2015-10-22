@@ -354,7 +354,7 @@ module LinkedData
       # If not found it check for rdfs:label of this object. And to finish it takes the
       def extract_omv_array_metadata(ontology_uri, metadata_name)
 
-        if self.send(metadata_name).nil?
+        if !self.send(metadata_name).any?
           query_metadata = <<eos
 PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -441,9 +441,9 @@ eos
             else
               metadata_value = sol[:metadataUri].to_s
             end
+            self.send("#{metadata_name}=", metadata_value)
             break
           end
-          self.send("#{metadata_name}=", metadata_value)
         end
       end
 
