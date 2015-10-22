@@ -39,6 +39,16 @@ module LinkedData
       attribute :contact, enforce: [:existence, :contact, :list]
       attribute :released, enforce: [:date_time, :existence]
 
+      # Complementary omv metadata
+      attribute :endorsedBy, namespace: :omv, enforce: [:list]
+      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list]
+      attribute :hasContributor, namespace: :omv, enforce: [:list]
+      attribute :hasCreator, namespace: :omv, enforce: [:list]
+      attribute :hasDomain, namespace: :omv, enforce: [:list]
+      attribute :hasFormalityLevel, namespace: :omv
+      attribute :hasLicense, namespace: :omv
+      attribute :isOfType, namespace: :omv
+
       # Internal values for parsing - not definitive
       attribute :uploadFilePath
       attribute :diffFilePath
@@ -315,7 +325,7 @@ module LinkedData
           logger.flush
         end
         delete_and_append(triples_file_path, logger, mime_type)
-        extract_metadata()
+        extract_omv_metadata()
         version_info = extract_version()
         if version_info
           self.version = version_info
@@ -323,24 +333,63 @@ module LinkedData
       end
 
       # Extract metadata about the ontology (omv metadata)
-      def extract_metadata
+      def extract_omv_metadata
         ontology_uri = extract_ontology_uri()
+        array_omv_metadata = ["endorsedBy", "designedForOntologyTask", "hasContributor", "hasCreator", "hasDomain"]
+        single_omv_metadata = ["hasFormalityLevel", "hasLicense", "isOfType"]
 
-        if self.documentation.nil?
-          query_documentation_info = <<eos
-SELECT ?documentation
+        array_omv_metadata.each do |metadata_name|
+          extract_omv_array_metadata(ontology_uri, metadata_name)
+        end
+
+      end
+
+      def extract_omv_array_metadata(ontology_uri, metadata_name)
+
+        self.instance_variable_get("@#{metadata_name}").nil?
+          query_metadata = <<eos
+PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?metadataUri ?omvname ?omvfirstname ?omvlastname ?rdfslabel
 FROM #{self.id.to_ntriples}
 WHERE {
-<#{ontology_uri}> <http://omv.ontoware.org/2005/05/ontology#documentation> ?documentation .
+<#{ontology_uri}> omv:#{metadata_name} ?metadataUri .
+OPTIONAL { ?metadataUri omv:name ?omvname } .
+OPTIONAL { ?metadataUri omv:firstName ?omvfirstname } .
+OPTIONAL { ?metadataUri omv:lastName ?omvlastname } .
+OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
 }
 eos
-          doc = nil
-          Goo.sparql_query_client.query(query_documentation_info).each_solution do |sol|
-            doc = sol[:documentation].to_s
-            break
+          metadata_values = []
+
+          Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
+            metadata_value = ""
+            if sol[:metadataUri].is_a?(RDF::URI)
+              if !sol[:omvname].nil?
+                metadata_value = sol[:omvname].to_s
+              elsif !sol[:rdfslabel].nil?
+                metadata_value = sol[:rdfslabel].to_s
+              elsif !sol[:omvfirstname].nil?
+                metadata_value = sol[:omvfirstname].to_s
+              elsif !sol[:omvlastname].nil?
+                if metadata_value != ""
+                  metadata_value = metadata_value + " "
+                end
+                metadata_value = metadata_value + sol[:omvlastname].to_s
+              end
+            else
+              metadata_value = sol[:metadataUri].to_s
+            end
+            metadata_values.push(metadata_value)
+
+            self.checkType = sol[:omvname].class.to_s
+
           end
-          self.documentation = doc
+          self.send("#{metadata_name}=", metadata_values)
         end
+
       end
 
       # Extract the ontology URI to use it to extract ontology metadata
