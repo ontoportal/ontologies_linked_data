@@ -356,6 +356,43 @@ module LinkedData
         end
       end
 
+      # Return a hash with the best literal value for an URI
+      # it selects the literal according to their language language : no language > english > french > other languages
+      def select_metadata_literal(metadata_uri, metadata_literal, hash)
+        if metadata_literal.is_a?(RDF::Literal)
+          if hash.has_key?(metadata_uri)
+            if metadata_literal.has_language?
+              if !hash[metadata_uri].has_language?
+                return hash
+              else
+                if metadata_literal.language == :en || metadata_literal.language == :eng
+                  # Take the value with english language over other languages
+                  hash[metadata_uri] = metadata_literal
+                  return hash
+                elsif metadata_literal.language == :fr || metadata_literal.language == :fre
+                  # If no english, take french
+                  if hash[metadata_uri].language == :en || hash[metadata_uri].language == :eng
+                    return hash
+                  else
+                    hash[metadata_uri] = metadata_literal
+                    return hash
+                  end
+                else
+                  return hash
+                end
+              end
+            else
+              # Take the value with no language in priority (considered as a default)
+              hash[metadata_uri] = metadata_literal
+              return hash
+            end
+          else
+            hash[metadata_uri] = metadata_literal
+            return hash
+          end
+        end
+      end
+
       # A function to extract omv metadata in array
       # Take the literal data if the property is pointing to a literal
       # If pointing to an URI: first it takes the omv:name of the object pointed by the property,
@@ -372,36 +409,37 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT DISTINCT ?metadataUri ?omvname ?omvfirstname ?omvlastname ?rdfslabel
 FROM #{self.id.to_ntriples}
 WHERE {
-<#{ontology_uri}> omv:#{metadata_name} ?metadataUri .
-OPTIONAL { ?metadataUri omv:name ?omvname } .
-OPTIONAL { ?metadataUri omv:firstName ?omvfirstname } .
-OPTIONAL { ?metadataUri omv:lastName ?omvlastname } .
-OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
+  <#{ontology_uri}> omv:#{metadata_name} ?metadataUri .
+  OPTIONAL { ?metadataUri omv:name ?omvname } .
+  OPTIONAL { ?metadataUri omv:firstName ?omvfirstname } .
+  OPTIONAL { ?metadataUri omv:lastName ?omvlastname } .
+  OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
 }
 eos
-          metadata_values = []
-
+          hash_results = {}
           Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
-            metadata_value = ""
             if sol[:metadataUri].is_a?(RDF::URI)
               if !sol[:omvname].nil?
-                metadata_value = sol[:omvname].to_s
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvname], hash_results)
               elsif !sol[:rdfslabel].nil?
-                metadata_value = sol[:rdfslabel].to_s
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:rdfslabel], hash_results)
               elsif !sol[:omvfirstname].nil?
-                metadata_value = sol[:omvfirstname].to_s
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvfirstname], hash_results)
                 if !sol[:omvlastname].nil?
-                  metadata_value = metadata_value + " " + sol[:omvlastname].to_s
+                  hash_results[sol[:metadataUri]] = hash_results[sol[:metadataUri]].to_s + " " + sol[:omvlastname].to_s
                 end
               elsif !sol[:omvlastname].nil?
-                metadata_value = sol[:omvlastname].to_s
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvlastname], hash_results)
               else
-                metadata_value = sol[:metadataUri].to_s
+                hash_results[sol[:metadataUri]] = sol[:metadataUri]
               end
             else
-              metadata_value = sol[:metadataUri].to_s
+              hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
             end
-            metadata_values.push(metadata_value)
+          end
+          metadata_values = []
+          hash_results.each do |k,v|
+            metadata_values.push(v)
           end
           self.send("#{metadata_name}=", metadata_values)
         end
@@ -430,28 +468,32 @@ OPTIONAL { ?metadataUri omv:lastName ?omvlastname } .
 OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
 }
 eos
+          hash_results = {}
           Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
-            metadata_value = ""
             if sol[:metadataUri].is_a?(RDF::URI)
               if !sol[:omvname].nil?
-                metadata_value = sol[:omvname].to_s
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvname], hash_results)
               elsif !sol[:rdfslabel].nil?
-                metadata_value = sol[:rdfslabel].to_s
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:rdfslabel], hash_results)
               elsif !sol[:omvfirstname].nil?
-                metadata_value = sol[:omvfirstname].to_s
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvfirstname], hash_results)
                 if !sol[:omvlastname].nil?
-                  metadata_value = metadata_value + " " + sol[:omvlastname].to_s
+                  hash_results[sol[:metadataUri]] = hash_results[sol[:metadataUri]].to_s + " " + sol[:omvlastname].to_s
                 end
               elsif !sol[:omvlastname].nil?
-                metadata_value = sol[:omvlastname].to_s
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvlastname], hash_results)
               else
-                metadata_value = sol[:metadataUri].to_s
+                hash_results[sol[:metadataUri]] = sol[:metadataUri]
               end
             else
-              metadata_value = sol[:metadataUri].to_s
+              hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
             end
-            self.send("#{metadata_name}=", metadata_value)
-            break
+          end
+          if hash_results.length == 1
+            # If multiple value for a metadata that should have a single value : not taking any value.
+            hash_results.each do |k,v|
+              self.send("#{metadata_name}=", v)
+            end
           end
         end
       end
