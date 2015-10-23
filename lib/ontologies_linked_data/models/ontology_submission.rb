@@ -45,9 +45,19 @@ module LinkedData
       attribute :hasContributor, namespace: :omv, enforce: [:list]
       attribute :hasCreator, namespace: :omv, enforce: [:list]
       attribute :hasDomain, namespace: :omv, enforce: [:list]
+      attribute :usedImports, namespace: :omv, enforce: [:list]
+      attribute :keyClasses, namespace: :omv, enforce: [:list]
+      attribute :keywords, namespace: :omv, enforce: [:list]
+      attribute :knowUsage, namespace: :omv, enforce: [:list]
       attribute :hasFormalityLevel, namespace: :omv
       attribute :hasLicense, namespace: :omv
+      attribute :usedKnowledgeRepresentationParadigm, namespace: :omv
+      attribute :usedOntologyEngineeringMethodology, namespace: :omv
+      attribute :usedOntologyEngineeringTool, namespace: :omv
       attribute :isOfType, namespace: :omv
+      attribute :modificationDate, namespace: :omv
+      attribute :notes, namespace: :omv
+      attribute :URI, namespace: :omv
 
       # Internal values for parsing - not definitive
       attribute :uploadFilePath
@@ -335,9 +345,8 @@ module LinkedData
       # Extract metadata about the ontology (omv metadata)
       def extract_omv_metadata
         ontology_uri = extract_ontology_uri()
-        omv_array_metadata = ["endorsedBy", "designedForOntologyTask", "hasContributor", "hasCreator", "hasDomain"]
-        omv_single_metadata = ["hasFormalityLevel", "hasLicense", "isOfType"]
-
+        omv_array_metadata = ["endorsedBy", "designedForOntologyTask", "hasContributor", "hasCreator", "hasDomain", "usedImports", "keyClasses", "keywords", "knowUsage"]
+        omv_single_metadata = ["hasFormalityLevel", "hasLicense", "isOfType", "usedOntologyEngineeringTool", "usedOntologyEngineeringMethodology", "usedKnowledgeRepresentationParadigm", "modificationDate", "notes", "URI"]
         omv_array_metadata.each do |metadata_name|
           extract_omv_array_metadata(ontology_uri, metadata_name)
         end
