@@ -53,7 +53,7 @@ module LinkedData
       attribute :homepage
       attribute :publication
       attribute :uri, namespace: :omv
-      attribute :naturalLanguage, namespace: :omv
+      attribute :naturalLanguage, namespace: :omv, enforce: [:list]
       attribute :documentation, namespace: :omv
       attribute :version, namespace: :omv
       attribute :creationDate, namespace: :omv, enforce: [:date_time], default: lambda { |record| DateTime.now }
@@ -495,6 +495,7 @@ PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX void: <http://rdfs.org/ns/void#>
+PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
 
 SELECT DISTINCT ?metadataUri ?rdfslabel ?dctitle
 FROM #{self.id.to_ntriples}
@@ -596,6 +597,7 @@ PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX void: <http://rdfs.org/ns/void#>
+PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
 
 SELECT DISTINCT ?metadataUri ?rdfslabel ?dctitle
 FROM #{self.id.to_ntriples}
