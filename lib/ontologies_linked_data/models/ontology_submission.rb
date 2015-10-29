@@ -13,6 +13,7 @@ module LinkedData
       FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
 
       OMV_ARRAY_METADATA = {"endorsedBy" => [],
+                            "naturalLanguage" => ["dcterms:language"],
                             "designedForOntologyTask" => [],
                             "hasContributor" => ["dcterms:contributor"],
                             "hasCreator" => ["dcterms:creator"],
@@ -23,7 +24,6 @@ module LinkedData
                             "knowUsage" => []}
 
       OMV_SINGLE_METADATA = {"documentation" => [],
-                             "naturalLanguage" => ["dcterms:language"],
                              "description" => ["dcterms:description"],
                              "hasFormalityLevel" => [],
                              "hasLicense" => ["dcterms:rights"],
