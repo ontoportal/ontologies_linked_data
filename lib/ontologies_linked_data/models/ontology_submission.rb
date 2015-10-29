@@ -358,7 +358,12 @@ module LinkedData
           logger.flush
         end
         delete_and_append(triples_file_path, logger, mime_type)
-        extract_omv_metadata()
+        begin
+          extract_omv_metadata()
+          logger.info("OMV metadata extracted.")
+        rescue => e
+          logger.error("Error while extracting omv metadata: #{e}")
+        end
         version_info = extract_version()
         if version_info
           self.version = version_info
