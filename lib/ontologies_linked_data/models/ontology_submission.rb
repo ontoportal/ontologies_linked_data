@@ -14,8 +14,8 @@ module LinkedData
 
       OMV_ARRAY_METADATA = {"endorsedBy" => [],
                             "designedForOntologyTask" => [],
-                            "hasContributor" => ["dc:contributor"],
-                            "hasCreator" => ["dc:creator"],
+                            "hasContributor" => ["dcterms:contributor"],
+                            "hasCreator" => ["dcterms:creator"],
                             "hasDomain" => [],
                             "usedImports" => [],
                             "keyClasses" => [],
@@ -23,17 +23,17 @@ module LinkedData
                             "knowUsage" => []}
 
       OMV_SINGLE_METADATA = {"documentation" => [],
-                             "naturalLanguage" => ["dc:language"],
-                             "description" => ["dc:description"],
+                             "naturalLanguage" => ["dcterms:language"],
+                             "description" => ["dcterms:description"],
                              "hasFormalityLevel" => [],
-                             "hasLicense" => ["dc:rights"],
+                             "hasLicense" => ["dcterms:rights"],
                              "isOfType" => [],
                              "usedOntologyEngineeringTool" => [],
                              "usedOntologyEngineeringMethodology" => [],
                              "usedKnowledgeRepresentationParadigm" => [],
                              "modificationDate" => [],
                              "notes" => [],
-                             "URI" => ["dc:identifier"]}
+                             "URI" => ["dcterms:identifier"]}
 
       model :ontology_submission, name_with: lambda { |s| submission_id_generator(s) }
       attribute :submissionId, enforce: [:integer, :existence]
