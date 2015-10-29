@@ -369,14 +369,17 @@ module LinkedData
       def extract_omv_metadata
         ontology_uri = extract_ontology_uri()
 
-        OMV_ARRAY_METADATA.each do |k,v|
-          extract_omv_array_metadata(ontology_uri, k)
+        OMV_ARRAY_METADATA.each do |omv_metadata,mapped|
+          extract_omv_array_metadata(ontology_uri, omv_metadata)
+          mapped.each do |mapped_metadata|
+            extract_mapped_array_metadata(ontology_uri, omv_metadata, mapped_metadata)
+          end
           #TODO: function extract_mapped_array_metadata
         end
 
-        OMV_SINGLE_METADATA.each do |k,v|
-          extract_omv_single_metadata(ontology_uri, k)
-          #TODO: function extract_mapped_single_metadata
+        OMV_SINGLE_METADATA.each do |omv_metadata,mapped|
+          extract_omv_single_metadata(ontology_uri, omv_metadata)
+          #TODO: function extract_mapped_single_metadata : si metadata vide
         end
       end
 
@@ -470,6 +473,52 @@ eos
           end
           self.send("#{metadata_name}=", metadata_values)
         end
+      end
+
+
+      # A function to extract metadata (in array) mapped to omv metadata
+      # Take the literal data if the property is pointing to a literal
+      # If pointing to an URI: first it takes the omv:name of the object pointed by the property,
+      # If not found it check for rdfs:label of this object. And to finish it takes the URI
+      def extract_mapped_array_metadata(ontology_uri, metadata_name, mapped_metadata)
+
+        query_metadata = <<eos
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX void: <http://rdfs.org/ns/void#>
+
+SELECT DISTINCT ?metadataUri ?rdfslabel ?dctitle
+FROM #{self.id.to_ntriples}
+WHERE {
+  <#{ontology_uri}> #{mapped_metadata} ?metadataUri .
+  OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
+  OPTIONAL { ?metadataUri dc:title ?dctitle } .
+}
+eos
+        # This hash will contain the "literal" metadata for each object of metadata predicate
+        hash_results = {}
+        Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
+          if sol[:metadataUri].is_a?(RDF::URI)
+            if !sol[:rdfslabel].nil?
+              hash_results = select_metadata_literal(sol[:metadataUri],sol[:rdfslabel], hash_results)
+            elsif !sol[:dctitle].nil?
+              hash_results = select_metadata_literal(sol[:metadataUri],sol[:dctitle], hash_results)
+            else
+              hash_results[sol[:metadataUri]] = sol[:metadataUri].to_s
+            end
+          else
+            hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
+          end
+        end
+        metadata_values = self.send(metadata_name)
+        hash_results.each do |k,v|
+          metadata_values.push(v)
+        end
+        self.send("#{metadata_name}=", metadata_values)
       end
 
       # A function to extract single omv metadata
