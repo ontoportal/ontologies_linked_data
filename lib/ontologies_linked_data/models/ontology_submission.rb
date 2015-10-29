@@ -347,6 +347,7 @@ module LinkedData
         ontology_uri = extract_ontology_uri()
         omv_array_metadata = ["endorsedBy", "designedForOntologyTask", "hasContributor", "hasCreator", "hasDomain", "usedImports", "keyClasses", "keywords", "knowUsage"]
         omv_single_metadata = ["hasFormalityLevel", "hasLicense", "isOfType", "usedOntologyEngineeringTool", "usedOntologyEngineeringMethodology", "usedKnowledgeRepresentationParadigm", "modificationDate", "notes", "URI"]
+
         omv_array_metadata.each do |metadata_name|
           extract_omv_array_metadata(ontology_uri, metadata_name)
         end
@@ -357,7 +358,7 @@ module LinkedData
       end
 
       # Return a hash with the best literal value for an URI
-      # it selects the literal according to their language language : no language > english > french > other languages
+      # it selects the literal according to their language: no language > english > french > other languages
       def select_metadata_literal(metadata_uri, metadata_literal, hash)
         if metadata_literal.is_a?(RDF::Literal)
           if hash.has_key?(metadata_uri)
@@ -397,7 +398,7 @@ module LinkedData
       # Take the literal data if the property is pointing to a literal
       # If pointing to an URI: first it takes the omv:name of the object pointed by the property,
       # if nil it takes the omv:firstName + omv:lastName (for omv:Person)
-      # If not found it check for rdfs:label of this object. And to finish it takes the
+      # If not found it check for rdfs:label of this object. And to finish it takes the URI
       def extract_omv_array_metadata(ontology_uri, metadata_name)
 
         if !self.send(metadata_name).any?
@@ -416,6 +417,7 @@ WHERE {
   OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
 }
 eos
+          # This hash will contain the "literal" metadata for each object of metadata predicate
           hash_results = {}
           Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
             if sol[:metadataUri].is_a?(RDF::URI)
@@ -425,13 +427,15 @@ eos
                 hash_results = select_metadata_literal(sol[:metadataUri],sol[:rdfslabel], hash_results)
               elsif !sol[:omvfirstname].nil?
                 hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvfirstname], hash_results)
+                # if first and last name are defined (for omv:Person)
                 if !sol[:omvlastname].nil?
                   hash_results[sol[:metadataUri]] = hash_results[sol[:metadataUri]].to_s + " " + sol[:omvlastname].to_s
                 end
               elsif !sol[:omvlastname].nil?
+                # if only last name is defined
                 hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvlastname], hash_results)
               else
-                hash_results[sol[:metadataUri]] = sol[:metadataUri]
+                hash_results[sol[:metadataUri]] = sol[:metadataUri].to_s
               end
             else
               hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
