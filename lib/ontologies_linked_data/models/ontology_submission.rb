@@ -12,6 +12,29 @@ module LinkedData
 
       FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
 
+      OMV_ARRAY_METADATA = {"endorsedBy" => [],
+                            "designedForOntologyTask" => [],
+                            "hasContributor" => ["dc:contributor"],
+                            "hasCreator" => ["dc:creator"],
+                            "hasDomain" => [],
+                            "usedImports" => [],
+                            "keyClasses" => [],
+                            "keywords" => [],
+                            "knowUsage" => []}
+
+      OMV_SINGLE_METADATA = {"documentation" => [],
+                             "naturalLanguage" => ["dc:language"],
+                             "description" => ["dc:description"],
+                             "hasFormalityLevel" => [],
+                             "hasLicense" => ["dc:rights"],
+                             "isOfType" => [],
+                             "usedOntologyEngineeringTool" => [],
+                             "usedOntologyEngineeringMethodology" => [],
+                             "usedKnowledgeRepresentationParadigm" => [],
+                             "modificationDate" => [],
+                             "notes" => [],
+                             "URI" => ["dc:identifier"]}
+
       model :ontology_submission, name_with: lambda { |s| submission_id_generator(s) }
       attribute :submissionId, enforce: [:integer, :existence]
 
@@ -345,15 +368,15 @@ module LinkedData
       # Extract metadata about the ontology (omv metadata)
       def extract_omv_metadata
         ontology_uri = extract_ontology_uri()
-        omv_array_metadata = ["endorsedBy", "designedForOntologyTask", "hasContributor", "hasCreator", "hasDomain", "usedImports", "keyClasses", "keywords", "knowUsage"]
-        omv_single_metadata = ["hasFormalityLevel", "hasLicense", "isOfType", "usedOntologyEngineeringTool", "usedOntologyEngineeringMethodology", "usedKnowledgeRepresentationParadigm", "modificationDate", "notes", "URI"]
 
-        omv_array_metadata.each do |metadata_name|
-          extract_omv_array_metadata(ontology_uri, metadata_name)
+        OMV_ARRAY_METADATA.each do |k,v|
+          extract_omv_array_metadata(ontology_uri, k)
+          #TODO: function extract_mapped_array_metadata
         end
 
-        omv_single_metadata.each do |metadata_name|
-          extract_omv_single_metadata(ontology_uri, metadata_name)
+        OMV_SINGLE_METADATA.each do |k,v|
+          extract_omv_single_metadata(ontology_uri, k)
+          #TODO: function extract_mapped_single_metadata
         end
       end
 
