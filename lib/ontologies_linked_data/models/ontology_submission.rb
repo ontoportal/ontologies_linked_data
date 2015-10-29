@@ -572,11 +572,10 @@ eos
               hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
             end
           end
-          if hash_results.length == 1
-            # If multiple value for a metadata that should have a single value : not taking any value.
-            hash_results.each do |k,v|
-              self.send("#{metadata_name}=", v)
-            end
+          # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
+          hash_results.each do |k,v|
+            self.send("#{metadata_name}=", v)
+            break
           end
         end
       end
