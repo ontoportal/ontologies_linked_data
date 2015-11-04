@@ -12,6 +12,29 @@ module LinkedData
 
       FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
 
+      OMV_ARRAY_METADATA = {"endorsedBy" => [],
+                            "naturalLanguage" => ["dcterms:language"],
+                            "designedForOntologyTask" => [],
+                            "hasContributor" => ["dcterms:contributor"],
+                            "hasCreator" => ["dcterms:creator"],
+                            "hasDomain" => [],
+                            "usedImports" => [],
+                            "keyClasses" => [],
+                            "keywords" => [],
+                            "knowUsage" => []}
+
+      OMV_SINGLE_METADATA = {"documentation" => [],
+                             "description" => ["dcterms:description"],
+                             "hasFormalityLevel" => [],
+                             "hasLicense" => ["dcterms:rights"],
+                             "isOfType" => [],
+                             "usedOntologyEngineeringTool" => [],
+                             "usedOntologyEngineeringMethodology" => [],
+                             "usedKnowledgeRepresentationParadigm" => [],
+                             "modificationDate" => [],
+                             "notes" => [],
+                             "URI" => ["dcterms:identifier"]}
+
       model :ontology_submission, name_with: lambda { |s| submission_id_generator(s) }
       attribute :submissionId, enforce: [:integer, :existence]
 
@@ -30,7 +53,7 @@ module LinkedData
       attribute :homepage
       attribute :publication
       attribute :uri, namespace: :omv
-      attribute :naturalLanguage, namespace: :omv
+      attribute :naturalLanguage, namespace: :omv, enforce: [:list]
       attribute :documentation, namespace: :omv
       attribute :version, namespace: :omv
       attribute :creationDate, namespace: :omv, enforce: [:date_time], default: lambda { |record| DateTime.now }
@@ -38,6 +61,26 @@ module LinkedData
       attribute :status, namespace: :omv
       attribute :contact, enforce: [:existence, :contact, :list]
       attribute :released, enforce: [:date_time, :existence]
+
+      # Complementary omv metadata
+      attribute :endorsedBy, namespace: :omv, enforce: [:list]
+      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list]
+      attribute :hasContributor, namespace: :omv, enforce: [:list]
+      attribute :hasCreator, namespace: :omv, enforce: [:list]
+      attribute :hasDomain, namespace: :omv, enforce: [:list]
+      attribute :usedImports, namespace: :omv, enforce: [:list]
+      attribute :keyClasses, namespace: :omv, enforce: [:list]
+      attribute :keywords, namespace: :omv, enforce: [:list]
+      attribute :knowUsage, namespace: :omv, enforce: [:list]
+      attribute :hasFormalityLevel, namespace: :omv
+      attribute :hasLicense, namespace: :omv
+      attribute :usedKnowledgeRepresentationParadigm, namespace: :omv
+      attribute :usedOntologyEngineeringMethodology, namespace: :omv
+      attribute :usedOntologyEngineeringTool, namespace: :omv
+      attribute :isOfType, namespace: :omv
+      attribute :modificationDate, namespace: :omv
+      attribute :notes, namespace: :omv
+      attribute :URI, namespace: :omv
 
       # Internal values for parsing - not definitive
       attribute :uploadFilePath
@@ -59,7 +102,7 @@ module LinkedData
       embed :contact, :ontology
       embed_values :submissionStatus => [:code], :hasOntologyLanguage => [:acronym]
       serialize_default :contact, :ontology, :hasOntologyLanguage, :released, :creationDate, :homepage,
-                        :publication, :documentation, :version, :description, :status, :submissionId
+                        :publication, :documentation, :version, :description, :naturalLanguage, :status, :submissionId
 
       # Links
       links_load :submissionId, ontology: [:acronym]
@@ -315,11 +358,292 @@ module LinkedData
           logger.flush
         end
         delete_and_append(triples_file_path, logger, mime_type)
+        begin
+          extract_omv_metadata()
+          logger.info("OMV metadata extracted.")
+        rescue => e
+          logger.error("Error while extracting omv metadata: #{e}")
+        end
         version_info = extract_version()
         if version_info
           self.version = version_info
         end
       end
+
+      # Extract metadata about the ontology (omv metadata)
+      def extract_omv_metadata
+        ontology_uri = extract_ontology_uri()
+
+        OMV_ARRAY_METADATA.each do |omv_metadata,mapped|
+          extract_omv_array_metadata(ontology_uri, omv_metadata)
+          mapped.each do |mapped_metadata|
+            extract_mapped_array_metadata(ontology_uri, omv_metadata, mapped_metadata)
+          end
+        end
+
+        OMV_SINGLE_METADATA.each do |omv_metadata,mapped|
+          extract_omv_single_metadata(ontology_uri, omv_metadata)
+          mapped.each do |mapped_metadata|
+            extract_mapped_single_metadata(ontology_uri, omv_metadata, mapped_metadata)
+          end
+        end
+      end
+
+      # Return a hash with the best literal value for an URI
+      # it selects the literal according to their language: no language > english > french > other languages
+      def select_metadata_literal(metadata_uri, metadata_literal, hash)
+        if metadata_literal.is_a?(RDF::Literal)
+          if hash.has_key?(metadata_uri)
+            if metadata_literal.has_language?
+              if !hash[metadata_uri].has_language?
+                return hash
+              else
+                if metadata_literal.language == :en || metadata_literal.language == :eng
+                  # Take the value with english language over other languages
+                  hash[metadata_uri] = metadata_literal
+                  return hash
+                elsif metadata_literal.language == :fr || metadata_literal.language == :fre
+                  # If no english, take french
+                  if hash[metadata_uri].language == :en || hash[metadata_uri].language == :eng
+                    return hash
+                  else
+                    hash[metadata_uri] = metadata_literal
+                    return hash
+                  end
+                else
+                  return hash
+                end
+              end
+            else
+              # Take the value with no language in priority (considered as a default)
+              hash[metadata_uri] = metadata_literal
+              return hash
+            end
+          else
+            hash[metadata_uri] = metadata_literal
+            return hash
+          end
+        end
+      end
+
+
+      # A function to extract omv metadata in array
+      # Take the literal data if the property is pointing to a literal
+      # If pointing to an URI: first it takes the omv:name of the object pointed by the property,
+      # if nil it takes the omv:firstName + omv:lastName (for omv:Person)
+      # If not found it check for rdfs:label of this object. And to finish it takes the URI
+      def extract_omv_array_metadata(ontology_uri, metadata_name)
+
+        query_metadata = <<eos
+PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?metadataUri ?omvname ?omvfirstname ?omvlastname ?rdfslabel
+FROM #{self.id.to_ntriples}
+WHERE {
+  <#{ontology_uri}> omv:#{metadata_name} ?metadataUri .
+  OPTIONAL { ?metadataUri omv:name ?omvname } .
+  OPTIONAL { ?metadataUri omv:firstName ?omvfirstname } .
+  OPTIONAL { ?metadataUri omv:lastName ?omvlastname } .
+  OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
+}
+eos
+        # This hash will contain the "literal" metadata for each object of metadata predicate
+        hash_results = {}
+        Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
+          if sol[:metadataUri].is_a?(RDF::URI)
+            if !sol[:omvname].nil?
+              hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvname], hash_results)
+            elsif !sol[:rdfslabel].nil?
+              hash_results = select_metadata_literal(sol[:metadataUri],sol[:rdfslabel], hash_results)
+            elsif !sol[:omvfirstname].nil?
+              hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvfirstname], hash_results)
+              # if first and last name are defined (for omv:Person)
+              if !sol[:omvlastname].nil?
+                hash_results[sol[:metadataUri]] = hash_results[sol[:metadataUri]].to_s + " " + sol[:omvlastname].to_s
+              end
+            elsif !sol[:omvlastname].nil?
+              # if only last name is defined
+              hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvlastname], hash_results)
+            else
+              hash_results[sol[:metadataUri]] = sol[:metadataUri].to_s
+            end
+          else
+            hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
+          end
+        end
+        metadata_values = self.send(metadata_name).dup
+        hash_results.each do |k,v|
+          metadata_values.push(v)
+        end
+        self.send("#{metadata_name}=", metadata_values)
+      end
+
+
+      # A function to extract metadata (in array) mapped to omv metadata
+      # Take the literal data if the property is pointing to a literal
+      # If pointing to an URI: first it takes the omv:name of the object pointed by the property,
+      # If not found it check for rdfs:label of this object. And to finish it takes the URI
+      def extract_mapped_array_metadata(ontology_uri, metadata_name, mapped_metadata)
+
+        query_metadata = <<eos
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX void: <http://rdfs.org/ns/void#>
+PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
+
+SELECT DISTINCT ?metadataUri ?rdfslabel ?dctitle
+FROM #{self.id.to_ntriples}
+WHERE {
+  <#{ontology_uri}> #{mapped_metadata} ?metadataUri .
+  OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
+  OPTIONAL { ?metadataUri dc:title ?dctitle } .
+}
+eos
+        # This hash will contain the "literal" metadata for each object of metadata predicate
+        hash_results = {}
+        Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
+          if sol[:metadataUri].is_a?(RDF::URI)
+            if !sol[:rdfslabel].nil?
+              hash_results = select_metadata_literal(sol[:metadataUri],sol[:rdfslabel], hash_results)
+            elsif !sol[:dctitle].nil?
+              hash_results = select_metadata_literal(sol[:metadataUri],sol[:dctitle], hash_results)
+            else
+              hash_results[sol[:metadataUri]] = sol[:metadataUri].to_s
+            end
+          else
+            hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
+          end
+        end
+        metadata_values = self.send(metadata_name).dup
+        hash_results.each do |k,v|
+          metadata_values.push(v)
+        end
+        self.send("#{metadata_name}=", metadata_values)
+      end
+
+
+      # A function to extract single omv metadata
+      # Take the literal data if the property is pointing to a literal
+      # If pointing to an URI: first it takes the omv:name of the object pointed by the property,
+      # if nil it takes the omv:firstName + omv:lastName (for omv:Person)
+      # If not found it check for rdfs:label of this object. And to finish it takes the
+      def extract_omv_single_metadata(ontology_uri, metadata_name)
+
+        if self.send(metadata_name).nil?
+          query_metadata = <<eos
+PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT DISTINCT ?metadataUri ?omvname ?omvfirstname ?omvlastname ?rdfslabel
+FROM #{self.id.to_ntriples}
+WHERE {
+<#{ontology_uri}> omv:#{metadata_name} ?metadataUri .
+OPTIONAL { ?metadataUri omv:name ?omvname } .
+OPTIONAL { ?metadataUri omv:firstName ?omvfirstname } .
+OPTIONAL { ?metadataUri omv:lastName ?omvlastname } .
+OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
+}
+eos
+          hash_results = {}
+          Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
+            if sol[:metadataUri].is_a?(RDF::URI)
+              if !sol[:omvname].nil?
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvname], hash_results)
+              elsif !sol[:rdfslabel].nil?
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:rdfslabel], hash_results)
+              elsif !sol[:omvfirstname].nil?
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvfirstname], hash_results)
+                if !sol[:omvlastname].nil?
+                  hash_results[sol[:metadataUri]] = hash_results[sol[:metadataUri]].to_s + " " + sol[:omvlastname].to_s
+                end
+              elsif !sol[:omvlastname].nil?
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvlastname], hash_results)
+              else
+                hash_results[sol[:metadataUri]] = sol[:metadataUri].to_s
+              end
+            else
+              hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
+            end
+          end
+          # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
+          hash_results.each do |k,v|
+            self.send("#{metadata_name}=", v)
+            break
+          end
+        end
+      end
+
+
+      # A function to extract single metadata mapped to omv
+      # Take the literal data if the property is pointing to a literal
+      # If pointing to an URI: first it takes the rdfs:label of the object pointed by the property,
+      # if nil it takes the dc:title. If nil it takes the URI
+      def extract_mapped_single_metadata(ontology_uri, metadata_name, mapped_metadata)
+
+        if self.send(metadata_name).nil?
+          query_metadata = <<eos
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX void: <http://rdfs.org/ns/void#>
+PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
+
+SELECT DISTINCT ?metadataUri ?rdfslabel ?dctitle
+FROM #{self.id.to_ntriples}
+WHERE {
+  <#{ontology_uri}> #{mapped_metadata} ?metadataUri .
+  OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
+  OPTIONAL { ?metadataUri dc:title ?dctitle } .
+}
+eos
+          hash_results = {}
+          Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
+            if sol[:metadataUri].is_a?(RDF::URI)
+              if !sol[:rdfslabel].nil?
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:rdfslabel], hash_results)
+              elsif !sol[:dctitle].nil?
+                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvfirstname], hash_results)
+              else
+                hash_results[sol[:metadataUri]] = sol[:metadataUri].to_s
+              end
+            else
+              hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
+            end
+          end
+          if hash_results.length == 1
+            # If multiple value for a metadata that should have a single value : not taking any value.
+            hash_results.each do |k,v|
+              self.send("#{metadata_name}=", v)
+            end
+          end
+        end
+      end
+
+      # Extract the ontology URI to use it to extract ontology metadata
+      def extract_ontology_uri
+        query_get_onto_uri = <<eos
+SELECT DISTINCT ?uri
+FROM #{self.id.to_ntriples}
+WHERE {
+<http://bioportal.bioontology.org/ontologies/versionSubject> <http://omv.ontoware.org/2005/05/ontology#URI> ?uri .
+}
+eos
+        Goo.sparql_query_client.query(query_get_onto_uri).each_solution do |sol|
+          return sol[:uri].to_s
+        end
+        return nil
+      end
+
 
       def extract_version
 
