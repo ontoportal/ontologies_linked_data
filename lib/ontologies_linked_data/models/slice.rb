@@ -25,7 +25,7 @@ module LinkedData::Models
       # Check to make sure each group has a corresponding slice (and ontologies match)
       groups = LinkedData::Models::Group.where.include(LinkedData::Models::Group.attributes(:all)).all
       groups.each do |g|
-        slice = self.find(g.acronym).first
+        slice = self.find(g.acronym).include(LinkedData::Models::Slice.attributes(:all)).first
         if slice
           slice.ontologies = g.ontologies
           slice.save if slice.valid?
