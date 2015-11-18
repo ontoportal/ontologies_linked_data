@@ -60,6 +60,7 @@ module Mappings
     if enable_debug
       logger.info("Time for External Mappings took #{Time.now - t0} sec. records #{exter_total}")
     end
+    LinkedData.settings.interportal_hash ||= {}
     # Counting for Interportal mappings
     LinkedData.settings.interportal_hash.each_key do |acro|
       t0 = Time.now
@@ -634,6 +635,7 @@ FILTER(?urn2 = <#{class_urns[1]}>)
     end
     raise ArgumentError, "Input does not contain user creator ID" if !params[:creator]
     classes = []
+    LinkedData.settings.interportal_hash ||= {}
     mapping_process_name = "REST Mapping"
     params[:classes].each do |class_id,ontology_id|
       interportal_prefix = ontology_id.split(":")[0]
