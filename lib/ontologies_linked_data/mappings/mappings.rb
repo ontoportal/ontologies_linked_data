@@ -617,7 +617,7 @@ FILTER(?urn2 = <#{class_urns[1]}>)
   # A method to easily add a new mapping without using ontologies_api
   # Where "params" is the mapping hash (containing classes, relation, creator and comment)
   # Note: there is no interportal class validation and no check if mapping already exist
-  def self.bulk_load_mapping(params, logger=nil)
+  def self.bulk_load_mapping(params, check_exist=true, logger=nil)
     raise ArgumentError, "Input does not contain classes" if !params[:classes]
     if params[:classes].length > 2
       raise ArgumentError, "Input does not contain at least 2 terms"
@@ -700,7 +700,8 @@ FILTER(?urn2 = <#{class_urns[1]}>)
         relations_array.push(RDF::URI.new(relation))
       end
     end
-    #raise ArgumentError, "Mapping already exists" if LinkedData::Mappings.check_mapping_exist(classes, relations_array)
+    # Check if the mapping exist (check mapping by default)
+    raise ArgumentError, "Mapping already exists" if LinkedData::Mappings.check_mapping_exist(classes, relations_array) if check_exist
     process.relation = relations_array
     process.date = DateTime.now
     process_fields = [:source,:source_name, :comment]
