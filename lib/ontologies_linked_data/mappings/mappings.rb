@@ -714,7 +714,7 @@ FILTER(?urn2 = <#{class_urns[1]}>)
     rescue => e
       # Remove the created process if the following steps of the mapping fail
       process.delete
-      raise LoadError, "Loading mapping has failed. Message: #{e.message.to_s}"
+      raise IOError, "Loading mapping has failed. Message: #{e.message.to_s}"
     end
 
     return mapping
@@ -739,7 +739,7 @@ FILTER(?urn2 = <#{class_urns[1]}>)
       # Insert backup into 4store
       backup_mapping.save
     rescue => e
-      raise LoadError, "Saving backup mapping has failed. Message: #{e.message.to_s}"
+      raise IOError, "Saving backup mapping has failed. Message: #{e.message.to_s}"
     end
 
     #second add the mapping id to current submission graphs
@@ -774,7 +774,7 @@ FILTER(?urn2 = <#{class_urns[1]}>)
     rescue => e
       # Remove the created backup if the following steps of the mapping fail
       backup_mapping.delete
-      raise LoadError, "Inserting the mapping ID in the submission graphs has failed. Message: #{e.message.to_s}"
+      raise IOError, "Inserting the mapping ID in the submission graphs has failed. Message: #{e.message.to_s}"
     end
 
     mapping = LinkedData::Models::Mapping.new(classes,"REST",process)
