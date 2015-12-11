@@ -1271,7 +1271,7 @@ eos
           LinkedData::Models::Class.partially_load_children(roots,99,self)
         end
         classes.each do |c|
-          if !extra_include.nil? and extra_include.include?:hasChildren
+          if !extra_include.nil? and extra_include.include?(:hasChildren)
             c.load_has_children
           end
           roots << c if (c.obsolete.nil?) || (c.obsolete == false)
