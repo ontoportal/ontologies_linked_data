@@ -709,7 +709,14 @@ FILTER(?urn2 = <#{class_urns[1]}>)
       process.send("#{att}=",params[att]) if params[att]
     end
     process.save
-    mapping = LinkedData::Mappings.create_rest_mapping(classes,process)
+    begin
+      mapping = LinkedData::Mappings.create_rest_mapping(classes,process)
+    rescue => e
+      # Remove the created process if the following steps of the mapping fail
+      process.delete
+      raise LoadError, "Loading mapping has failed. Message: #{e.to_s}"
+    end
+
     return mapping
   end
 
@@ -723,42 +730,53 @@ FILTER(?urn2 = <#{class_urns[1]}>)
     end
     #first create back up mapping that lives across submissions
     LinkedData.settings.interportal_hash ||= {}
-    backup_mapping = LinkedData::Models::RestBackupMapping.new
-    backup_mapping.uuid = UUID.new.generate
-    backup_mapping.process = process
-    class_urns = generate_class_urns(classes)
-    backup_mapping.class_urns = class_urns
-    # Insert backup into 4store
-    backup_mapping.save
+    begin
+      backup_mapping = LinkedData::Models::RestBackupMapping.new
+      backup_mapping.uuid = UUID.new.generate
+      backup_mapping.process = process
+      class_urns = generate_class_urns(classes)
+      backup_mapping.class_urns = class_urns
+      # Insert backup into 4store
+      backup_mapping.save
+    rescue => e
+      raise LoadError, "Saving backup mapping has failed. Message: #{e.to_s}"
+    end
 
     #second add the mapping id to current submission graphs
     rest_predicate = mapping_predicates()["REST"][0]
-    classes.each do |c|
-      if c.instance_of?LinkedData::Models::Class
-        sub = c.submission
-        unless sub.id.to_s["latest"].nil?
-          #the submission in the class might point to latest
-          sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
-                    .first
-                    .latest_submission
-        end
-        c_id = c.id
-        graph_id = sub.id
-      else
-        if LinkedData.settings.interportal_hash.has_key?(c[:source])
-          # If it is a mapping from another Bioportal
-          c_id = RDF::URI.new(c[:id])
-          graph_id = LinkedData::Models::InterportalClass.graph_uri(c[:source])
+    begin
+      classes.each do |c|
+        if c.instance_of?LinkedData::Models::Class
+          sub = c.submission
+          unless sub.id.to_s["latest"].nil?
+            #the submission in the class might point to latest
+            sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
+                      .first
+                      .latest_submission
+          end
+          c_id = c.id
+          graph_id = sub.id
         else
-          # If it is an external mapping
-          c_id = RDF::URI.new(c[:id])
-          graph_id = LinkedData::Models::ExternalClass.graph_uri
+          if LinkedData.settings.interportal_hash.has_key?(c[:source])
+            # If it is a mapping from another Bioportal
+            c_id = RDF::URI.new(c[:id])
+            graph_id = LinkedData::Models::InterportalClass.graph_uri(c[:source])
+          else
+            # If it is an external mapping
+            c_id = RDF::URI.new(c[:id])
+            graph_id = LinkedData::Models::ExternalClass.graph_uri
+          end
         end
+        graph_insert = RDF::Graph.new
+        graph_insert << [c_id, RDF::URI.new(rest_predicate), backup_mapping.id]
+        Goo.sparql_update_client.insert_data(graph_insert, graph: graph_id)
       end
-      graph_insert = RDF::Graph.new
-      graph_insert << [c_id, RDF::URI.new(rest_predicate), backup_mapping.id]
-      Goo.sparql_update_client.insert_data(graph_insert, graph: graph_id)
+    rescue => e
+      # Remove the created backup if the following steps of the mapping fail
+      backup_mapping.delete
+      raise LoadError, "Inserting the mapping ID in the submission graphs has failed. Message: #{e.to_s}"
     end
+
     mapping = LinkedData::Models::Mapping.new(classes,"REST",process)
 
     return mapping
