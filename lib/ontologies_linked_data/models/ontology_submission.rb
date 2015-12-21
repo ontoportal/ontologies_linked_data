@@ -839,6 +839,10 @@ eos
 
           writer.close
 
+          # index provisional classes
+          # self.ontology.bring(:provisionalClasses) if self.ontology.bring?(:provisionalClasses)
+          # self.ontology.ont.provisionalClasses.each { |pc| pc.index }
+
           if (commit)
             t0 = Time.now
             LinkedData::Models::Class.indexCommit()
