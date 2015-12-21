@@ -131,12 +131,24 @@ module LinkedData
       end
 
       def get_index_doc
+        child_count = 0
+
+        begin
+          LinkedData::Models::Class.in(self.submission).models([self]).aggregate(:count, :children).all
+          child_count = self.childrenCount
+        rescue Exception => e
+          child_count = 0
+          puts "Exception getting childCount for search for #{self.id.to_s}: #{e.class}: #{e.message}\n#{e.backtrace.join("\n\t")}"
+        end
+
         doc = {
             :resource_id => self.id.to_s,
             :ontologyId => self.submission.id.to_s,
             :submissionAcronym => self.submission.ontology.acronym,
             :submissionId => self.submission.submissionId,
-            :obsolete => self.obsolete.to_s
+            :ontologyType => self.submission.ontology.ontologyType.get_code_from_id,
+            :obsolete => self.obsolete.to_s,
+            :childCount => child_count
         }
 
         all_attrs = self.to_hash
