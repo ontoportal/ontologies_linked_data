@@ -38,7 +38,7 @@ module LinkedData::Utils
       note.creator.bring(:username) if note.creator.bring?(:username)
       note.relatedOntology.each {|o| o.bring(:name) if o.bring?(:name); o.bring(:subscriptions) if o.bring?(:subscriptions)}
       ontologies = note.relatedOntology.map {|o| o.name}.join(", ")
-      subject = "[BioPortal Notes] [#{ontologies}] #{note.subject}"
+      subject = "[AgroPortal Notes] [#{ontologies}] #{note.subject}"
       if LinkedData.settings.replace_url_prefix == true
         note_url = "http://#{LinkedData.settings.ui_host}/notes/#{CGI.escape(note.id.to_s.gsub("http://data.bioontology.org", LinkedData.settings.rest_url_prefix))}"
       else
@@ -66,7 +66,7 @@ module LinkedData::Utils
       result = submission.ready? ? "Success" : "Failure"
       status = LinkedData::Models::SubmissionStatus.readable_statuses(submission.submissionStatus)
 
-      subject = "[BioPortal] #{ontology.name} Parsing #{result}"
+      subject = "[AgroPortal] #{ontology.name} Parsing #{result}"
       body = SUBMISSION_PROCESSED.gsub("%ontology_name%", ontology.name)
                                  .gsub("%ontology_acronym%", ontology.acronym)
                                  .gsub("%statuses%", status.join("<br/>"))
@@ -87,7 +87,7 @@ module LinkedData::Utils
       ontology = submission.ontology
       ontology.bring(:name, :acronym, :administeredBy)
 
-      subject = "[BioPortal] Load from URL failure for #{ontology.name}"
+      subject = "[AgroPortal] Load from URL failure for #{ontology.name}"
       body = REMOTE_PULL_FAILURE.gsub("%ont_pull_location%", submission.pullLocation.to_s)
                                 .gsub("%ont_name%", ontology.name)
                                 .gsub("%ont_acronym%", ontology.acronym)
@@ -107,13 +107,13 @@ module LinkedData::Utils
     end
 
     def self.reset_password(user, token)
-      subject = "[BioPortal] User #{user.username} password reset"
+      subject = "[AgroPortal] User #{user.username} password reset"
       password_url = "http://#{LinkedData.settings.ui_host}/reset_password?tk=#{token}&em=#{CGI.escape(user.email)}&un=#{CGI.escape(user.username)}"
       body = <<-EOS
 Someone has requested a password reset for user #{user.username}. If this was you, please click on the link below to reset your password. Otherwise, please ignore this email.<br/><br/>
 <a href="#{password_url}">#{password_url}</a><br/><br/>
 Thanks,<br/>
-BioPortal Team
+AgroPortal Team
       EOS
       options = {
         subject: subject,
@@ -179,36 +179,36 @@ A new note was added to %ontologies% by <b>%username%</b>.<br/><br/>
 %note_body%<br/>
 ----------------------------------------------------------------------------------<br/><br/>
 
-You can respond by visiting: <a href="%note_url%">BioPortal</a>.<br/><br/>
+You can respond by visiting: <a href="%note_url%">AgroPortal</a>.<br/><br/>
 EOS
 
 SUBMISSION_PROCESSED = <<EOS
-%ontology_name% (%ontology_acronym%) was processed for use in BioPortal. Here are the results:
+%ontology_name% (%ontology_acronym%) was processed for use in AgroPortal. Here are the results:
 <br><br>
 %statuses%
 <br><br>
 Please contact %admin_email% if you have questions.
 <br><br>
-The ontology can be <a href="%ontology_location%">browsed in BioPortal</a>.
+The ontology can be <a href="%ontology_location%">browsed in AgroPortal</a>.
 <br><br>
 Thank you,<br>
-The BioPortal Team
+The AgroPortal Team
 EOS
 
 REMOTE_PULL_FAILURE = <<EOS
-BioPortal failed to load %ont_name% (%ont_acronym%) from URL: %ont_pull_location%.
+AgroPortal failed to load %ont_name% (%ont_acronym%) from URL: %ont_pull_location%.
 <br><br>
 Please verify the URL you provided for daily loading of your ontology:
 <ol>
-<li>Make sure you are signed in to BioPortal.</li>
+<li>Make sure you are signed in to AgroPortal.</li>
 <li>Navigate to your ontology summary page: %ontology_location%.</li>
 <li>Click the &quot;Edit submission information&quot; link.</li>
 <li>In the Location row, verify that you entered a valid URL for daily loading of your ontology in the URL text area.</li>
 </ol>
-If you need further assistance, please <a href="mailto:support@bioontology.org">contact us</a> via the BioPortal support mailing list.
+If you need further assistance, please <a href="mailto:support@bioontology.org">contact us</a> via the AgroPortal support mailing list.
 <br><br>
 Thank you,<br>
-The BioPortal Team
+The AgroPortal Team
 EOS
 
   end
