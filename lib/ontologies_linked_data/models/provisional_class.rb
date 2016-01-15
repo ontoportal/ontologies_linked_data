@@ -13,6 +13,9 @@ module LinkedData
       attribute :noteId, enforce: [:uri]
       attribute :ontology, enforce: [:ontology]
 
+      attribute :relations,
+                :inverse => { :on => :provisional_relation, :attribute => :source }
+
       search_options :index_id => lambda { |t| t.index_id },
                      :document => lambda { |t| t.index_doc }
 

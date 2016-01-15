@@ -392,7 +392,7 @@ eos
               prefLabel = c.prefLabel
             end
             if self.ontology.viewOf.nil?
-              loomLabel = OntologySubmission.loom_transform_literal(prefLabel)
+              loomLabel = OntologySubmission.loom_transform_literal(prefLabel.to_s)
               if loomLabel.length > 2
                 mapping_triples << LinkedData::Utils::Triples.loom_mapping_triple(
                   c.id, Goo.vocabulary(:metadata_def)[:mappingLoom], loomLabel)
