@@ -132,6 +132,36 @@ eos
     end
   end
 
+  def test_multiple_syn_multiple_predicate
+    submission_parse("HP-TEST", "HP TEST Bla", "./test/data/ontology_files/hp.obo", 55,
+                     process_rdf: true, index_search: true,
+                     run_metrics: false, reasoning: true)
+
+    #test for version info
+    sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: "HP-TEST"],
+                                                       submissionId: 55)
+                                                     .include(:version)
+                                                     .first
+
+    paging = LinkedData::Models::Class.in(sub).page(1,100)
+                                              .include(:unmapped)
+    found = false
+
+    begin
+      page = paging.all
+      page.each do |c|
+        LinkedData::Models::Class.map_attributes(c,paging.equivalent_predicates)
+        assert_instance_of(String, c.prefLabel)
+        if c.id.to_s['00006']
+          assert c.synonym.length == 3
+          found = true
+        end
+      end
+      paging.page(page.next_page) if page.next?
+    end while(page.next?)
+    assert found
+  end
+
   def test_obo_part_of
     submission_parse("TAO-TEST", "TAO TEST Bla", "./test/data/ontology_files/tao.obo", 55,
                      process_rdf: true, index_search: false,
@@ -190,7 +220,7 @@ eos
       .include(:prefLabel,:synonym,:notation).each do |cls|
         assert_instance_of String,cls.prefLabel
         if cls.notation.nil?
-          binding.pry
+          assert false,"notation empty"
         end
         assert_instance_of String,cls.notation
         assert cls.notation[-6..-1] == cls.id.to_s[-6..-1]
