@@ -10,7 +10,7 @@ module LinkedData
         "METRICS",  "ERROR_METRICS",
         "ANNOTATOR", "ERROR_ANNOTATOR",
         "ARCHIVED", "ERROR_ARCHIVED",
-        "DIFF", "ERROR_DIFF",
+        "DIFF", "ERROR_DIFF"
       ]
 
       USER_READABLE = {
@@ -23,12 +23,12 @@ module LinkedData
         "ANNOTATOR"       => "Processed for use in Annotator",
         "ERROR_ANNOTATOR" => "Error processing for use in Annotator",
         "DIFF"            => "Created submission version diff successfully",
-        "ERROR_DIFF"      => "Error creating submission version diff",
+        "ERROR_DIFF"      => "Error creating submission version diff"
       }
 
       USER_IGNORE = [
         "UPLOADED", "ERROR_UPLOADED",
-        "RDF_LABELS", "ERROR_RDF_LABELS",
+        "RDF_LABELS", "ERROR_RDF_LABELS"
       ]
 
       model :submission_status, name_with: :code
