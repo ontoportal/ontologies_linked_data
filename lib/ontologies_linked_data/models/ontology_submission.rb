@@ -525,11 +525,11 @@ eos
         if (status.error?)
           # remove the corresponding non_error status (if exists)
           non_error_status = status.get_non_error_status()
-          s.reject! { |stat| stat.get_code_from_id() == non_error_status.get_code_from_id() }
+          s.reject! { |stat| stat.get_code_from_id() == non_error_status.get_code_from_id() } unless non_error_status.nil?
         else
           # remove the corresponding non_error status (if exists)
           error_status = status.get_error_status()
-          s.reject! { |stat| stat.get_code_from_id() == error_status.get_code_from_id() }
+          s.reject! { |stat| stat.get_code_from_id() == error_status.get_code_from_id() } unless error_status.nil?
         end
 
         has_status = s.any? { |s| s.get_code_from_id() == status.get_code_from_id() }
