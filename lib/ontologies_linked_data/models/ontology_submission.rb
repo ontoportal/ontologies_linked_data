@@ -12,6 +12,8 @@ module LinkedData
 
       FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
 
+      # The key is the property used by omv, the value is an array of properties mapped to the key omv property
+      # (make sure the prefix is well defined in extract_mapped_array_metadata and extract_mapped_single_metadata SPARQL queries)
       OMV_ARRAY_METADATA = {"endorsedBy" => [],
                             "naturalLanguage" => ["dcterms:language"],
                             "designedForOntologyTask" => [],
@@ -371,6 +373,7 @@ module LinkedData
       end
 
       # Extract metadata about the ontology (omv metadata)
+      # First it extracts omv metadata, then the mapped metadata
       def extract_omv_metadata
         ontology_uri = extract_ontology_uri()
 
@@ -520,6 +523,7 @@ eos
             hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
           end
         end
+        # Retrieve the already stored metadata and then add the newly retrieved metadata to the array
         metadata_values = self.send(metadata_name).dup
         hash_results.each do |k,v|
           metadata_values.push(v)
@@ -597,6 +601,7 @@ PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX foaf: <http://xmlns.com/foaf/0.1/>
 PREFIX void: <http://rdfs.org/ns/void#>
 PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
+
 
 SELECT DISTINCT ?metadataUri ?rdfslabel ?dctitle
 FROM #{self.id.to_ntriples}
