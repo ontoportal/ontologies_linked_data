@@ -721,7 +721,7 @@ eos
               prefLabel = c.prefLabel
             end
             if self.ontology.viewOf.nil?
-              loomLabel = OntologySubmission.loom_transform_literal(prefLabel)
+              loomLabel = OntologySubmission.loom_transform_literal(prefLabel.to_s)
               if loomLabel.length > 2
                 mapping_triples << LinkedData::Utils::Triples.loom_mapping_triple(
                   c.id, Goo.vocabulary(:metadata_def)[:mappingLoom], loomLabel)
@@ -854,11 +854,11 @@ eos
         if (status.error?)
           # remove the corresponding non_error status (if exists)
           non_error_status = status.get_non_error_status()
-          s.reject! { |stat| stat.get_code_from_id() == non_error_status.get_code_from_id() }
+          s.reject! { |stat| stat.get_code_from_id() == non_error_status.get_code_from_id() } unless non_error_status.nil?
         else
           # remove the corresponding non_error status (if exists)
           error_status = status.get_error_status()
-          s.reject! { |stat| stat.get_code_from_id() == error_status.get_code_from_id() }
+          s.reject! { |stat| stat.get_code_from_id() == error_status.get_code_from_id() } unless error_status.nil?
         end
 
         has_status = s.any? { |s| s.get_code_from_id() == status.get_code_from_id() }
@@ -1167,6 +1167,10 @@ eos
           end while !page.nil?
 
           writer.close
+
+          # index provisional classes
+          # self.ontology.bring(:provisionalClasses) if self.ontology.bring?(:provisionalClasses)
+          # self.ontology.ont.provisionalClasses.each { |pc| pc.index }
 
           if (commit)
             t0 = Time.now

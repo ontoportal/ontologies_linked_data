@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<enumsConfig>
+  <enum name="ontologyType">
+    <value>ONTOLOGY</value>
+    <value>VALUE_SET_COLLECTION</value>
+  </enum>
+</enumsConfig>

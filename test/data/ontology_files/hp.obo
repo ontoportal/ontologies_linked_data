@@ -1,0 +1,119 @@
+format-version: 1.2
+data-version: releases/2015-08-17
+saved-by: Peter Robinson, Sebastian Koehler, Sandra Doelken, Chris Mungall, Melissa Haendel, Nicole Vasilevsky, Monarch Initiative, et al
+auto-generated-by: OBO-Edit 2.3
+subsetdef: hposlim_core "Core clinical terminology"
+subsetdef: secondary_consequence "Consequence of a disorder in another organ system."
+synonymtypedef: layperson "layperson term"
+default-namespace: human_phenotype
+ontology: hp
+owl-axioms: Prefix(owl:=<http://www.w3.org/2002/07/owl#>)\nPrefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)\nPrefix(xml:=<http://www.w3.org/XML/1998/namespace>)\nPrefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)\nPrefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)\n\n\nOntology(\nAnnotationAssertion(rdfs:comment <http://purl.obolibrary.org/obo/HP_0040081> \"\")\nAnnotationAssertion(<http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym> <http://purl.obolibrary.org/obo/HP_0012377> \"\"^^xsd:string)\nAnnotationAssertion(<http://www.geneontology.org/formats/oboInOwl#hasOBONamespace> <http://purl.obolibrary.org/obo/HP_0030243> \"\")\nAnnotationAssertion(<http://www.geneontology.org/formats/oboInOwl#hasOBONamespace> <http://purl.obolibrary.org/obo/HP_0030370> \"\")\nAnnotationAssertion(<http://www.geneontology.org/formats/oboInOwl#hasExactSynonym> <http://purl.obolibrary.org/obo/HP_0000040> \"\")\nAnnotationAssertion(<http://www.geneontology.org/formats/oboInOwl#id> <http://purl.obolibrary.org/obo/HP_0030411> \"HP:0006771\"^^xsd:string)\nAnnotationAssertion(<http://www.geneontology.org/formats/oboInOwl#hasRelatedSynonym> <http://purl.obolibrary.org/obo/HP_0000510> \"\")\n)
+logical-definition-view-relation: has_part
+
+[Term]
+id: HP:0000001
+name: All
+comment: Root of all terms in the Human Phenotype Ontology.
+
+[Term]
+id: HP:0000002
+name: Abnormality of body height
+def: "Deviation from the norm of height with respect to that which is expected according to age and gender norms." [HPO:probinson]
+is_a: HP:0001507 ! Growth abnormality
+created_by: peter
+creation_date: 2008-02-27T02:20:00Z
+
+[Term]
+id: HP:0000003
+name: Multicystic kidney dysplasia
+alt_id: HP:0004715
+def: "Multicystic dysplasia of the kidney is characterized by multiple cysts of varying size in the kidney and the absence of a normal pelvocaliceal system. The condition is associated with ureteral or ureteropelvic atresia, and the affected kidney is nonfunctional." [HPO:curators]
+comment: Multicystic kidney dysplasia is the result of abnormal fetal renal development in which the affected kidney is replaced by multiple cysts and has little or no residual function. The vast majority of multicystic kidneys are unilateral. Multicystic kidney can be diagnosed on prenatal ultrasound.
+synonym: "Multicystic dysplastic kidney" EXACT []
+synonym: "Multicystic kidneys" EXACT []
+synonym: "Multicystic renal dysplasia" EXACT []
+xref: MeSH:D021782 "Multicystic Kidney Dysplasia"
+xref: UMLS:C0345335 "Multicystic Kidney Dysplasia"
+is_a: HP:0000107 ! Renal cyst
+
+[Term]
+id: HP:0000005
+name: Mode of inheritance
+alt_id: HP:0001453
+alt_id: HP:0001461
+def: "The pattern in which a particular genetic trait or disorder is passed from one generation to the next." [HPO:probinson]
+synonym: "Inheritance" EXACT []
+is_a: HP:0000001 ! All
+
+[Term]
+id: HP:0000006
+name: Autosomal dominant inheritance
+alt_id: HP:0001415
+alt_id: HP:0001447
+alt_id: HP:0001448
+alt_id: HP:0001451
+alt_id: HP:0001455
+alt_id: HP:0001456
+alt_id: HP:0001463
+def: "A mode of inheritance that is observed for traits related to a gene encoded on one of the autosomes (i.e., the human chromosomes 1-22) in which a trait manifests in heterozygotes. In the context of medical genetics, an autosomal dominant disorder is caused when a single copy of the mutant allele is present. Males and females are affected equally, and can both transmit the disorder with a risk of 50% for each child of inheriting the mutant allele." [HPO:curators]
+synonym: "Autosomal dominant" EXACT []
+synonym: "AUTOSOMAL DOMINANT FORM" RELATED [HPO:skoehler]
+synonym: "AUTOSOMAL DOMINANT TYPE" RELATED [HPO:skoehler]
+xref: UMLS:C0443147 "Autosomal dominant"
+is_a: HP:0000005 ! Mode of inheritance
+
+[Term]
+id: HP:0000007
+name: Autosomal recessive inheritance
+alt_id: HP:0001416
+alt_id: HP:0001526
+def: "A mode of inheritance that is observed for traits related to a gene encoded on one of the autosomes (i.e., the human chromosomes 1-22) in which a trait manifests in homozygotes. In the context of medical genetics, autosomal recessive disorders manifest in homozygotes (with two copies of the mutant allele) or compound heterozygotes (whereby each copy of a gene has a distinct mutant allele)." [HPO:curators]
+synonym: "Autosomal recessive" EXACT []
+synonym: "AUTOSOMAL RECESSIVE FORM" RELATED [HPO:skoehler]
+synonym: "Autosomal recessive predisposition" RELATED []
+is_a: HP:0000005 ! Mode of inheritance
+
+[Term]
+id: HP:0000008
+name: Abnormality of female internal genitalia
+def: "An abnormality of the female internal genitalia." [HPO:probinson]
+is_a: HP:0000812 ! Abnormal internal genitalia
+is_a: HP:0010460 ! Abnormality of the female genitalia
+property_value: HP:0040005 "An abnormality of the `female internal genitalia` (FMA:45654)." xsd:string {xref="HPO:probinson"}
+
+[Term]
+id: HP:0000009
+name: Functional abnormality of the bladder
+alt_id: HP:0004424
+alt_id: HP:0008731
+def: "Dysfunction of the urinary bladder." [HPO:probinson]
+synonym: "Poor bladder function" EXACT []
+xref: UMLS:C1848145 "Poor bladder function"
+is_a: HP:0000014 ! Abnormality of the bladder
+property_value: HP:0040005 "`Dysfunction` (PATO:0001641) of the `urinary bladder` (FMA:15900)." xsd:string {xref="HPO:probinson"}
+
+[Term]
+id: HP:0000010
+name: Recurrent urinary tract infections
+alt_id: HP:0000094
+def: "Repeated infections of the urinary tract." [HPO:probinson]
+comment: The urinary tract comprises the kidneys, ureters, a bladder, and a urethra.
+synonym: "Frequent urinary tract infections" EXACT []
+synonym: "Urinary infection" EXACT []
+synonym: "Urinary tract infection" EXACT []
+synonym: "Urinary tract infections" EXACT []
+synonym: "Urinary tract infections, recurrent" EXACT [HPO:skoehler]
+xref: MeSH:D014552 "Urinary Tract Infections"
+xref: UMLS:C0042029 "Infections, Urinary Tract"
+xref: UMLS:C0262655 "Recurrent urinary tract infections"
+is_a: HP:0002719 ! Recurrent infections
+is_a: HP:0011277 ! Abnormality of the urinary system physiology
+
+[Term]
+id: HP:0000011
+name: Neurogenic bladder
+def: "An inability to completely empty the urinary bladder during the process of urination owing to a neurological condition." [HPO:probinson]
+xref: UMLS:C0005697 "Neurogenic Bladder"
+is_a: HP:0000009 ! Functional abnormality of the bladder
+property_value: HP:0040005 "An inability to completely empty the `urinary bladder` (FMA:15900) during the process of `urination` (GO:0060073) owing to a neurological condition." xsd:string {xref="HPO:probinson"}
+

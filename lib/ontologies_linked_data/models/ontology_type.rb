@@ -21,6 +21,11 @@ module LinkedData
         self.id.to_s.split("/")[-1]
       end
 
+      def value_set_collection?
+        code = get_code_from_id
+        code === "VALUE_SET_COLLECTION"
+      end
+
       def self.readable_types(types)
         types = where.models(types).include(:code).to_a.map {|s| s.code}
         types.sort! {|a,b| VALUES.index(a) <=> VALUES.index(b)}

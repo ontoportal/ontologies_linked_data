@@ -27,19 +27,21 @@
     <field name="prefLabelExact"        type="string_ci"          indexed="true"  stored="true"  multiValued="false" />
     <field name="prefLabelSuggest"      type="text_suggest"       indexed="true"  stored="true"  omitNorms="true" />
     <field name="prefLabelSuggestEdge"  type="text_suggest_edge"  indexed="true"  stored="true" />
-    <field name="prefLabelSuggestNgram" type="text_suggest_ngram" indexed="true"  stored="true" omitNorms="true" />
+    <field name="prefLabelSuggestNgram" type="text_suggest_ngram" indexed="true"  stored="true"  omitNorms="true" />
 
     <field name="synonym"               type="text_general"       indexed="true"  stored="true"  multiValued="true" />
     <field name="synonymExact"          type="string_ci"          indexed="true"  stored="true"  multiValued="true" />
     <field name="synonymSuggest"        type="text_suggest"       indexed="true"  stored="true"  omitNorms="true" multiValued="true" />
-    <field name="synonymSuggestEdge"    type="text_suggest_edge"  indexed="true"  stored="true" multiValued="true" />
-    <field name="synonymSuggestNgram"   type="text_suggest_ngram" indexed="true"  stored="true" omitNorms="true" multiValued="true" />
+    <field name="synonymSuggestEdge"    type="text_suggest_edge"  indexed="true"  stored="true"  multiValued="true" />
+    <field name="synonymSuggestNgram"   type="text_suggest_ngram" indexed="true"  stored="true"  omitNorms="true" multiValued="true" />
 
     <field name="notation"              type="text_general"       indexed="true"  stored="true"  multiValued="false" />
 
     <field name="definition"            type="string"             indexed="true"  stored="true"  multiValued="true" />
     <field name="submissionAcronym"     type="string"             indexed="true"  stored="true"  multiValued="false" />
+    <field name="ontologyType"          type="ontologyType"       indexed="true"  stored="true"  multiValued="false" />
     <field name="submissionId"          type="int"                indexed="true"  stored="true"  multiValued="false" />
+    <field name="childCount"            type="int"                indexed="true"  stored="true"  multiValued="false" />
     <field name="_version_"             type="long"               indexed="true"  stored="true"/>
 
     <!-- Added cui and tui (semanticType) - NCBO-695 -->
@@ -84,6 +86,8 @@
          Class names starting with "solr" refer to java classes in a
        standard package such as org.apache.solr.analysis
     -->
+
+    <fieldType name="ontologyType" class="solr.EnumField" enumsConfig="enumsconfig.xml" enumName="ontologyType"/>
 
     <!-- The StrField type is not analyzed, but indexed/stored verbatim. -->
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
