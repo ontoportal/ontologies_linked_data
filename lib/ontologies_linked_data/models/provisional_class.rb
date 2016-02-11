@@ -19,9 +19,13 @@ module LinkedData
       search_options :index_id => lambda { |t| t.index_id },
                      :document => lambda { |t| t.index_doc }
 
-      # display relations by default
-      serialize_default *(self.attributes << :relations)
       embed :relations
+
+      # display relations and some search attributes by default
+      serialize_default *(self.attributes.unshift(:prefLabel) << :relations << :obsolete << :matchType << :ontologyType << :provisional)
+
+      link_to LinkedData::Hypermedia::Link.new("self", lambda {|s| "provisional_classes/#{CGI.escape(s.id.to_s)}"}, self.uri_type),
+              LinkedData::Hypermedia::Link.new("ontology", lambda {|s| defined?(s.ontology) && s.ontology ? "ontologies/#{s.ontology.id.split('/')[-1]}" : defined?(s.submission) && s.submission ? "ontologies/#{s.submission.ontology.id.split('/')[-1]}" : ""}, Goo.vocabulary["Ontology"])
 
       def index_id
         self.bring(:ontology) if self.bring?(:ontology)
@@ -35,6 +39,8 @@ module LinkedData
         return {} unless self.ontology
         latest = self.ontology.latest_submission(status: :any)
         return {} unless latest
+        self.ontology.bring(:acronym) if self.ontology.bring?(:acronym)
+        self.ontology.bring(:ontologyType) if self.ontology.bring?(:ontologyType)
 
         doc = {
           :resource_id => self.id.to_s,
@@ -43,7 +49,8 @@ module LinkedData
           :provisional => true,
           :ontologyId => latest.id.to_s,
           :submissionAcronym => self.ontology.acronym,
-          :submissionId => latest.submissionId
+          :submissionId => latest.submissionId,
+          :ontologyType => self.ontology.ontologyType.get_code_from_id
         }
 
         all_attrs = self.to_hash
