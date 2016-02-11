@@ -21,6 +21,11 @@ module LinkedData
         submissions_to_process = options[:submissions_to_process]
         acronym = options[:acronym] || "TEST-ONT"
         name = options[:name]
+        # set ontology type
+        ontology_type = nil
+        ontology_type_rec = nil
+        ontology_type_rec = LinkedData::Models::OntologyType.find(options[:ontology_type]) if options[:ontology_type]
+        ontology_type = ontology_type_rec.include(:code).first if ontology_type_rec
         file_path = options[:file_path]
         acr_suffix = options[:acronym_suffix]
         u, of, contact = ontology_objects()
@@ -38,7 +43,8 @@ module LinkedData
             acronym: acronym_count,
             name: name || "#{acronym_count} Ontology",
             administeredBy: [u],
-            summaryOnly: false
+            summaryOnly: false,
+            ontologyType: ontology_type
           })
 
           if o.exist?
