@@ -38,7 +38,7 @@ module LinkedData::Utils
       note.creator.bring(:username) if note.creator.bring?(:username)
       note.relatedOntology.each {|o| o.bring(:name) if o.bring?(:name); o.bring(:subscriptions) if o.bring?(:subscriptions)}
       ontologies = note.relatedOntology.map {|o| o.name}.join(", ")
-      subject = "[BioPortal Notes] [#{ontologies}] #{note.subject}"
+      subject = "[#{LinkedData.settings.ui_host} Notes] [#{ontologies}] #{note.subject}"
       body = NEW_NOTE.gsub("%username%", note.creator.username)
                      .gsub("%ontologies%", ontologies)
                      .gsub("%note_url%", LinkedData::Hypermedia.generate_links(note)["ui"])
@@ -61,7 +61,7 @@ module LinkedData::Utils
       result = submission.ready? ? "Success" : "Failure"
       status = LinkedData::Models::SubmissionStatus.readable_statuses(submission.submissionStatus)
 
-      subject = "[BioPortal] #{ontology.name} Parsing #{result}"
+      subject = "[#{LinkedData.settings.ui_host}] #{ontology.name} Parsing #{result}"
       body = SUBMISSION_PROCESSED.gsub("%ontology_name%", ontology.name)
                                  .gsub("%ontology_acronym%", ontology.acronym)
                                  .gsub("%statuses%", status.join("<br/>"))
@@ -82,7 +82,7 @@ module LinkedData::Utils
       ontology = submission.ontology
       ontology.bring(:name, :acronym, :administeredBy)
 
-      subject = "[BioPortal] Load from URL failure for #{ontology.name}"
+      subject = "[#{LinkedData.settings.ui_host}] Load from URL failure for #{ontology.name}"
       body = REMOTE_PULL_FAILURE.gsub("%ont_pull_location%", submission.pullLocation.to_s)
                                 .gsub("%ont_name%", ontology.name)
                                 .gsub("%ont_acronym%", ontology.acronym)
@@ -104,7 +104,7 @@ module LinkedData::Utils
     def self.new_user(user)
       user.bring_remaining
 
-      subject = "[BioPortal] New User: #{user.username}"
+      subject = "[#{LinkedData.settings.ui_host}] New User: #{user.username}"
       body = NEW_USER_CREATED.gsub("%username%", user.username.to_s)
                  .gsub("%email%", user.email.to_s)
                  .gsub("%site_url%", LinkedData.settings.ui_host)
@@ -118,8 +118,26 @@ module LinkedData::Utils
       notify(options)
     end
 
+    def self.new_ontology(ont)
+      ont.bring_remaining
+
+      subject = "[#{LinkedData.settings.ui_host}] New Ontology: #{ont.acronym}"
+      body = NEW_ONTOLOGY_CREATED.gsub("%acronym%", ont.acronym)
+                 .gsub("%name%", ont.name.to_s)
+                 .gsub("%site_url%", LinkedData.settings.ui_host)
+                 .gsub("%ont_url%", "http://#{LinkedData.settings.ui_host}/ontologies/#{ont.acronym}")
+      recipients = LinkedData.settings.admin_emails
+
+      options = {
+          subject: subject,
+          body: body,
+          recipients: recipients
+      }
+      notify(options)
+    end
+
     def self.reset_password(user, token)
-      subject = "[BioPortal] User #{user.username} password reset"
+      subject = "[#{LinkedData.settings.ui_host}] User #{user.username} password reset"
       password_url = "http://#{LinkedData.settings.ui_host}/reset_password?tk=#{token}&em=#{CGI.escape(user.email)}&un=#{CGI.escape(user.username)}"
       body = <<-EOS
 Someone has requested a password reset for user #{user.username}. If this was you, please click on the link below to reset your password. Otherwise, please ignore this email.<br/><br/>
@@ -229,6 +247,18 @@ A new user have been created on %site_url%
 Username: %username%
 <br>
 Email: %email%
+<br><br>
+The BioPortal Team
+EOS
+
+NEW_ONTOLOGY_CREATED = <<EOS
+A new ontology have been created on %site_url%
+<br>
+Acronym: %acronym%
+<br>
+Name: %name%
+<br>
+At <a href="%ont_url%">%ont_url%</a>
 <br><br>
 The BioPortal Team
 EOS
