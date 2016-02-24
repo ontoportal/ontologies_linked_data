@@ -92,6 +92,12 @@ module LinkedData::Utils
         user.bring(:email) if user.bring?(:email)
         recipients << user.email
       end
+      if !LinkedData.settings.admin_emails.nil? && LinkedData.settings.admin_emails.kind_of?(Array)
+        LinkedData.settings.admin_emails.each do |admin_email|
+          recipients << admin_email
+        end
+      end
+
 
       options = {
         subject: subject,
