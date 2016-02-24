@@ -73,7 +73,7 @@ module LinkedData
     @settings.smtp_domain                   ||= "localhost.localhost"
     @settings.enable_starttls_auto          ||= false # set to true for use with gmail
     # email of the instance administrator to get mail notifications when new user
-    @settings.email_admin                   ||= "admin@example.org"
+    @settings.email_admin                   ||= ["admin@example.org"]
 
     # Override defaults
     yield @settings, overide_connect_goo if block_given?
