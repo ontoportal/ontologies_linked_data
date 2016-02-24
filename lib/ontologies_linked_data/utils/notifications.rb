@@ -108,7 +108,7 @@ module LinkedData::Utils
       body = NEW_USER_CREATED.gsub("%username%", user.username.to_s)
                  .gsub("%email%", user.email.to_s)
                  .gsub("%site_url%", LinkedData.settings.ui_host)
-      recipients = LinkedData.settings.email_admin
+      recipients = LinkedData.settings.admin_emails
 
       options = {
           subject: subject,
