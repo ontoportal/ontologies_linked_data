@@ -15,7 +15,13 @@ module LinkedData
             hash["@id"] = prefixed_id
           end
           # Add the type
-          hash["@type"] = current_cls.type_uri.to_s if hash["@id"] && current_cls.respond_to?(:type_uri)
+          if hash["@id"] && current_cls.respond_to?(:type_uri)
+            # For internal class
+            hash["@type"] = current_cls.type_uri.to_s
+          elsif hash["@id"] && hashed_obj.respond_to?(:type_uri)
+            # For External and Interportal class
+            hash["@type"] = hashed_obj.type_uri.to_s
+          end
 
           # Generate links
           # NOTE: If this logic changes, also change in xml.rb
@@ -33,6 +39,11 @@ module LinkedData
               context = generate_context(hashed_obj, hash.keys, options) if generate_context?(options)
               hash.merge!(context)
             end
+          elsif (hashed_obj.instance_of?(LinkedData::Models::ExternalClass) || hashed_obj.instance_of?(LinkedData::Models::InterportalClass)) && !current_cls.embedded?
+            # Add context for ExternalClass
+            context_hash = {"@vocab" => Goo.vocabulary.to_s, "prefLabel" => "http://data.bioontology.org/metadata/skosprefLabel"}
+            context = {"@context" => context_hash}
+            hash.merge!(context)
           end
         end
 

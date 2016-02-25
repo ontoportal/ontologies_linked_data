@@ -48,6 +48,34 @@ module Mappings
     t = Time.now
     latest = retrieve_latest_submissions()
     counts = {}
+    # Counting for External mappings
+    t0 = Time.now
+    external_uri = LinkedData::Models::ExternalClass.graph_uri
+    exter_counts = mapping_ontologies_count(external_uri,nil,reload_cache=reload_cache)
+    exter_total = 0
+    exter_counts.each do |k,v|
+      exter_total += v
+    end
+    counts[external_uri.to_s] = exter_total
+    if enable_debug
+      logger.info("Time for External Mappings took #{Time.now - t0} sec. records #{exter_total}")
+    end
+    LinkedData.settings.interportal_hash ||= {}
+    # Counting for Interportal mappings
+    LinkedData.settings.interportal_hash.each_key do |acro|
+      t0 = Time.now
+      interportal_uri = LinkedData::Models::InterportalClass.graph_uri(acro)
+      inter_counts = mapping_ontologies_count(interportal_uri,nil,reload_cache=reload_cache)
+      inter_total = 0
+      inter_counts.each do |k,v|
+        inter_total += v
+      end
+      counts[interportal_uri.to_s] = inter_total
+      if enable_debug
+        logger.info("Time for #{interportal_uri.to_s} took #{Time.now - t0} sec. records #{inter_total}")
+      end
+    end
+    # Counting for mappings between the ontologies hosted by the BioPortal appliance
     i = 0
     latest.each do |acro,sub|
       t0 = Time.now
@@ -73,9 +101,14 @@ module Mappings
   end
 
   def self.mapping_ontologies_count(sub1,sub2,reload_cache=false)
+    if sub1.instance_of?(LinkedData::Models::OntologySubmission)
+      sub1 = sub1.id
+    else
+      sub1 = sub1
+    end
     template = <<-eos
 {
-  GRAPH <#{sub1.id.to_s}> {
+  GRAPH <#{sub1.to_s}> {
       ?s1 <predicate> ?o .
   }
   GRAPH graph {
@@ -106,9 +139,11 @@ eos
         filter += "FILTER (?s1 != ?s2)"
       end
       if sub2.nil?
-        ont_id = sub1.id.to_s.split("/")[0..-3].join("/")
-        #STRSTARTS is used to not count older graphs
-        filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}'))"
+        if sub1.to_s != LinkedData::Models::ExternalClass.graph_uri.to_s
+          ont_id = sub1.to_s.split("/")[0..-3].join("/")
+          #STRSTARTS is used to not count older graphs
+          filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}'))"
+        end
         query = query.sub("graph","?g")
         query = query.sub("filter",filter)
         query = query.sub("variables","?g (count(?s1) as ?c)")
@@ -120,7 +155,7 @@ eos
         query = query.sub("group","")
       end
       epr = Goo.sparql_query_client(:main)
-      graphs = [sub1.id, LinkedData::Models::MappingProcess.type_uri]
+      graphs = [sub1, LinkedData::Models::MappingProcess.type_uri]
       unless sub2.nil?
         graphs << sub2.id
       end
@@ -129,7 +164,13 @@ eos
         solutions = epr.query(query,
                               graphs: graphs, reload_cache: reload_cache)
         solutions.each do |sol|
-          acr = sol[:g].to_s.split("/")[-3]
+          graph2 = sol[:g].to_s
+          acr = ""
+          if graph2.start_with?(LinkedData::Models::InterportalClass.graph_base_str) || graph2 == LinkedData::Models::ExternalClass.graph_uri.to_s
+            acr = graph2
+          else
+            acr = graph2.to_s.split("/")[-3]
+          end
           if group_count[acr].nil?
             group_count[acr] = 0
           end
@@ -157,9 +198,26 @@ eos
   end
 
   def self.mappings_ontologies(sub1,sub2,page,size,classId=nil,reload_cache=false)
+    if sub1.respond_to?(:id)
+      # Case where sub1 is a Submission
+      sub1 = sub1.id
+      acr1 = sub1.to_s.split("/")[-3]
+    else
+      acr1 = sub1.to_s
+    end
+    if sub2.nil?
+      acr2 = nil
+    elsif sub2.respond_to?(:id)
+      # Case where sub2 is a Submission
+      sub2 = sub2.id
+      acr2 = sub2.to_s.split("/")[-3]
+    else
+      acr2 = sub2.to_s
+    end
+
     union_template = <<-eos
 {
-  GRAPH <#{sub1.id.to_s}> {
+  GRAPH <#{sub1.to_s}> {
       classId <predicate> ?o .
   }
   GRAPH graph {
@@ -171,12 +229,7 @@ eos
     blocks = []
     mappings = []
     persistent_count = 0
-    acr1 = sub1.id.to_s.split("/")[-3]
     if classId.nil?
-      acr2 = nil
-      if not sub2.nil?
-        acr2 = sub2.id.to_s.split("/")[-3]
-      end
       pcount = LinkedData::Models::MappingCount.where(
           ontologies: acr1
       )
@@ -209,7 +262,7 @@ eos
       if sub2.nil?
         union_block = union_block.sub("graph","?g")
       else
-        union_block = union_block.sub("graph","<#{sub2.id.to_s}>")
+        union_block = union_block.sub("graph","<#{sub2.to_s}>")
       end
       blocks << union_block
     end
@@ -236,7 +289,7 @@ eos
     end
     if sub2.nil?
       query = query.sub("graph","?g")
-      ont_id = sub1.id.to_s.split("/")[0..-3].join("/")
+      ont_id = sub1.to_s.split("/")[0..-3].join("/")
       #STRSTARTS is used to not count older graphs
       #no need since now we delete older graphs
       filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}'))"
@@ -255,9 +308,9 @@ eos
       query = query.sub("page_group","")
     end
     epr = Goo.sparql_query_client(:main)
-    graphs = [sub1.id]
+    graphs = [sub1]
     unless sub2.nil?
-      graphs << sub2.id
+      graphs << sub2
     end
     solutions = epr.query(query,
                           graphs: graphs, reload_cache: reload_cache)
@@ -270,21 +323,22 @@ eos
       if sub2.nil?
         graph2 = sol[:g]
       else
-        graph2 = sub2.id
+        graph2 = sub2
       end
       if classId.nil?
         s1 = sol[:s1]
       end
-      classes = [ read_only_class(s1.to_s,sub1.id.to_s),
-                read_only_class(sol[:s2].to_s,graph2.to_s) ]
 
       backup_mapping = nil
       mapping = nil
       if sol[:source].to_s == "REST"
         backup_mapping = LinkedData::Models::RestBackupMapping
-                      .find(sol[:o]).include(:process).first
+                      .find(sol[:o]).include(:process, :class_urns).first
         backup_mapping.process.bring_remaining
       end
+
+      classes = get_mapping_classes(s1.to_s, sub1.to_s, sol[:s2].to_s, graph2, backup_mapping)
+
       if backup_mapping.nil?
         mapping = LinkedData::Models::Mapping.new(
                     classes,sol[:source].to_s)
@@ -365,16 +419,25 @@ eos
     rest_predicate = mapping_predicates()["REST"][0]
     classes = mapping.classes
     classes.each do |c|
-      sub = c.submission
-      unless sub.id.to_s["latest"].nil?
-        #the submission in the class might point to latest
-        sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
-                .first
-                .latest_submission
+      if c.respond_to?(:submission)
+        sub = c.submission
+        unless sub.id.to_s["latest"].nil?
+          #the submission in the class might point to latest
+          sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
+                    .first
+                    .latest_submission
+        end
+        del_from_graph = sub.id
+      elsif c.respond_to?(:source)
+        # If it is an InterportalClass
+        del_from_graph = LinkedData::Models::InterportalClass.graph_uri(c.source)
+      else
+        # If it is an ExternalClass
+        del_from_graph = LinkedData::Models::ExternalClass.graph_uri
       end
       graph_delete = RDF::Graph.new
       graph_delete << [c.id, RDF::URI.new(rest_predicate), mapping.id]
-      Goo.sparql_update_client.delete_data(graph_delete, graph: sub.id)
+      Goo.sparql_update_client.delete_data(graph_delete, graph: del_from_graph)
     end
     mapping.process.delete
     backup = LinkedData::Models::RestBackupMapping.find(mapping_id).first
@@ -384,8 +447,97 @@ eos
     return mapping
   end
 
+  # A function only used in ncbo_cron. To make sure all triples that link mappings to class are well deleted (use of metadata/def/mappingRest predicate)
+  def self.delete_all_rest_mappings_from_sparql
+    rest_predicate = mapping_predicates()["REST"][0]
+    actual_graph = ""
+    count = 0
+    qmappings = <<-eos
+SELECT DISTINCT ?g ?class_uri ?backup_mapping
+WHERE {
+  GRAPH ?g {
+    ?class_uri <#{rest_predicate}> ?backup_mapping .
+  }
+}
+    eos
+    epr = Goo.sparql_query_client(:main)
+    epr.query(qmappings).each do |sol|
+      if actual_graph == sol[:g].to_s && count < 4000
+        # Trying to delete more than 4995 triples at the same time cause a memory error. So 4000 by 4000. Or until we met a new graph
+        graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
+      else
+        if count == 0
+          graph_delete = RDF::Graph.new
+          graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
+        else
+          Goo.sparql_update_client.delete_data(graph_delete, graph: RDF::URI.new(actual_graph))
+          graph_delete = RDF::Graph.new
+          graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
+        end
+        count = 0
+        actual_graph = sol[:g].to_s
+      end
+      count = count + 1
+    end
+    if count > 0
+      Goo.sparql_update_client.delete_data(graph_delete, graph: RDF::URI.new(actual_graph))
+    end
+  end
+
+
+  # A method that generate classes depending on the nature of the mapping : Internal, External or Interportal
+  def self.get_mapping_classes(c1, g1, c2, g2, backup)
+    external_source = nil
+    external_ontology = nil
+    # Generate classes if g1 is interportal or external
+    if g1.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
+      backup.class_urns.each do |class_urn|
+        # get source and ontology from the backup URI from 4store (source(like urn):ontology(like STY):class)
+        if !class_urn.start_with?("urn:")
+          external_source = class_urn.split(":")[0]
+          external_ontology = class_urn.split(":")[1]
+        end
+      end
+      classes = [ LinkedData::Models::InterportalClass.new(c1, external_ontology, external_source),
+                  read_only_class(c2,g2)]
+    elsif g1 == LinkedData::Models::ExternalClass.graph_uri.to_s
+      backup.class_urns.each do |class_urn|
+        if !class_urn.start_with?("urn:")
+          external_ontology = class_urn.split(":")[1]
+        end
+      end
+      classes = [ LinkedData::Models::ExternalClass.new(c1, external_ontology),
+                  read_only_class(c2,g2)]
+
+    # Generate classes if g2 is interportal or external
+    elsif g2.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
+      backup.class_urns.each do |class_urn|
+        if !class_urn.start_with?("urn:")
+          external_source = class_urn.split(":")[0]
+          external_ontology = class_urn.split(":")[1]
+        end
+      end
+      classes = [ read_only_class(c1,g1),
+                  LinkedData::Models::InterportalClass.new(c2, external_ontology, external_source)]
+    elsif g2 == LinkedData::Models::ExternalClass.graph_uri.to_s
+      backup.class_urns.each do |class_urn|
+        if !class_urn.start_with?("urn:")
+          external_ontology = class_urn.split(":")[1]
+        end
+      end
+      classes = [ read_only_class(c1,g1),
+                  LinkedData::Models::ExternalClass.new(c2, external_ontology)]
+
+    else
+      classes = [ read_only_class(c1,g1),
+                  read_only_class(c2,g2) ]
+    end
+
+    return classes
+  end
+
   def self.get_rest_mapping(mapping_id)
-    backup = LinkedData::Models::RestBackupMapping.find(mapping_id).first
+    backup = LinkedData::Models::RestBackupMapping.find(mapping_id).include(:class_urns).first
     if backup.nil?
       return nil
     end
@@ -410,13 +562,161 @@ eos
     mapping = nil
     epr.query(qmappings,
               graphs: graphs).each do |sol|
-      classes = [ read_only_class(sol[:c1].to_s,sol[:s1].to_s),
-                read_only_class(sol[:c2].to_s,sol[:s2].to_s) ]
+      classes = get_mapping_classes(sol[:c1].to_s, sol[:s1].to_s, sol[:c2].to_s, sol[:s2].to_s, backup)
       process = LinkedData::Models::MappingProcess.find(sol[:o]).first
       mapping = LinkedData::Models::Mapping.new(classes,"REST",
                                                 process,
                                                 sol[:uuid])
     end
+    return mapping
+  end
+
+  def self.generate_class_urns(classes)
+    class_urns = []
+    classes.each do |c|
+      if c.instance_of?LinkedData::Models::Class
+        acronym = c.submission.id.to_s.split("/")[-3]
+        class_urns << RDF::URI.new(
+            LinkedData::Models::Class.urn_id(acronym,c.id.to_s))
+      else
+        # Generate classes urns using the source (e.g.: ncbo or ext), the ontology acronym and the class id
+        class_urns << RDF::URI.new("#{c[:source]}:#{c[:ontology]}:#{c[:id]}")
+      end
+    end
+    return class_urns
+  end
+
+  def self.check_mapping_exist(cls, relations_array)
+    class_urns = generate_class_urns(cls)
+    mapping_exist = false
+    qmappings = <<-eos
+SELECT DISTINCT ?uuid ?urn1 ?urn2 ?p
+WHERE {
+  ?uuid <http://data.bioontology.org/metadata/class_urns> ?urn1 .
+  ?uuid <http://data.bioontology.org/metadata/class_urns> ?urn2 .
+  ?uuid <http://data.bioontology.org/metadata/process> ?p .
+FILTER(?urn1 = <#{class_urns[0]}>)
+FILTER(?urn2 = <#{class_urns[1]}>)
+} LIMIT 10
+    eos
+    epr = Goo.sparql_query_client(:main)
+    graphs = [LinkedData::Models::MappingProcess.type_uri]
+    epr.query(qmappings,
+              graphs: graphs).each do |sol|
+      process = LinkedData::Models::MappingProcess.find(sol[:p]).include(:relation).first
+      process_relations = process.relation.map {|r| r.to_s}
+      relations_array = relations_array.map {|r| r.to_s}
+      if process_relations.sort == relations_array.sort
+        mapping_exist = true
+        break
+      end
+    end
+    return mapping_exist
+  end
+
+  # A method to easily add a new mapping without using ontologies_api
+  # Where "params" is the mapping hash (containing classes, relation, creator and comment)
+  # Note: there is no interportal class validation and no check if mapping already exist
+  def self.bulk_load_mapping(params, check_exist=true, logger=nil)
+    raise ArgumentError, "Input does not contain classes" if !params[:classes]
+    if params[:classes].length > 2
+      raise ArgumentError, "Input does not contain at least 2 terms"
+    end
+    raise ArgumentError, "Input does not contain mapping relation" if !params[:relation]
+    if params[:relation].kind_of?(Array)
+      raise ArgumentError, "Input contains too many mapping relations (max 5)" if params[:relation].length > 5
+      params[:relation].each do |relation|
+        begin
+          URI(relation)
+        rescue URI::InvalidURIError => e
+          raise ArgumentError, "#{relation} is not a valid URI for relations."
+        end
+      end
+    end
+    raise ArgumentError, "Input does not contain user creator ID" if !params[:creator]
+    classes = []
+    LinkedData.settings.interportal_hash ||= {}
+    mapping_process_name = "REST Mapping"
+    params[:classes].each do |class_id,ontology_id|
+      interportal_prefix = ontology_id.split(":")[0]
+      if ontology_id.start_with? "ext:"
+        #TODO: check if the ontology is a well formed URI
+        # Just keep the source and the class URI if the mapping is external or interportal and change the mapping process name
+        raise ArgumentError, "Impossible to map 2 classes outside of BioPortal" if mapping_process_name != "REST Mapping"
+        mapping_process_name = "External Mapping"
+        ontology_uri = ontology_id.sub("ext:", "")
+        if !uri?(ontology_uri)
+          raise ArgumentError, "Ontology URI '#{ontology_uri.to_s}' is not valid"
+        end
+        if !uri?(class_id)
+          raise ArgumentError, "Class URI '#{class_id.to_s}' is not valid"
+        end
+        ontology_uri = CGI.escape(ontology_uri)
+        c = {:source => "ext", :ontology => ontology_uri, :id => class_id}
+        classes << c
+      elsif LinkedData.settings.interportal_hash.has_key?(interportal_prefix)
+        #Check if the prefix is contained in the interportal hash to create a mapping to this bioportal
+        raise ArgumentError, "Impossible to map 2 classes outside of BioPortal" if mapping_process_name != "REST Mapping"
+        mapping_process_name = "Interportal Mapping #{interportal_prefix}"
+        ontology_acronym = ontology_id.sub("#{interportal_prefix}:", "")
+        c = {:source => interportal_prefix, :ontology => ontology_acronym, :id => class_id}
+        classes << c
+      else
+        o = ontology_id
+        o = LinkedData::Models::Ontology.find(o)
+                .include(submissions:
+                             [:submissionId, :submissionStatus]).first
+        if o.nil?
+          raise ArgumentError, "Ontology with ID `#{ontology_id}` not found"
+        end
+        submission = o.latest_submission
+        if submission.nil?
+          raise ArgumentError, "Ontology with id #{ontology_id} does not have parsed valid submission"
+        end
+        submission.bring(ontology: [:acronym])
+        c = LinkedData::Models::Class.find(RDF::URI.new(class_id))
+                .in(submission)
+                .first
+        if c.nil?
+          raise ArgumentError, "Class ID `#{class_id}` not found in `#{submission.id.to_s}`"
+        end
+        classes << c
+      end
+    end
+    user_id = params[:creator].start_with?("http://") ?
+        params[:creator].split("/")[-1] : params[:creator]
+    user_creator = LinkedData::Models::User.find(user_id)
+                       .include(:username).first
+    if user_creator.nil?
+      raise ArgumentError, "User with id `#{params[:creator]}` not found"
+    end
+    process = LinkedData::Models::MappingProcess.new(
+        :creator => user_creator, :name => mapping_process_name)
+    relations_array = []
+    if !params[:relation].kind_of?(Array)
+      relations_array.push(RDF::URI.new(params[:relation]))
+    else
+      params[:relation].each do |relation|
+        relations_array.push(RDF::URI.new(relation))
+      end
+    end
+    # Check if the mapping exist (check mapping by default)
+    raise ArgumentError, "Mapping already exists" if LinkedData::Mappings.check_mapping_exist(classes, relations_array) if check_exist
+    process.relation = relations_array
+    process.date = DateTime.now
+    process_fields = [:source,:source_name, :comment]
+    process_fields.each do |att|
+      process.send("#{att}=",params[att]) if params[att]
+    end
+    process.save
+    begin
+      mapping = LinkedData::Mappings.create_rest_mapping(classes,process)
+    rescue => e
+      # Remove the created process if the following steps of the mapping fail
+      process.delete
+      raise IOError, "Loading mapping has failed. Message: #{e.message.to_s}"
+    end
+
     return mapping
   end
 
@@ -429,38 +729,56 @@ eos
                            "Request contains #{classes.length} classes."
     end
     #first create back up mapping that lives across submissions
-    backup_mapping = LinkedData::Models::RestBackupMapping.new
-    backup_mapping.uuid = UUID.new.generate
-    backup_mapping.process = process
-    class_urns = []
-    classes.each do |c|
-      if c.instance_of?LinkedData::Models::Class
-        acronym = c.submission.id.to_s.split("/")[-3]
-        class_urns << RDF::URI.new(
-          LinkedData::Models::Class.urn_id(acronym,c.id.to_s))
-
-      else
-        class_urns << RDF::URI.new(c.urn_id())
-      end
+    LinkedData.settings.interportal_hash ||= {}
+    begin
+      backup_mapping = LinkedData::Models::RestBackupMapping.new
+      backup_mapping.uuid = UUID.new.generate
+      backup_mapping.process = process
+      class_urns = generate_class_urns(classes)
+      backup_mapping.class_urns = class_urns
+      # Insert backup into 4store
+      backup_mapping.save
+    rescue => e
+      raise IOError, "Saving backup mapping has failed. Message: #{e.message.to_s}"
     end
-    backup_mapping.class_urns = class_urns
-    backup_mapping.save
 
     #second add the mapping id to current submission graphs
     rest_predicate = mapping_predicates()["REST"][0]
-    classes.each do |c|
-      sub = c.submission
-      unless sub.id.to_s["latest"].nil?
-        #the submission in the class might point to latest
-        sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
-                .first
-                .latest_submission
+    begin
+      classes.each do |c|
+        if c.instance_of?LinkedData::Models::Class
+          sub = c.submission
+          unless sub.id.to_s["latest"].nil?
+            #the submission in the class might point to latest
+            sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
+                      .first
+                      .latest_submission
+          end
+          c_id = c.id
+          graph_id = sub.id
+        else
+          if LinkedData.settings.interportal_hash.has_key?(c[:source])
+            # If it is a mapping from another Bioportal
+            c_id = RDF::URI.new(c[:id])
+            graph_id = LinkedData::Models::InterportalClass.graph_uri(c[:source])
+          else
+            # If it is an external mapping
+            c_id = RDF::URI.new(c[:id])
+            graph_id = LinkedData::Models::ExternalClass.graph_uri
+          end
+        end
+        graph_insert = RDF::Graph.new
+        graph_insert << [c_id, RDF::URI.new(rest_predicate), backup_mapping.id]
+        Goo.sparql_update_client.insert_data(graph_insert, graph: graph_id)
       end
-      graph_insert = RDF::Graph.new
-      graph_insert << [c.id, RDF::URI.new(rest_predicate), backup_mapping.id]
-      Goo.sparql_update_client.insert_data(graph_insert, graph: sub.id)
+    rescue => e
+      # Remove the created backup if the following steps of the mapping fail
+      backup_mapping.delete
+      raise IOError, "Inserting the mapping ID in the submission graphs has failed. Message: #{e.message.to_s}"
     end
+
     mapping = LinkedData::Models::Mapping.new(classes,"REST",process)
+
     return mapping
   end
 
@@ -528,15 +846,15 @@ eos
     procs = procs.map { |x| "?o = #{x.to_ntriples}" }.join " || "
     rest_predicate = mapping_predicates()["REST"][0]
     qmappings = <<-eos
-SELECT DISTINCT ?ont1 ?c1 ?ont2 ?c2 ?o ?uuid
+SELECT DISTINCT ?ont1 ?c1 ?s1 ?ont2 ?c2 ?s2 ?o ?uuid
 WHERE {
   ?uuid <http://data.bioontology.org/metadata/process> ?o .
 
-  ?s1 <http://data.bioontology.org/metadata/ontology> ?ont1 .
+  OPTIONAL { ?s1 <http://data.bioontology.org/metadata/ontology> ?ont1 . }
   GRAPH ?s1 {
     ?c1 <#{rest_predicate}> ?uuid .
   }
-  ?s2 <http://data.bioontology.org/metadata/ontology> ?ont2 .
+  OPTIONAL { ?s2 <http://data.bioontology.org/metadata/ontology> ?ont2 . }
   GRAPH ?s2 {
     ?c2 <#{rest_predicate}> ?uuid .
   }
@@ -549,8 +867,22 @@ eos
     mappings = []
     epr.query(qmappings,
               graphs: graphs,query_options: {rules: :NONE}).each do |sol|
-      classes = [ read_only_class(sol[:c1].to_s,sol[:ont1].to_s),
-                read_only_class(sol[:c2].to_s,sol[:ont2].to_s) ]
+      if sol[:ont1].nil?
+        # if the 1st class is from External or Interportal we don't want it to be in the list of recent, it has to be in 2nd
+        next
+      else
+        ont1 = sol[:ont1].to_s
+      end
+      if sol[:ont2].nil?
+        ont2 = sol[:s2].to_s
+      else
+        ont2 = sol[:ont2].to_s
+      end
+
+      mapping_id = RDF::URI.new(sol[:uuid].to_s)
+      backup = LinkedData::Models::RestBackupMapping.find(mapping_id).include(:class_urns).first
+      classes = get_mapping_classes(sol[:c1].to_s, ont1, sol[:c2].to_s, ont2, backup)
+
       process = proc_object[sol[:o].to_s]
       mapping = LinkedData::Models::Mapping.new(classes,"REST",
                                                 process,
@@ -587,6 +919,7 @@ eos
   end
 
   def self.create_mapping_counts(logger)
+    # Create mapping counts for ontology alone
     new_counts = LinkedData::Mappings.mapping_counts(
                                         enable_debug=true,logger=logger,
                                         reload_cache=true)
@@ -604,7 +937,9 @@ eos
       new_count = new_counts[acr]
       if persistent_counts.include?(acr)
         inst = persistent_counts[acr]
-        if new_count != inst.count
+        if new_count == 0
+          inst.delete
+        elsif new_count != inst.count
           inst.bring_remaining
           inst.count = new_count
           if not inst.valid? && logger
@@ -614,18 +949,21 @@ eos
           end
         end
       else
-        m = LinkedData::Models::MappingCount.new
-        m.ontologies = [acr]
-        m.pair_count = false
-        m.count = new_count
-        if not m.valid? && logger
-          logger.info("Error saving #{inst.id.to_s} #{inst.errors}")
-        else
-           m.save
+        if new_count != 0
+          m = LinkedData::Models::MappingCount.new
+          m.ontologies = [acr]
+          m.pair_count = false
+          m.count = new_count
+          if not m.valid? && logger
+            logger.info("Error saving #{inst.id.to_s} #{inst.errors}")
+          else
+            m.save
+          end
         end
       end
     end
 
+    # Create mapping counts for pair ontologies
     retrieve_latest_submissions.each do |acr,sub|
 
       new_counts = LinkedData::Mappings
@@ -647,19 +985,32 @@ eos
         new_count = new_counts[other]
         if persistent_counts.include?(other)
           inst = persistent_counts[other]
-          if new_count != inst.count
+          if new_count == 0
+            inst.delete
+          elsif new_count != inst.count
             inst.bring_remaining
             inst.count = new_count
             inst.save
           end
         else
-          m = LinkedData::Models::MappingCount.new
-          m.count = new_count
-          m.ontologies = [acr,other]
-          m.pair_count = true
-          m.save
+          if new_count != 0
+            m = LinkedData::Models::MappingCount.new
+            m.count = new_count
+            m.ontologies = [acr,other]
+            m.pair_count = true
+            m.save
+          end
         end
       end
+
+      # Remove persistent_counts that are not in new_counts (because no mappings anymore)
+      persistent_counts.each_key do |count_key|
+        if !new_counts.include?(count_key)
+          inst = persistent_counts[count_key]
+          inst.delete
+        end
+      end
+
     end
   end
 

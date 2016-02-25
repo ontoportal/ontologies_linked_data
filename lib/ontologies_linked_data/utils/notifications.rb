@@ -39,9 +39,15 @@ module LinkedData::Utils
       note.relatedOntology.each {|o| o.bring(:name) if o.bring?(:name); o.bring(:subscriptions) if o.bring?(:subscriptions)}
       ontologies = note.relatedOntology.map {|o| o.name}.join(", ")
       subject = "[#{LinkedData.settings.ui_host} Notes] [#{ontologies}] #{note.subject}"
+      # Fix the note URL when using replace_url_prefix (in another VM than NCBO)
+      if LinkedData.settings.replace_url_prefix == true
+        note_url = "http://#{LinkedData.settings.ui_host}/notes/#{CGI.escape(note.id.to_s.gsub("http://data.bioontology.org", LinkedData.settings.rest_url_prefix))}"
+      else
+        note_url = "http://#{LinkedData.settings.ui_host}/notes/#{CGI.escape(note.id.to_s)}"
+      end
       body = NEW_NOTE.gsub("%username%", note.creator.username)
                      .gsub("%ontologies%", ontologies)
-                     .gsub("%note_url%", LinkedData::Hypermedia.generate_links(note)["ui"])
+                     .gsub("%note_url%", note_url)
                      .gsub("%note_subject%", note.subject || "")
                      .gsub("%note_body%", note.body || "")
 
@@ -130,6 +136,7 @@ module LinkedData::Utils
       subject = "[#{LinkedData.settings.ui_host}] New Ontology: #{ont.acronym}"
       body = NEW_ONTOLOGY_CREATED.gsub("%acronym%", ont.acronym)
                  .gsub("%name%", ont.name.to_s)
+                 .gsub("%addedby%", ont.administeredBy[0].to_s)
                  .gsub("%site_url%", LinkedData.settings.ui_host)
                  .gsub("%ont_url%", LinkedData::Hypermedia.generate_links(ont)["ui"])
       recipients = LinkedData.settings.admin_emails
@@ -215,7 +222,7 @@ A new note was added to %ontologies% by <b>%username%</b>.<br/><br/>
 %note_body%<br/>
 ----------------------------------------------------------------------------------<br/><br/>
 
-You can respond by visiting: <a href="%note_url%">NCBO BioPortal</a>.<br/><br/>
+You can respond by visiting: <a href="%note_url%">BioPortal</a>.<br/><br/>
 EOS
 
 SUBMISSION_PROCESSED = <<EOS
@@ -258,7 +265,7 @@ The BioPortal Team
 EOS
 
 NEW_ONTOLOGY_CREATED = <<EOS
-A new ontology have been created on %site_url%
+A new ontology have been created by %addedby% on %site_url%
 <br>
 Acronym: %acronym%
 <br>
