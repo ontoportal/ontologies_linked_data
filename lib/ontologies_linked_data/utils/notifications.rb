@@ -131,7 +131,7 @@ module LinkedData::Utils
       body = NEW_ONTOLOGY_CREATED.gsub("%acronym%", ont.acronym)
                  .gsub("%name%", ont.name.to_s)
                  .gsub("%site_url%", LinkedData.settings.ui_host)
-                 .gsub("%ont_url%", "http://#{LinkedData.settings.ui_host}/ontologies/#{ont.acronym}")
+                 .gsub("%ont_url%", LinkedData::Hypermedia.generate_links(ont)["ui"])
       recipients = LinkedData.settings.admin_emails
 
       options = {
