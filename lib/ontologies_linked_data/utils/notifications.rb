@@ -136,6 +136,7 @@ module LinkedData::Utils
       subject = "[#{LinkedData.settings.ui_host}] New Ontology: #{ont.acronym}"
       body = NEW_ONTOLOGY_CREATED.gsub("%acronym%", ont.acronym)
                  .gsub("%name%", ont.name.to_s)
+                 .gsub("%addedby%", ont.administeredBy[0].to_s)
                  .gsub("%site_url%", LinkedData.settings.ui_host)
                  .gsub("%ont_url%", LinkedData::Hypermedia.generate_links(ont)["ui"])
       recipients = LinkedData.settings.admin_emails
@@ -269,7 +270,7 @@ The BioPortal Team
 EOS
 
 NEW_ONTOLOGY_CREATED = <<EOS
-A new ontology have been created on %site_url%
+A new ontology have been created by %addedby% on %site_url%
 <br>
 Acronym: %acronym%
 <br>
