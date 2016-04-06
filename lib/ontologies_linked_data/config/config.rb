@@ -79,7 +79,7 @@ module LinkedData
                                                  :foaf => "http://xmlns.com/foaf/0.1/", :void => "http://rdfs.org/ns/void#",
                                                  :cc => "http://creativecommons.org/ns#", :dcat => "http://www.w3.org/ns/dcat#",
                                                  :schema => "http://schema.org/", :prov => "http://www.w3.org/ns/prov#",
-                                                 :adms => "http://www.w3.org/ns/adms#"}
+                                                 :adms => "http://www.w3.org/ns/adms#", :dct => "http://purl.org/dc/terms/"}
 
     # Override defaults
     yield @settings, overide_connect_goo if block_given?
