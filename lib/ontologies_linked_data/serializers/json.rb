@@ -58,7 +58,12 @@ module LinkedData
             predicate = {"@id" => linked_model.type_uri.to_s, "@type" => "@id"}
           elsif current_cls.model_settings[:attributes][attr][:namespace]
             # predicate with custom namespace
-            predicate = "#{Goo.vocabulary[current_cls.model_settings[:attributes][attr][:namespace]].to_s}#{attr}"
+            # if the namespace is in the resolve namespace dict (in LinkedData config) then it will be properly resolved
+            if (LinkedData.settings.resolve_namespace.has_key?(current_cls.model_settings[:attributes][attr][:namespace]))
+              predicate = "#{LinkedData.settings.resolve_namespace[current_cls.model_settings[:attributes][attr][:namespace]]}#{attr}"
+            else
+              predicate = "#{Goo.vocabulary[current_cls.model_settings[:attributes][attr][:namespace]].to_s}#{attr}"
+            end
           end
           hash[attr] = predicate unless predicate.nil?
         end
