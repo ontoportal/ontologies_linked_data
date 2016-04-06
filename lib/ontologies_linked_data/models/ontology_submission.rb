@@ -1169,8 +1169,8 @@ eos
           writer.close
 
           # index provisional classes
-          # self.ontology.bring(:provisionalClasses) if self.ontology.bring?(:provisionalClasses)
-          # self.ontology.ont.provisionalClasses.each { |pc| pc.index }
+          self.ontology.bring(:provisionalClasses) if self.ontology.bring?(:provisionalClasses)
+          self.ontology.provisionalClasses.each { |pc| pc.index }
 
           if (commit)
             t0 = Time.now
@@ -1280,7 +1280,7 @@ eos
           LinkedData::Models::Class.partially_load_children(roots,99,self)
         end
         classes.each do |c|
-          if !extra_include.nil? and extra_include.include?:hasChildren
+          if !extra_include.nil? and extra_include.include?(:hasChildren)
             c.load_has_children
           end
           roots << c if (c.obsolete.nil?) || (c.obsolete == false)

@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/ncbo/goo.git
-  revision: e2ba13fdd5d4086e79fa2cbfa00fb0402a55ae4b
+  revision: de6fceb58ecc1d17fe426586b62db4d8a1543137
   branch: master
   specs:
     goo (0.0.2)
@@ -49,10 +49,10 @@ GEM
     addressable (2.3.5)
     bcrypt (3.1.10)
     builder (3.2.2)
-    coderay (1.1.0)
+    coderay (1.1.1)
     cube-ruby (0.0.3)
     docile (1.1.5)
-    domain_name (0.5.25)
+    domain_name (0.5.20160128)
       unf (>= 0.0.5, < 1.0.0)
     elasticsearch (1.0.15)
       elasticsearch-api (= 1.0.15)
@@ -85,14 +85,14 @@ GEM
     mail (2.6.3)
       mime-types (>= 1.16, < 3)
     method_source (0.8.2)
-    mime-types (2.99)
+    mime-types (2.99.1)
     minitest (4.7.5)
     multi_json (1.11.2)
     multipart-post (2.0.0)
     mysql2 (0.4.2)
     net-http-persistent (2.9.4)
     netrc (0.11.0)
-    oj (2.14.3)
+    oj (2.14.5)
     pony (1.11)
       mail (>= 2.0)
     pry (0.10.3)
@@ -111,12 +111,12 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 3.0)
       netrc (~> 0.7)
-    rsolr (1.0.13)
+    rsolr (1.1.1)
       builder (>= 2.1.2)
     ruby-xxHash (0.4.0.1)
-    rubyzip (1.1.7)
-    sequel (4.30.0)
-    simplecov (0.11.1)
+    rubyzip (1.2.0)
+    sequel (4.31.0)
+    simplecov (0.11.2)
       docile (~> 1.1.0)
       json (~> 1.8)
       simplecov-html (~> 0.10.0)
@@ -129,7 +129,7 @@ GEM
     tzinfo (0.3.46)
     unf (0.1.4)
       unf_ext
-    unf_ext (0.0.7.1)
+    unf_ext (0.0.7.2)
     uuid (2.3.8)
       macaddr (~> 1.0)
 
