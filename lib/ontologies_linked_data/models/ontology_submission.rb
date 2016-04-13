@@ -49,20 +49,21 @@ module LinkedData
       attribute :hierarchyProperty, enforce: [:uri]
       attribute :obsoleteProperty, enforce: [:uri]
       attribute :obsoleteParent, enforce: [:uri]
+      attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
 
       # Ontology metadata
-      attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
-      attribute :homepage, extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog"]
-      attribute :publication, extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:isCitedBy", "bibo:isReferencedBy"]
+      attribute :homepage, extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog"] # TODO: change default attribute name
+      attribute :publication, extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:isCitedBy", "bibo:isReferencedBy"] # TODO: change default attribute name
       attribute :URI, namespace: :omv #TODO: attention, attribute particulier. Je le récupère proprement via OWLAPI. le définir direct comme ça sans mappings ? Attention, Il a été passé en majuscule
-      attribute :naturalLanguage, namespace: :omv, enforce: [:list]
-      attribute :documentation, namespace: :omv
-      attribute :version, namespace: :omv
-      attribute :creationDate, namespace: :omv, enforce: [:date_time], default: lambda { |record| DateTime.now }
-      attribute :description, namespace: :omv
-      attribute :status, namespace: :omv
-      attribute :contact, enforce: [:existence, :contact, :list]
-      attribute :released, enforce: [:date_time, :existence]
+      attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:language", "dct:language", "doap:language"]
+      attribute :documentation, namespace: :omv, extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
+      attribute :version, namespace: :omv, extractedMetadata: true, metadataMappings: ["owl:versionInfo", "mod:version", "doap:release"] # TODO: attention c'est déjà géré (mal) par BioPortal (le virer pour faire plus propre)
+      attribute :description, namespace: :omv, extractedMetadata: true, metadataMappings: ["rdfs:comment", "dc:description", "dct:description", "doap:description"]
+      attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status"] # Pas de limitation ici, mais seulement 4 possibilité dans l'UI (alpha, beta, production, retired)
+      attribute :contact, enforce: [:existence, :contact, :list]  # Careful its special
+
+      attribute :creationDate, namespace: :omv, enforce: [:date_time], default: lambda { |record| DateTime.now } # Attention c'est créé automatiquement ça, quand la submission est créée
+      attribute :released, enforce: [:date_time, :existence]  # TODO: gérer l'extract automatique des dates
 
       # Complementary omv metadata
       attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: []
@@ -96,7 +97,7 @@ module LinkedData
       # Link to ontology
       attribute :ontology, enforce: [:existence, :ontology]
 
-      #Link to metrics
+      # Link to metrics
       attribute :metrics, enforce: [:metrics]
 
       # Hypermedia settings
