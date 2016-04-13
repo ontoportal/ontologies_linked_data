@@ -65,7 +65,7 @@ module LinkedData
       attribute :released, enforce: [:date_time, :existence]
 
       # Complementary omv metadata
-      attribute :endorsedBy, namespace: :omv, enforce: [:list], additionalMetadata: true, metadataMappings: []
+      attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: []
       attribute :designedForOntologyTask, namespace: :omv, enforce: [:list]
       attribute :hasContributor, namespace: :omv, enforce: [:list]
       attribute :hasCreator, namespace: :omv, enforce: [:list]
@@ -378,9 +378,9 @@ module LinkedData
         ontology_uri = extract_ontology_uri()
 
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
-          # go trhough all OntologySubmission attributes
-          if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:additionalMetadata])
-            # for attribute with the :additionalMetadata setting on
+          # go through all OntologySubmission attributes
+          if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:extractedMetadata])
+            # for attribute with the :extractedMetadata setting on
             if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
               # for attribute that are lists
             end
