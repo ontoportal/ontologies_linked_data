@@ -52,9 +52,9 @@ module LinkedData
 
       # Ontology metadata
       attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
-      attribute :homepage
-      attribute :publication
-      attribute :uri, namespace: :omv
+      attribute :homepage, extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog"]
+      attribute :publication, extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:isCitedBy", "bibo:isReferencedBy"]
+      attribute :URI, namespace: :omv #TODO: attention, attribute particulier. Je le récupère proprement via OWLAPI. le définir direct comme ça sans mappings ? Attention, Il a été passé en majuscule
       attribute :naturalLanguage, namespace: :omv, enforce: [:list]
       attribute :documentation, namespace: :omv
       attribute :version, namespace: :omv
@@ -82,7 +82,6 @@ module LinkedData
       attribute :isOfType, namespace: :omv
       attribute :modificationDate, namespace: :omv
       attribute :notes, namespace: :omv
-      attribute :URI, namespace: :omv
 
       # Internal values for parsing - not definitive
       attribute :uploadFilePath
@@ -376,6 +375,10 @@ module LinkedData
       # First it extracts omv metadata, then the mapped metadata
       def extract_omv_metadata
         ontology_uri = extract_ontology_uri()
+
+        # TODO: recup l'ontology URI direct via OWLAPI. ATTENTION en tout majuscule ça semble pouvoir bugger
+        #self.URI = ontology_uri
+        #self.send("URI=", ontology_uri)
 
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
           # go through all OntologySubmission attributes

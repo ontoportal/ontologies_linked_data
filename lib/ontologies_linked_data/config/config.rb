@@ -80,6 +80,7 @@ module LinkedData
                                                  :cc => "http://creativecommons.org/ns#", :dcat => "http://www.w3.org/ns/dcat#",
                                                  :schema => "http://schema.org/", :prov => "http://www.w3.org/ns/prov#",
                                                  :adms => "http://www.w3.org/ns/adms#", :dct => "http://purl.org/dc/terms/"}
+    #TODO: add doap, mod, cito, bibo, vann,
 
     # Override defaults
     yield @settings, overide_connect_goo if block_given?
