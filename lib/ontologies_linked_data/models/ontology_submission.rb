@@ -66,23 +66,28 @@ module LinkedData
       attribute :released, enforce: [:date_time, :existence]  # TODO: gérer l'extract automatique des dates
 
       # Complementary omv metadata
-      attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: []
-      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list]
-      attribute :hasContributor, namespace: :omv, enforce: [:list]
-      attribute :hasCreator, namespace: :omv, enforce: [:list]
-      attribute :hasDomain, namespace: :omv, enforce: [:list]
-      attribute :usedImports, namespace: :omv, enforce: [:list]
-      attribute :keyClasses, namespace: :omv, enforce: [:list]
-      attribute :keywords, namespace: :omv, enforce: [:list]
-      attribute :knowUsage, namespace: :omv, enforce: [:list]
-      attribute :hasFormalityLevel, namespace: :omv
-      attribute :hasLicense, namespace: :omv
-      attribute :usedKnowledgeRepresentationParadigm, namespace: :omv
-      attribute :usedOntologyEngineeringMethodology, namespace: :omv
-      attribute :usedOntologyEngineeringTool, namespace: :omv
-      attribute :isOfType, namespace: :omv
-      attribute :modificationDate, namespace: :omv
-      attribute :notes, namespace: :omv
+      attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true, metadataMappings: ["dct:modified"]
+      attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true, metadataMappings: ["mod:noOfAxioms"]  # TODO: extract les integers
+      attribute :keyClasses, namespace: :omv, enforce: [:uri, :list], extractedMetadata: true, metadataMappings: ["foaf:primaryTopic", "void:exampleResource"]
+      attribute :keywords, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:keyword", "dcat:keyword"]
+      attribute :knownUsage, namespace: :omv, enforce: [:list], extractedMetadata: true
+      attribute :notes, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:versionNotes"]
+      attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:KnowledgeRepresentationFormalism"]
+      attribute :hasContributor, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper"]
+      attribute :hasCreator, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer"]
+      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: []
+      attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"]
+      attribute :hasDomain, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme"]
+      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"] # Array ou pas array ??? Je mettrais pas array mais apparemment Anne et Clément considère que c'est un Array
+      attribute :hasLicense, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:rights", "dct:license", "cc:license"]
+      attribute :hasOntologySyntax, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:syntax", "dct:format"]
+
+      attribute :usedImports, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: []
+      attribute :usedKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true, metadataMappings: []
+      attribute :usedOntologyEngineeringMethodology, namespace: :omv, extractedMetadata: true, metadataMappings: []
+      attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true, metadataMappings: []
+      attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: []
+      attribute :modificationDate, namespace: :omv, extractedMetadata: true, metadataMappings: []
 
       # Internal values for parsing - not definitive
       attribute :uploadFilePath
