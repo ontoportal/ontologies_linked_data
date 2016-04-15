@@ -14,6 +14,7 @@ module LinkedData
 
       # The key is the property used by omv, the value is an array of properties mapped to the key omv property
       # (make sure the prefix is well defined in extract_mapped_array_metadata and extract_mapped_single_metadata SPARQL queries)
+      # TODO: will disappear when attributes will be fully used
       OMV_ARRAY_METADATA = {"endorsedBy" => [],
                             "naturalLanguage" => ["dcterms:language"],
                             "designedForOntologyTask" => [],
@@ -69,7 +70,7 @@ module LinkedData
       attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true, metadataMappings: ["dct:modified"]
       attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true, metadataMappings: ["mod:noOfAxioms"]  # TODO: extract les integers
       attribute :keyClasses, namespace: :omv, enforce: [:uri, :list], extractedMetadata: true, metadataMappings: ["foaf:primaryTopic", "void:exampleResource"]
-      attribute :keywords, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:keyword", "dcat:keyword"]
+      attribute :keywords, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:keyword", "dcat:keyword"] # Attention particulier, ça peut être un simple string avec des virgules
       attribute :knownUsage, namespace: :omv, enforce: [:list], extractedMetadata: true
       attribute :notes, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:versionNotes"]
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:KnowledgeRepresentationFormalism"]
@@ -78,15 +79,16 @@ module LinkedData
       attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: []
       attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"]
       attribute :hasDomain, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme"]
-      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"] # Array ou pas array ??? Je mettrais pas array mais apparemment Anne et Clément considère que c'est un Array
+      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"]
       attribute :hasLicense, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:rights", "dct:license", "cc:license"]
-      attribute :hasOntologySyntax, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:syntax", "dct:format"]
+      attribute :hasOntologySyntax, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:syntax", "dct:format"]
+      attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"]
+
 
       attribute :usedImports, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: []
       attribute :usedKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true, metadataMappings: []
       attribute :usedOntologyEngineeringMethodology, namespace: :omv, extractedMetadata: true, metadataMappings: []
       attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true, metadataMappings: []
-      attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: []
       attribute :modificationDate, namespace: :omv, extractedMetadata: true, metadataMappings: []
 
       # Internal values for parsing - not definitive
