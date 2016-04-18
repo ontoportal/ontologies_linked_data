@@ -24,19 +24,16 @@ module LinkedData
                             "usedImports" => [],
                             "keyClasses" => [],
                             "keywords" => [],
-                            "knowUsage" => []}
+                            "knownUsage" => []}
 
       OMV_SINGLE_METADATA = {"documentation" => [],
                              "description" => ["dcterms:description"],
                              "hasFormalityLevel" => [],
-                             "hasLicense" => ["dcterms:rights"],
                              "isOfType" => [],
                              "usedOntologyEngineeringTool" => [],
                              "usedOntologyEngineeringMethodology" => [],
                              "usedKnowledgeRepresentationParadigm" => [],
-                             "modificationDate" => [],
-                             "notes" => [],
-                             "URI" => ["dcterms:identifier"]}
+                             "notes" => []}
 
       model :ontology_submission, name_with: lambda { |s| submission_id_generator(s) }
       attribute :submissionId, enforce: [:integer, :existence]
@@ -67,7 +64,7 @@ module LinkedData
       attribute :released, enforce: [:date_time, :existence]  # TODO: gérer l'extract automatique des dates
 
       # Complementary omv metadata
-      attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true, metadataMappings: ["dct:modified"]
+      attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true, metadataMappings: ["dct:modified"]  # Va falloir faire en sorte de pouvoir extraire la date
       attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true, metadataMappings: ["mod:noOfAxioms"]  # TODO: extract les integers
       attribute :keyClasses, namespace: :omv, enforce: [:uri, :list], extractedMetadata: true, metadataMappings: ["foaf:primaryTopic", "void:exampleResource"]
       attribute :keywords, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:keyword", "dcat:keyword"] # Attention particulier, ça peut être un simple string avec des virgules
@@ -368,11 +365,13 @@ module LinkedData
         end
         delete_and_append(triples_file_path, logger, mime_type)
         begin
+          # Extract metadata directly from the ontology
           extract_omv_metadata()
           logger.info("OMV metadata extracted.")
         rescue => e
           logger.error("Error while extracting omv metadata: #{e}")
         end
+        # TODO: Remove this extraction of version, when extract metadata will be good
         version_info = extract_version()
         if version_info
           self.version = version_info
@@ -384,7 +383,7 @@ module LinkedData
       def extract_omv_metadata
         ontology_uri = extract_ontology_uri()
 
-        # TODO: recup l'ontology URI direct via OWLAPI. ATTENTION en tout majuscule ça semble pouvoir bugger
+        # TODO: recup l'attrib l'ontology URI direct via OWLAPI. ATTENTION en tout majuscule ça semble pouvoir bugger
         #self.URI = ontology_uri
         #self.send("URI=", ontology_uri)
 
