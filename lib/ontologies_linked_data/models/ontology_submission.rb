@@ -22,7 +22,6 @@ module LinkedData
                             "hasCreator" => ["dcterms:creator"],
                             "hasDomain" => [],
                             "usedImports" => [],
-                            "keyClasses" => [],
                             "keywords" => [],
                             "knownUsage" => []}
 
