@@ -157,8 +157,6 @@ module LinkedData
       #attribute :mailing-list, namespace: :doap, enforce: [:uri], extractedMetadata: true, metadataMappings: []
 
 
-
-
       # Internal values for parsing - not definitive
       attribute :uploadFilePath
       attribute :diffFilePath
@@ -437,7 +435,7 @@ module LinkedData
         delete_and_append(triples_file_path, logger, mime_type)
         begin
           # Extract metadata directly from the ontology
-          extract_omv_metadata()
+          extract_all_metadata()
           logger.info("OMV metadata extracted.")
         rescue => e
           logger.error("Error while extracting omv metadata: #{e}")
@@ -450,8 +448,8 @@ module LinkedData
       end
 
       # Extract metadata about the ontology (omv metadata)
-      # First it extracts omv metadata, then the mapped metadata
-      def extract_omv_metadata
+      # First it extracts the main metadata, then the mapped metadata
+      def extract_all_metadata
         ontology_uri = extract_ontology_uri()
 
         # TODO: recup l'attrib l'ontology URI direct via OWLAPI. ATTENTION en tout majuscule ça semble pouvoir bugger
@@ -459,29 +457,60 @@ module LinkedData
         #self.send("URI=", ontology_uri)
 
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
-          # go through all OntologySubmission attributes
+          # go through all OntologySubmission attributes. Returns symbols
           if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:extractedMetadata])
             # for attribute with the :extractedMetadata setting on
+
+            hash_results = extract_each_metadata(ontology_uri, attr, attr.to_s)
+
+            single_extracted = false
+            # a boolean to check if a value that should be single have already been extracted
+
             if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
-              # for attribute that are lists
+              # Add the retrieved value(s) to the attribute if the attribute take a list of objects
+              metadata_values = self.send(metadata_name).dup
+              hash_results.each do |k,v|
+                metadata_values.push(v)
+              end
+              self.send("#{metadata_name}=", metadata_values)
+            else
+              # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
+              hash_results.each do |k,v|
+                single_extracted = true
+                self.send("#{metadata_name}=", v)
+                break
+              end
             end
+
+            LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].each do |mapping|
+
+              if single_extracted == true
+                # if an attribute with only one possible object as already been extracted
+                break
+              end
+              hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s)
+
+              if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
+                # Add the retrieved value(s) to the attribute if the attribute take a list of objects
+                metadata_values = self.send(metadata_name).dup
+                hash_mapping_results.each do |k,v|
+                  metadata_values.push(v)
+                end
+                self.send("#{metadata_name}=", metadata_values)
+              else
+                # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
+                hash_mapping_results.each do |k,v|
+                  self.send("#{metadata_name}=", v)
+                  break
+                end
+              end
+            end
+
           end
         end
 
-        OMV_ARRAY_METADATA.each do |omv_metadata,mapped|
-          extract_omv_array_metadata(ontology_uri, omv_metadata)
-          mapped.each do |mapped_metadata|
-            extract_mapped_array_metadata(ontology_uri, omv_metadata, mapped_metadata)
-          end
-        end
-
-        OMV_SINGLE_METADATA.each do |omv_metadata,mapped|
-          extract_omv_single_metadata(ontology_uri, omv_metadata)
-          mapped.each do |mapped_metadata|
-            extract_mapped_single_metadata(ontology_uri, omv_metadata, mapped_metadata)
-          end
-        end
       end
+
 
       # Return a hash with the best literal value for an URI
       # it selects the literal according to their language: no language > english > french > other languages
@@ -521,209 +550,77 @@ module LinkedData
       end
 
 
-      # A function to extract omv metadata in array
+      # A function to extract additional metadata
       # Take the literal data if the property is pointing to a literal
-      # If pointing to an URI: first it takes the omv:name of the object pointed by the property,
-      # if nil it takes the omv:firstName + omv:lastName (for omv:Person)
-      # If not found it check for rdfs:label of this object. And to finish it takes the URI
-      def extract_omv_array_metadata(ontology_uri, metadata_name)
+      # If pointing to an URI: first it takes the "omv:name" of the object pointed by the property, if nil it takes the "rdfs:label".
+      # If not found it check for "omv:firstName + omv:lastName" (for "omv:Person") of this object. And to finish it takes the "URI"
+      # The hash_results contains the metadataUri (objet pointed on by the metadata property) with the value we are using from it
+      def extract_each_metadata(ontology_uri, attr, prop_to_extract)
 
         query_metadata = <<eos
 PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
-SELECT DISTINCT ?metadataUri ?omvname ?omvfirstname ?omvlastname ?rdfslabel
+SELECT DISTINCT ?extractedObject ?omvname ?omvfirstname ?omvlastname ?rdfslabel
 FROM #{self.id.to_ntriples}
 WHERE {
-  <#{ontology_uri}> omv:#{metadata_name} ?metadataUri .
+  <#{ontology_uri}> omv:#{prop_to_extract} ?extractedObject .
   OPTIONAL { ?metadataUri omv:name ?omvname } .
   OPTIONAL { ?metadataUri omv:firstName ?omvfirstname } .
   OPTIONAL { ?metadataUri omv:lastName ?omvlastname } .
   OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
 }
 eos
-        # This hash will contain the "literal" metadata for each object of metadata predicate
+        # This hash will contain the "literal" metadata for each object (uri or literal) pointed by the metadata predicate
         hash_results = {}
         Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
-          if sol[:metadataUri].is_a?(RDF::URI)
-            if !sol[:omvname].nil?
-              hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvname], hash_results)
-            elsif !sol[:rdfslabel].nil?
-              hash_results = select_metadata_literal(sol[:metadataUri],sol[:rdfslabel], hash_results)
-            elsif !sol[:omvfirstname].nil?
-              hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvfirstname], hash_results)
-              # if first and last name are defined (for omv:Person)
-              if !sol[:omvlastname].nil?
-                hash_results[sol[:metadataUri]] = hash_results[sol[:metadataUri]].to_s + " " + sol[:omvlastname].to_s
-              end
-            elsif !sol[:omvlastname].nil?
-              # if only last name is defined
-              hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvlastname], hash_results)
-            else
-              hash_results[sol[:metadataUri]] = sol[:metadataUri].to_s
+
+          if LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:uri)
+            # If the attr is enforced as URI then it directly takes the URI
+            if sol[:extractedObject].is_a?(RDF::URI)
+              # TODO: check if RDF::URI is okay for a enforce(:uri)
+              hash_results[sol[:extractedObject]] = sol[:extractedObject]
             end
+
+          elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:date)
+            # TODO: GERER LES DATES
+
+          elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:integer)
+            # TODO: GERER LES INTEGER
+
           else
-            hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
-          end
-        end
-        metadata_values = self.send(metadata_name).dup
-        hash_results.each do |k,v|
-          metadata_values.push(v)
-        end
-        self.send("#{metadata_name}=", metadata_values)
-      end
 
-
-      # A function to extract metadata (in array) mapped to omv metadata
-      # Take the literal data if the property is pointing to a literal
-      # If pointing to an URI: first it takes the omv:name of the object pointed by the property,
-      # If not found it check for rdfs:label of this object. And to finish it takes the URI
-      def extract_mapped_array_metadata(ontology_uri, metadata_name, mapped_metadata)
-
-        query_metadata = <<eos
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
-PREFIX dcterms: <http://purl.org/dc/terms/>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX void: <http://rdfs.org/ns/void#>
-PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
-
-SELECT DISTINCT ?metadataUri ?rdfslabel ?dctitle
-FROM #{self.id.to_ntriples}
-WHERE {
-  <#{ontology_uri}> #{mapped_metadata} ?metadataUri .
-  OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
-  OPTIONAL { ?metadataUri dc:title ?dctitle } .
-}
-eos
-        # This hash will contain the "literal" metadata for each object of metadata predicate
-        hash_results = {}
-        Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
-          if sol[:metadataUri].is_a?(RDF::URI)
-            if !sol[:rdfslabel].nil?
-              hash_results = select_metadata_literal(sol[:metadataUri],sol[:rdfslabel], hash_results)
-            elsif !sol[:dctitle].nil?
-              hash_results = select_metadata_literal(sol[:metadataUri],sol[:dctitle], hash_results)
-            else
-              hash_results[sol[:metadataUri]] = sol[:metadataUri].to_s
-            end
-          else
-            hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
-          end
-        end
-        # Retrieve the already stored metadata and then add the newly retrieved metadata to the array
-        metadata_values = self.send(metadata_name).dup
-        hash_results.each do |k,v|
-          metadata_values.push(v)
-        end
-        self.send("#{metadata_name}=", metadata_values)
-      end
-
-
-      # A function to extract single omv metadata
-      # Take the literal data if the property is pointing to a literal
-      # If pointing to an URI: first it takes the omv:name of the object pointed by the property,
-      # if nil it takes the omv:firstName + omv:lastName (for omv:Person)
-      # If not found it check for rdfs:label of this object. And to finish it takes the
-      def extract_omv_single_metadata(ontology_uri, metadata_name)
-
-        if self.send(metadata_name).nil?
-          query_metadata = <<eos
-PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-
-SELECT DISTINCT ?metadataUri ?omvname ?omvfirstname ?omvlastname ?rdfslabel
-FROM #{self.id.to_ntriples}
-WHERE {
-<#{ontology_uri}> omv:#{metadata_name} ?metadataUri .
-OPTIONAL { ?metadataUri omv:name ?omvname } .
-OPTIONAL { ?metadataUri omv:firstName ?omvfirstname } .
-OPTIONAL { ?metadataUri omv:lastName ?omvlastname } .
-OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
-}
-eos
-          hash_results = {}
-          Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
-            if sol[:metadataUri].is_a?(RDF::URI)
+            if sol[:extractedObject].is_a?(RDF::URI)
+              # if the object is an URI but we are requesting a String
+              # TODO: ATTENTION on veut pas forcément TOUT le temps recump omvname, etc... Voir si on change ce comportement
               if !sol[:omvname].nil?
-                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvname], hash_results)
+                hash_results = select_metadata_literal(sol[:extractedObject],sol[:omvname], hash_results)
               elsif !sol[:rdfslabel].nil?
-                hash_results = select_metadata_literal(sol[:metadataUri],sol[:rdfslabel], hash_results)
+                hash_results = select_metadata_literal(sol[:extractedObject],sol[:rdfslabel], hash_results)
               elsif !sol[:omvfirstname].nil?
-                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvfirstname], hash_results)
+                hash_results = select_metadata_literal(sol[:extractedObject],sol[:omvfirstname], hash_results)
+                # if first and last name are defined (for omv:Person)
                 if !sol[:omvlastname].nil?
-                  hash_results[sol[:metadataUri]] = hash_results[sol[:metadataUri]].to_s + " " + sol[:omvlastname].to_s
+                  hash_results[sol[:extractedObject]] = hash_results[sol[:extractedObject]].to_s + " " + sol[:omvlastname].to_s
                 end
               elsif !sol[:omvlastname].nil?
-                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvlastname], hash_results)
+                # if only last name is defined
+                hash_results = select_metadata_literal(sol[:extractedObject],sol[:omvlastname], hash_results)
               else
-                hash_results[sol[:metadataUri]] = sol[:metadataUri].to_s
+                hash_results[sol[:extractedObject]] = sol[:extractedObject].to_s
               end
+
             else
-              hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
-            end
-          end
-          # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
-          hash_results.each do |k,v|
-            self.send("#{metadata_name}=", v)
-            break
-          end
-        end
-      end
-
-
-      # A function to extract single metadata mapped to omv
-      # Take the literal data if the property is pointing to a literal
-      # If pointing to an URI: first it takes the rdfs:label of the object pointed by the property,
-      # if nil it takes the dc:title. If nil it takes the URI
-      def extract_mapped_single_metadata(ontology_uri, metadata_name, mapped_metadata)
-
-        if self.send(metadata_name).nil?
-          query_metadata = <<eos
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
-PREFIX dcterms: <http://purl.org/dc/terms/>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-PREFIX void: <http://rdfs.org/ns/void#>
-PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
-
-
-SELECT DISTINCT ?metadataUri ?rdfslabel ?dctitle
-FROM #{self.id.to_ntriples}
-WHERE {
-  <#{ontology_uri}> #{mapped_metadata} ?metadataUri .
-  OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
-  OPTIONAL { ?metadataUri dc:title ?dctitle } .
-}
-eos
-          hash_results = {}
-          Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
-            if sol[:metadataUri].is_a?(RDF::URI)
-              if !sol[:rdfslabel].nil?
-                hash_results = select_metadata_literal(sol[:metadataUri],sol[:rdfslabel], hash_results)
-              elsif !sol[:dctitle].nil?
-                hash_results = select_metadata_literal(sol[:metadataUri],sol[:omvfirstname], hash_results)
-              else
-                hash_results[sol[:metadataUri]] = sol[:metadataUri].to_s
-              end
-            else
-              hash_results = select_metadata_literal(sol[:metadataUri],sol[:metadataUri], hash_results)
-            end
-          end
-          if hash_results.length == 1
-            # If multiple value for a metadata that should have a single value : not taking any value.
-            hash_results.each do |k,v|
-              self.send("#{metadata_name}=", v)
+              # If this is directly a literal
+              hash_results = select_metadata_literal(sol[:extractedObject],sol[:extractedObject], hash_results)
             end
           end
         end
+
+        return hash_results
       end
+      
 
       # Extract the ontology URI to use it to extract ontology metadata
       def extract_ontology_uri
