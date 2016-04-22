@@ -468,16 +468,16 @@ module LinkedData
 
             if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
               # Add the retrieved value(s) to the attribute if the attribute take a list of objects
-              metadata_values = self.send(metadata_name).dup
+              metadata_values = self.send(attr.to_s).dup
               hash_results.each do |k,v|
                 metadata_values.push(v)
               end
-              self.send("#{metadata_name}=", metadata_values)
+              self.send("#{attr.to_s}=", metadata_values)
             else
               # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
               hash_results.each do |k,v|
                 single_extracted = true
-                self.send("#{metadata_name}=", v)
+                self.send("#{attr.to_s}=", v)
                 break
               end
             end
@@ -492,15 +492,15 @@ module LinkedData
 
               if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
                 # Add the retrieved value(s) to the attribute if the attribute take a list of objects
-                metadata_values = self.send(metadata_name).dup
+                metadata_values = self.send(attr.to_s).dup
                 hash_mapping_results.each do |k,v|
                   metadata_values.push(v)
                 end
-                self.send("#{metadata_name}=", metadata_values)
+                self.send("#{attr.to_s}=", metadata_values)
               else
                 # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
                 hash_mapping_results.each do |k,v|
-                  self.send("#{metadata_name}=", v)
+                  self.send("#{attr.to_s}=", v)
                   break
                 end
               end
