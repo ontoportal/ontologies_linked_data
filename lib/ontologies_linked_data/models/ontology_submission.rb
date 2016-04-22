@@ -986,6 +986,7 @@ eos
                 add_submission_status(status)
                 self.save
               rescue Exception => e
+                logger.error("#{self.errors}")
                 logger.error("#{e.class}: #{e.message}\n#{e.backtrace.join("\n\t")}")
                 logger.flush
                 add_submission_status(status.get_error_status)
