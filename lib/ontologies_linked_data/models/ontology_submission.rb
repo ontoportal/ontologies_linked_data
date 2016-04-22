@@ -591,7 +591,7 @@ eos
               hash_results[sol[:extractedObject]] = sol[:extractedObject]
             end
 
-          elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:date)
+          elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:date_time)
             # TODO: GERER LES DATES
 
           elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:integer)
