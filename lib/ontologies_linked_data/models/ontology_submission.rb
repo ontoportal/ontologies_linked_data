@@ -92,6 +92,7 @@ module LinkedData
       attribute :csvDump, enforce: [:uri], extractedMetadata: true, metadataMappings: []
 
       # New metadata from DOOR
+=begin
       attribute :ontologyRelatedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["dc:relation", "dct:relation", "voaf:reliesOn"]
       attribute :comesFromTheSameDomain, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: []
       attribute :similarTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:similar"]
@@ -155,7 +156,7 @@ module LinkedData
       attribute :repository, namespace: :doap, enforce: [:uri], extractedMetadata: true, metadataMappings: []
       #attribute :bug-database, namespace: :doap, enforce: [:uri], extractedMetadata: true, metadataMappings: []  le tiret ne marche pas dans les attributs
       #attribute :mailing-list, namespace: :doap, enforce: [:uri], extractedMetadata: true, metadataMappings: []
-
+=end
 
       # Internal values for parsing - not definitive
       attribute :uploadFilePath
