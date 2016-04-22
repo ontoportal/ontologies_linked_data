@@ -570,10 +570,8 @@ WHERE {
   OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
 }
 eos
-        Goo.namespaces.each do |namespace|
-          namespace.each do |prefix,uri|
-            query_metadata = "PREFIX #{prefix}: <#{uri}>\n" + query_metadata
-          end
+        Goo.namespaces.each do |prefix,uri|
+          query_metadata = "PREFIX #{prefix}: <#{uri}>\n" + query_metadata
         end
 
         logger.info(query_metadata)
