@@ -460,25 +460,28 @@ module LinkedData
           if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:extractedMetadata])
             # for attribute with the :extractedMetadata setting on
 
-            property_to_extract = LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].to_s + ":" + attr.to_s
-            hash_results = extract_each_metadata(ontology_uri, attr, property_to_extract, logger)
-
             single_extracted = false
-            # a boolean to check if a value that should be single have already been extracted
 
-            if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
-              # Add the retrieved value(s) to the attribute if the attribute take a list of objects
-              metadata_values = self.send(attr.to_s).dup
-              hash_results.each do |k,v|
-                metadata_values.push(v)
-              end
-              self.send("#{attr.to_s}=", metadata_values)
-            else
-              # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
-              hash_results.each do |k,v|
-                single_extracted = true
-                self.send("#{attr.to_s}=", v)
-                break
+            if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].nil?
+              property_to_extract = LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].to_s + ":" + attr.to_s
+              hash_results = extract_each_metadata(ontology_uri, attr, property_to_extract, logger)
+
+              # a boolean to check if a value that should be single have already been extracted
+
+              if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
+                # Add the retrieved value(s) to the attribute if the attribute take a list of objects
+                metadata_values = self.send(attr.to_s).dup
+                hash_results.each do |k,v|
+                  metadata_values.push(v)
+                end
+                self.send("#{attr.to_s}=", metadata_values)
+              else
+                # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
+                hash_results.each do |k,v|
+                  single_extracted = true
+                  self.send("#{attr.to_s}=", v)
+                  break
+                end
               end
             end
 
