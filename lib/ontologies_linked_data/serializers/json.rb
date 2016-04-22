@@ -59,6 +59,8 @@ module LinkedData
           elsif current_cls.model_settings[:attributes][attr][:namespace]
             # predicate with custom namespace
             # if the namespace is in the resolve namespace dict (in LinkedData config) then it will be properly resolved
+            # TODO: here directly uses the namespaces stored in Goo.vocabulary(@model_settings[:namespace]) (with add_namespace)
+            # ça evite d'avoir les namespaces stockes a 300 endroits
             if (LinkedData.settings.resolve_namespace.has_key?(current_cls.model_settings[:attributes][attr][:namespace]))
               predicate = "#{LinkedData.settings.resolve_namespace[current_cls.model_settings[:attributes][attr][:namespace]]}#{attr}"
             else
