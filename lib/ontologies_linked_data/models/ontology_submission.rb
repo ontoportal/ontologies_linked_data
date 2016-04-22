@@ -434,7 +434,7 @@ module LinkedData
         delete_and_append(triples_file_path, logger, mime_type)
         begin
           # Extract metadata directly from the ontology
-          extract_all_metadata()
+          extract_all_metadata(logger)
           logger.info("OMV metadata extracted.")
         rescue => e
           logger.error("Error while extracting omv metadata: #{e}")
@@ -448,7 +448,7 @@ module LinkedData
 
       # Extract metadata about the ontology (omv metadata)
       # First it extracts the main metadata, then the mapped metadata
-      def extract_all_metadata
+      def extract_all_metadata(logger)
         ontology_uri = extract_ontology_uri()
 
         # TODO: recup l'attrib l'ontology URI direct via OWLAPI. ATTENTION en tout majuscule ça semble pouvoir bugger
@@ -460,7 +460,7 @@ module LinkedData
           if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:extractedMetadata])
             # for attribute with the :extractedMetadata setting on
 
-            hash_results = extract_each_metadata(ontology_uri, attr, attr.to_s)
+            hash_results = extract_each_metadata(ontology_uri, attr, attr.to_s, logger)
 
             single_extracted = false
             # a boolean to check if a value that should be single have already been extracted
@@ -487,7 +487,7 @@ module LinkedData
                 # if an attribute with only one possible object as already been extracted
                 break
               end
-              hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s)
+              hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
 
               if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
                 # Add the retrieved value(s) to the attribute if the attribute take a list of objects
@@ -554,7 +554,7 @@ module LinkedData
       # If pointing to an URI: first it takes the "omv:name" of the object pointed by the property, if nil it takes the "rdfs:label".
       # If not found it check for "omv:firstName + omv:lastName" (for "omv:Person") of this object. And to finish it takes the "URI"
       # The hash_results contains the metadataUri (objet pointed on by the metadata property) with the value we are using from it
-      def extract_each_metadata(ontology_uri, attr, prop_to_extract)
+      def extract_each_metadata(ontology_uri, attr, prop_to_extract, logger)
 
         query_metadata = <<eos
 PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
@@ -571,6 +571,7 @@ WHERE {
   OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
 }
 eos
+        logger.info(query_metadata)
         # This hash will contain the "literal" metadata for each object (uri or literal) pointed by the metadata predicate
         hash_results = {}
         Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
