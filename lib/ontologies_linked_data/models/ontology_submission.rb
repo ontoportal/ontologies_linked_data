@@ -460,7 +460,8 @@ module LinkedData
           if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:extractedMetadata])
             # for attribute with the :extractedMetadata setting on
 
-            hash_results = extract_each_metadata(ontology_uri, attr, attr.to_s, logger)
+            property_to_extract = LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].to_s + ":" + attr.to_s
+            hash_results = extract_each_metadata(ontology_uri, attr, property_to_extract, logger)
 
             single_extracted = false
             # a boolean to check if a value that should be single have already been extracted
@@ -557,20 +558,24 @@ module LinkedData
       def extract_each_metadata(ontology_uri, attr, prop_to_extract, logger)
 
         query_metadata = <<eos
-PREFIX omv: <http://omv.ontoware.org/2005/05/ontology#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 SELECT DISTINCT ?extractedObject ?omvname ?omvfirstname ?omvlastname ?rdfslabel
 FROM #{self.id.to_ntriples}
 WHERE {
-  <#{ontology_uri}> omv:#{prop_to_extract} ?extractedObject .
+  <#{ontology_uri}> #{prop_to_extract} ?extractedObject .
   OPTIONAL { ?metadataUri omv:name ?omvname } .
   OPTIONAL { ?metadataUri omv:firstName ?omvfirstname } .
   OPTIONAL { ?metadataUri omv:lastName ?omvlastname } .
   OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
 }
 eos
+        Goo.namespaces.each do |namespace|
+          namespace.each do |prefix,uri|
+            query_metadata = "PREFIX #{prefix}: <#{uri}>\n" + query_metadata
+          end
+        end
+
         logger.info(query_metadata)
         # This hash will contain the "literal" metadata for each object (uri or literal) pointed by the metadata predicate
         hash_results = {}
