@@ -111,7 +111,7 @@ module LinkedData
       attribute :abstract, namespace: :dct, extractedMetadata: true, metadataMappings: []
       attribute :alternative, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["skos:altLabel"]
       attribute :hasPart, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: []
-      attribute :isFormatOf, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: []
+      attribute :isFormatOf, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: []
       attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience"]
       attribute :valid, namespace: :dct, enforce: [:date], extractedMetadata: true, metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"]
 
