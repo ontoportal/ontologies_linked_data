@@ -482,30 +482,32 @@ module LinkedData
               end
             end
 
-            LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].each do |mapping|
+            if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].nil?
 
-              if single_extracted == true
-                # if an attribute with only one possible object as already been extracted
-                break
-              end
-              hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
+              LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].each do |mapping|
 
-              if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
-                # Add the retrieved value(s) to the attribute if the attribute take a list of objects
-                metadata_values = self.send(attr.to_s).dup
-                hash_mapping_results.each do |k,v|
-                  metadata_values.push(v)
-                end
-                self.send("#{attr.to_s}=", metadata_values)
-              else
-                # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
-                hash_mapping_results.each do |k,v|
-                  self.send("#{attr.to_s}=", v)
+                if single_extracted == true
+                  # if an attribute with only one possible object as already been extracted
                   break
+                end
+                hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
+
+                if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
+                  # Add the retrieved value(s) to the attribute if the attribute take a list of objects
+                  metadata_values = self.send(attr.to_s).dup
+                  hash_mapping_results.each do |k,v|
+                    metadata_values.push(v)
+                  end
+                  self.send("#{attr.to_s}=", metadata_values)
+                else
+                  # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
+                  hash_mapping_results.each do |k,v|
+                    self.send("#{attr.to_s}=", v)
+                    break
+                  end
                 end
               end
             end
-
           end
         end
 
