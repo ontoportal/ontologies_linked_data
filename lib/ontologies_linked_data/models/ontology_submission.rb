@@ -569,10 +569,10 @@ SELECT DISTINCT ?extractedObject ?omvname ?omvfirstname ?omvlastname ?rdfslabel
 FROM #{self.id.to_ntriples}
 WHERE {
   <#{ontology_uri}> #{prop_to_extract} ?extractedObject .
-  OPTIONAL { ?metadataUri omv:name ?omvname } .
-  OPTIONAL { ?metadataUri omv:firstName ?omvfirstname } .
-  OPTIONAL { ?metadataUri omv:lastName ?omvlastname } .
-  OPTIONAL { ?metadataUri rdfs:label ?rdfslabel } .
+  OPTIONAL { ?extractedObject omv:name ?omvname } .
+  OPTIONAL { ?extractedObject omv:firstName ?omvfirstname } .
+  OPTIONAL { ?extractedObject omv:lastName ?omvlastname } .
+  OPTIONAL { ?extractedObject rdfs:label ?rdfslabel } .
 }
 eos
         Goo.namespaces.each do |prefix,uri|
