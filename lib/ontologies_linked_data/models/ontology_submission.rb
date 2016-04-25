@@ -446,7 +446,7 @@ module LinkedData
         end
       end
 
-      # Extract metadata about the ontology (omv metadata)
+      # Extract additional metadata about the ontology
       # First it extracts the main metadata, then the mapped metadata
       def extract_all_metadata(logger)
         ontology_uri = extract_ontology_uri()
@@ -455,18 +455,16 @@ module LinkedData
         #self.URI = ontology_uri
         #self.send("URI=", ontology_uri)
 
+        # go through all OntologySubmission attributes. Returns symbols
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
-          # go through all OntologySubmission attributes. Returns symbols
+          # for attribute with the :extractedMetadata setting on
           if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:extractedMetadata])
-            # for attribute with the :extractedMetadata setting on
-
+            # a boolean to check if a value that should be single have already been extracted
             single_extracted = false
 
             if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].nil?
               property_to_extract = LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].to_s + ":" + attr.to_s
               hash_results = extract_each_metadata(ontology_uri, attr, property_to_extract, logger)
-
-              # a boolean to check if a value that should be single have already been extracted
 
               if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
                 # Add the retrieved value(s) to the attribute if the attribute take a list of objects
