@@ -73,15 +73,6 @@ module LinkedData
     @settings.smtp_domain                   ||= "localhost.localhost"
     @settings.enable_starttls_auto          ||= false # set to true for use with gmail
 
-    # A dictionary to resolve namespaces when defining JSON-LD contexts
-    @settings.resolve_namespace             ||= {:skos => "http://www.w3.org/2004/02/skos/core#", :owl => "http://www.w3.org/2002/07/owl#",
-                                                 :rdfs => "http://www.w3.org/2000/01/rdf-schema#", :omv => "http://omv.ontoware.org/2005/05/ontology#",
-                                                 :foaf => "http://xmlns.com/foaf/0.1/", :void => "http://rdfs.org/ns/void#",
-                                                 :cc => "http://creativecommons.org/ns#", :dcat => "http://www.w3.org/ns/dcat#",
-                                                 :schema => "http://schema.org/", :prov => "http://www.w3.org/ns/prov#",
-                                                 :adms => "http://www.w3.org/ns/adms#", :dct => "http://purl.org/dc/terms/"}
-    #TODO: add doap, mod, cito, bibo, vann, dc
-
     # Override defaults
     yield @settings, overide_connect_goo if block_given?
 
