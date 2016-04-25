@@ -85,6 +85,7 @@ module LinkedData
       attribute :hasPriorVersion, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["owl:priorVersion", "dct:isVersionOf", "door:priorVersion", "prov:wasDerivedFrom", "adms:prev"]
       attribute :isBackwardCompatibleWith, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["owl:backwardCompatibleWith", "door:backwardCompatibleWith"]
       attribute :isIncompatibleWith, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["owl:incompatibleWith", "door:owlIncompatibleWith"]
+      attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true, metadataMappings: ["mod:noOfAxioms", "void:triples"]
 
       # New metadata to BioPortal
       attribute :hostedBy, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: []
@@ -117,7 +118,6 @@ module LinkedData
       # New metadata from VOID
       attribute :sparqlEndpoint, namespace: :void, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: []
       attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, metadataMappings: []
-      attribute :triples, namespace: :void, enforce: [:integer], extractedMetadata: true, metadataMappings: []
       attribute :dataDump, namespace: :void, enforce: [:uri], extractedMetadata: true, metadataMappings: ["doap:download-mirror"]
       attribute :openSearchDescription, namespace: :void, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["doap:service-endpoint"]
       attribute :uriLookupEndpoint, namespace: :void, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: []
