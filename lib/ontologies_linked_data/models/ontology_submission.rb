@@ -560,8 +560,7 @@ module LinkedData
       # The hash_results contains the metadataUri (objet pointed on by the metadata property) with the value we are using from it
       def extract_each_metadata(ontology_uri, attr, prop_to_extract, logger)
 
-        query_metadata = <<eos
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        query_metadata = <<eos 
 
 SELECT DISTINCT ?extractedObject ?omvname ?omvfirstname ?omvlastname ?rdfslabel
 FROM #{self.id.to_ntriples}
