@@ -584,18 +584,25 @@ eos
           if LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:uri)
             # If the attr is enforced as URI then it directly takes the URI
             if sol[:extractedObject].is_a?(RDF::URI)
-              # TODO: check if RDF::URI is okay for a enforce(:uri)
               hash_results[sol[:extractedObject]] = sol[:extractedObject]
             end
 
           elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:date_time)
-            # TODO: GERER LES DATES
+            begin
+              hash_results[sol[:extractedObject]] = DateTime.iso8601(sol[:extractedObject].to_s)
+              logger.info("DATETIME SPARQL CLASS: #{sol[:extractedObject].class}")
+            rescue => e
+              logger.error("Impossible to extract DateTime metadata: #{e}")
+            end
 
           elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:integer)
-            # TODO: GERER LES INTEGER
+            begin
+              hash_results[sol[:extractedObject]] = sol[:extractedObject].to_i
+            rescue => e
+              logger.error("Impossible to extract integer metadata: #{e}")
+            end
 
           else
-
             if sol[:extractedObject].is_a?(RDF::URI)
               # if the object is an URI but we are requesting a String
               # TODO: ATTENTION on veut pas forcément TOUT le temps recump omvname, etc... Voir si on change ce comportement
