@@ -21,3 +21,15 @@ Goo.configure do |conf|
   conf.add_namespace(:omv, RDF::Vocabulary.new("http://omv.ontoware.org/2005/05/ontology#"))
 end
 ```
+
+* To iterate other the namespaces
+```ruby
+Goo.namespaces.each do |prefix,uri|
+  puts "#{prefix}: #{uri}"
+end
+```
+
+* To resolve a namespace
+```ruby
+Goo.vocabulary(:omv).to_s
+```
