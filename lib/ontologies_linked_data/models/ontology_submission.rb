@@ -435,9 +435,9 @@ module LinkedData
         begin
           # Extract metadata directly from the ontology
           extract_all_metadata(logger)
-          logger.info("OMV metadata extracted.")
+          logger.info("Additional metadata extracted.")
         rescue => e
-          logger.error("Error while extracting omv metadata: #{e}")
+          logger.error("Error while extracting additional metadata: #{e}")
         end
         # TODO: Remove this extraction of version, when extract metadata will be good
         version_info = extract_version()
