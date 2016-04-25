@@ -113,7 +113,7 @@ module LinkedData
       attribute :hasPart, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: []
       attribute :isFormatOf, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: []
       attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience"]
-      attribute :valid, namespace: :dct, enforce: [:date], extractedMetadata: true, metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"]
+      attribute :valid, namespace: :dct, enforce: [:date_time], extractedMetadata: true, metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"]
 
       # New metadata from VOID
       attribute :sparqlEndpoint, namespace: :void, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: []
