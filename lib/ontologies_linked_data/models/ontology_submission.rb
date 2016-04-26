@@ -452,7 +452,7 @@ module LinkedData
         ontology_uri = extract_ontology_uri()
 
         # TODO: recup l'attrib l'ontology URI direct via OWLAPI. ATTENTION en tout majuscule ça semble pouvoir bugger
-        #self.URI = ontology_uri
+        self.URI = ontology_uri
         #self.send("URI=", ontology_uri)
 
         # go through all OntologySubmission attributes. Returns symbols
