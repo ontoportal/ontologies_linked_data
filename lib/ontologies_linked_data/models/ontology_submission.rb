@@ -487,6 +487,7 @@ module LinkedData
               end
             end
 
+            # extracts attribute value from metadata mappings
             if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].nil?
 
               LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].each do |mapping|
@@ -512,6 +513,16 @@ module LinkedData
                   end
                 end
               end
+            end
+
+            # Add the previous submission as a prior version
+            if self.submissionId > 1
+              prior_versions = self.hasPriorVersion.dup
+              if prior_versions.nil?
+                prior_versions = []
+              end
+              prior_versions.push(RDF::URI.new("#{self.ontology.id}/submissions/#{self.submissionId - 1}"))
+              self.hasPriorVersion = prior_versions
             end
           end
         end
