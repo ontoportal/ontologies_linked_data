@@ -453,6 +453,11 @@ module LinkedData
 
         # Retrieve ontology URI attribute directly with OWLAPI
         self.URI = ontology_uri
+        if self.hostedBy.nil?
+          self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
+        end
+        #self.csvDump = RDF::URI.new("http://data.stageportal.lirmm.fr/ontologies/BIOREFINERY/download?download_format=csv")
+        self.csvDump = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
 
         # go through all OntologySubmission attributes. Returns symbols
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
