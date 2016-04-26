@@ -576,7 +576,7 @@ eos
           query_metadata = "PREFIX #{prefix}: <#{uri}>\n" + query_metadata
         end
 
-        logger.info(query_metadata)
+        #logger.info(query_metadata)
         # This hash will contain the "literal" metadata for each object (uri or literal) pointed by the metadata predicate
         hash_results = {}
         Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
@@ -590,14 +590,13 @@ eos
           elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:date_time)
             begin
               hash_results[sol[:extractedObject]] = DateTime.iso8601(sol[:extractedObject].to_s)
-              logger.info("DATETIME SPARQL CLASS: #{sol[:extractedObject].class}")
             rescue => e
               logger.error("Impossible to extract DateTime metadata: #{e}")
             end
 
           elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:integer)
             begin
-              hash_results[sol[:extractedObject]] = sol[:extractedObject].to_i
+              hash_results[sol[:extractedObject]] = sol[:extractedObject].to_s.to_i
             rescue => e
               logger.error("Impossible to extract integer metadata: #{e}")
             end
