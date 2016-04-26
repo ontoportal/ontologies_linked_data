@@ -451,9 +451,8 @@ module LinkedData
       def extract_all_metadata(logger)
         ontology_uri = extract_ontology_uri()
 
-        # TODO: recup l'attrib l'ontology URI direct via OWLAPI. ATTENTION en tout majuscule ça semble pouvoir bugger
+        # Retrieve ontology URI attribute directly with OWLAPI
         self.URI = ontology_uri
-        #self.send("URI=", ontology_uri)
 
         # go through all OntologySubmission attributes. Returns symbols
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
