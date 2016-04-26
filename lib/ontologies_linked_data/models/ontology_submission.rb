@@ -60,7 +60,7 @@ module LinkedData
       attribute :contact, enforce: [:existence, :contact, :list]  # Careful its special
 
       attribute :creationDate, namespace: :omv, enforce: [:date_time], default: lambda { |record| DateTime.now } # Attention c'est créé automatiquement ça, quand la submission est créée
-      attribute :released, enforce: [:date_time, :existence]  # TODO: gérer l'extract automatique des dates
+      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true, metadataMappings: ["omv:creationDate", "dc:date", "prov:generatedAtTime", "mod:creationDate", "doap:created"]   # date de release de l'ontologie par ses développeurs
 
       # Complementary omv metadata
       attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true, metadataMappings: ["dct:modified"]  # Va falloir faire en sorte de pouvoir extraire la date
