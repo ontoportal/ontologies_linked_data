@@ -88,9 +88,9 @@ module LinkedData
       attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true, metadataMappings: ["mod:noOfAxioms", "void:triples"]
 
       # New metadata to BioPortal
-      attribute :hostedBy, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: []
+      attribute :hostedBy, enforce: [:list, :uri]
       attribute :deprecated, namespace: :owl, enforce: [:boolean], extractedMetadata: true, metadataMappings: []
-      attribute :csvDump, enforce: [:uri], extractedMetadata: true, metadataMappings: []
+      attribute :csvDump, enforce: [:uri]
 
       # New metadata from DOOR
       attribute :ontologyRelatedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["dc:relation", "dct:relation", "voaf:reliesOn"]
