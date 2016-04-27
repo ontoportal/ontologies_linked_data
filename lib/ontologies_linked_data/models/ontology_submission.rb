@@ -523,7 +523,7 @@ module LinkedData
               if prior_versions.nil?
                 prior_versions = []
               end
-              prior_versions.push(RDF::URI.new("#{self.ontology.id}/submissions/#{self.submissionId - 1}"))
+              prior_versions.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}"))
               self.hasPriorVersion = prior_versions
             end
 
