@@ -644,14 +644,25 @@ eos
             begin
               hash_results[sol[:extractedObject]] = DateTime.iso8601(sol[:extractedObject].to_s)
             rescue => e
-              logger.error("Impossible to extract DateTime metadata: #{e}")
+              logger.error("Impossible to extract DateTime metadata for #{attr.to_s}: #{sol[:extractedObject].to_s}. Error message: #{e}")
             end
 
           elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:integer)
             begin
               hash_results[sol[:extractedObject]] = sol[:extractedObject].to_s.to_i
             rescue => e
-              logger.error("Impossible to extract integer metadata: #{e}")
+              logger.error("Impossible to extract integer metadata for #{attr.to_s}: #{sol[:extractedObject].to_s}. Error message: #{e}")
+            end
+
+          elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:boolean)
+            begin
+              if (sol[:extractedObject].to_s.downcase.equal?("true"))
+                hash_results[sol[:extractedObject]] = true
+              elsif (sol[:extractedObject].to_s.downcase.equal?("false"))
+                hash_results[sol[:extractedObject]] = false
+              end
+            rescue => e
+              logger.error("Impossible to extract boolean metadata for #{attr.to_s}: #{sol[:extractedObject].to_s}. Error message: #{e}")
             end
 
           else
