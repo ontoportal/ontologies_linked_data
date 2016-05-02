@@ -656,9 +656,9 @@ eos
 
           elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:boolean)
             begin
-              if (sol[:extractedObject].to_s.downcase.equal?("true"))
+              if (sol[:extractedObject].to_s.downcase.eql?("true"))
                 hash_results[sol[:extractedObject]] = true
-              elsif (sol[:extractedObject].to_s.downcase.equal?("false"))
+              elsif (sol[:extractedObject].to_s.downcase.eql?("false"))
                 hash_results[sol[:extractedObject]] = false
               end
             rescue => e
