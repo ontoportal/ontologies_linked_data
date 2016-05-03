@@ -507,62 +507,63 @@ module LinkedData
               end
             end
 
-            # Automaticaly generate some metadata
-
-            # Retrieve ontology URI attribute directly with OWLAPI
-            self.URI = ontology_uri
-            if self.hostedBy.nil?
-              self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
-            end
-            #self.csvDump = RDF::URI.new("http://data.stageportal.lirmm.fr/ontologies/BIOREFINERY/download?download_format=csv")
-            self.csvDump = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
-
-            # Add the previous submission as a prior version
-            if self.submissionId > 1
-              prior_versions = self.hasPriorVersion.dup
-              if prior_versions.nil?
-                prior_versions = []
-              end
-              prior_versions.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}"))
-              self.hasPriorVersion = prior_versions
-            end
-
-            # Add the sparql endpoint URL
-            begin
-              sparql_endpoint = self.sparqlEndpoint.dup
-              if sparql_endpoint.nil?
-                sparql_endpoint = []
-              end
-              sparql_endpoint.push(RDF::URI.new(LinkedData.settings.sparql_endpoint_url))
-              self.sparqlEndpoint = sparql_endpoint
-            rescue => e
-              logger.error("Error while defining SPARQL endpoint metadata: #{e}")
-            end
-
-            # Add the search endpoint URL
-            begin
-              open_search = self.openSearchDescription.dup
-              if open_search.nil?
-                open_search = []
-              end
-              open_search.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}"))
-              self.openSearchDescription = open_search
-            rescue => e
-              logger.error("Error while defining openSearchDescription metadata: #{e}")
-            end
-
-            # Add the dataDump URL
-            begin
-              data_dump = self.dataDump.dup
-              if data_dump.nil?
-                data_dump = []
-              end
-              data_dump.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download"))
-              self.dataDump = data_dump
-            rescue => e
-              logger.error("Error while defining dataDump metadata: #{e}")
-            end
           end
+        end
+
+        # Automaticaly generate some metadata
+
+        # Retrieve ontology URI attribute directly with OWLAPI
+        self.URI = ontology_uri
+        if self.hostedBy.nil?
+          self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
+        end
+        #self.csvDump = RDF::URI.new("http://data.stageportal.lirmm.fr/ontologies/BIOREFINERY/download?download_format=csv")
+        self.csvDump = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
+
+        # Add the previous submission as a prior version
+        if self.submissionId > 1
+          prior_versions = self.hasPriorVersion.dup
+          if prior_versions.nil?
+            prior_versions = []
+          end
+          prior_versions.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}"))
+          self.hasPriorVersion = prior_versions
+        end
+
+        # Add the sparql endpoint URL
+        begin
+          sparql_endpoint = self.sparqlEndpoint.dup
+          if sparql_endpoint.nil?
+            sparql_endpoint = []
+          end
+          sparql_endpoint.push(RDF::URI.new(LinkedData.settings.sparql_endpoint_url))
+          self.sparqlEndpoint = sparql_endpoint
+        rescue => e
+          logger.error("Error while defining SPARQL endpoint metadata: #{e}")
+        end
+
+        # Add the search endpoint URL
+        begin
+          open_search = self.openSearchDescription.dup
+          if open_search.nil?
+            open_search = []
+          end
+          open_search.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}"))
+          self.openSearchDescription = open_search
+        rescue => e
+          logger.error("Error while defining openSearchDescription metadata: #{e}")
+        end
+
+        # Add the dataDump URL
+        begin
+          data_dump = self.dataDump.dup
+          if data_dump.nil?
+            data_dump = []
+          end
+          data_dump.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download"))
+          self.dataDump = data_dump
+        rescue => e
+          logger.error("Error while defining dataDump metadata: #{e}")
         end
 
       end
