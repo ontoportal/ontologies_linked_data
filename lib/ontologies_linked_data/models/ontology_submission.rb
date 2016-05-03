@@ -450,7 +450,6 @@ module LinkedData
       # First it extracts the main metadata, then the mapped metadata
       def extract_all_metadata(logger)
         ontology_uri = extract_ontology_uri()
-
         # go through all OntologySubmission attributes. Returns symbols
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
           # for attribute with the :extractedMetadata setting on
@@ -464,7 +463,11 @@ module LinkedData
 
               if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
                 # Add the retrieved value(s) to the attribute if the attribute take a list of objects
-                metadata_values = self.send(attr.to_s).dup
+                if self.send(attr.to_s).nil?
+                  metadata_values = []
+                else
+                  metadata_values = self.send(attr.to_s).dup
+                end
                 hash_results.each do |k,v|
                   metadata_values.push(v)
                 end
@@ -492,7 +495,11 @@ module LinkedData
 
                 if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
                   # Add the retrieved value(s) to the attribute if the attribute take a list of objects
-                  metadata_values = self.send(attr.to_s).dup
+                  if self.send(attr.to_s).nil?
+                    metadata_values = []
+                  else
+                    metadata_values = self.send(attr.to_s).dup
+                  end
                   hash_mapping_results.each do |k,v|
                     metadata_values.push(v)
                   end
