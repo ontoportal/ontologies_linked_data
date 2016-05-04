@@ -412,7 +412,7 @@ module LinkedData
         delete_and_append(triples_file_path, logger, mime_type)
         begin
           # Extract metadata directly from the ontology
-          extract_all_metadata(logger)
+          extract_ontology_metadata(logger)
           logger.info("Additional metadata extracted.")
         rescue => e
           logger.error("Error while extracting additional metadata: #{e}")
@@ -426,8 +426,7 @@ module LinkedData
 
       # Extract additional metadata about the ontology
       # First it extracts the main metadata, then the mapped metadata
-      # TODO: rename as extract_ontology_metadata
-      def extract_all_metadata(logger)
+      def extract_ontology_metadata(logger)
         ontology_uri = extract_ontology_uri()
         # go through all OntologySubmission attributes. Returns symbols
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
