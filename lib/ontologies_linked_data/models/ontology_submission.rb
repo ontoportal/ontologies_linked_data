@@ -12,28 +12,6 @@ module LinkedData
 
       FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
 
-      # The key is the property used by omv, the value is an array of properties mapped to the key omv property
-      # (make sure the prefix is well defined in extract_mapped_array_metadata and extract_mapped_single_metadata SPARQL queries)
-      # TODO: will disappear when attributes will be fully used
-      OMV_ARRAY_METADATA = {"endorsedBy" => [],
-                            "naturalLanguage" => ["dcterms:language"],
-                            "designedForOntologyTask" => [],
-                            "hasContributor" => ["dcterms:contributor"],
-                            "hasCreator" => ["dcterms:creator"],
-                            "hasDomain" => [],
-                            "usedImports" => [],
-                            "keywords" => [],
-                            "knownUsage" => []}
-
-      OMV_SINGLE_METADATA = {"documentation" => [],
-                             "description" => ["dcterms:description"],
-                             "hasFormalityLevel" => [],
-                             "isOfType" => [],
-                             "usedOntologyEngineeringTool" => [],
-                             "usedOntologyEngineeringMethodology" => [],
-                             "usedKnowledgeRepresentationParadigm" => [],
-                             "notes" => []}
-
       model :ontology_submission, name_with: lambda { |s| submission_id_generator(s) }
       attribute :submissionId, enforce: [:integer, :existence]
 
@@ -49,8 +27,8 @@ module LinkedData
       attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
 
       # Ontology metadata
-      attribute :homepage, namespace: :omv, extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog"] # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
-      attribute :publication, namespace: :omv, extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:isCitedBy", "bibo:isReferencedBy"] # TODO: change default attribute name
+      attribute :homepage, extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog"] # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
+      attribute :publication, extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:isCitedBy", "bibo:isReferencedBy"] # TODO: change default attribute name
       attribute :URI, namespace: :omv #TODO: attention, attribute particulier. Je le récupère proprement via OWLAPI. le définir direct comme ça sans mappings ? Attention, Il a été passé en majuscule
       attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:language", "dct:language", "doap:language"]
       attribute :documentation, namespace: :omv, extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
@@ -448,6 +426,7 @@ module LinkedData
 
       # Extract additional metadata about the ontology
       # First it extracts the main metadata, then the mapped metadata
+      # TODO: rename as extract_ontology_metadata
       def extract_all_metadata(logger)
         ontology_uri = extract_ontology_uri()
         # go through all OntologySubmission attributes. Returns symbols
