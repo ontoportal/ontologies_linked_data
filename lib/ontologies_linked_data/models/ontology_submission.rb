@@ -173,11 +173,22 @@ module LinkedData
 
       # Override the bring_remaining method from Goo::Base::Resource : https://github.com/ncbo/goo/blob/master/lib/goo/base/resource.rb#L383
       # Because the old way to query the 4store was not working when lots of attributes
+      # Now it is querying attributes 5 by 5 (way faster than 1 by 1)
       def bring_remaining
+        to_bring = []
+        i = 0
         self.class.attributes.each do |attr|
-          self.bring(attr) if self.bring?(attr)
+          to_bring << attr if self.bring?(attr)
+          if i == 5
+            self.bring(*to_bring)
+            to_bring = []
+            i = 0
+          end
+          i = i + 1
         end
+        self.bring(*to_bring)
       end
+
 
       def self.segment_instance(sub)
         sub.bring(:ontology) unless sub.loaded_attributes.include?(:ontology)
