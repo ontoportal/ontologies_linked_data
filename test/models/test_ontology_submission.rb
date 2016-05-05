@@ -936,10 +936,9 @@ eos
 
   def test_submission_extract_metadata
     submission_parse("AGROOE", "AGROOE Test extract metadata ontology",
-                     "./test/data/ontology_files/agrooe-29-04-2016.owl", 1,
+                     "./test/data/ontology_files/agrooeMappings-05-05-2016.owl", 1,
                      process_rdf: true, index_search: false,
                      run_metrics: false, reasoning: true)
-    #sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission(status: [:rdf, :metrics])
     sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission()
     sub.bring_remaining
 
@@ -947,6 +946,9 @@ eos
     assert_instance_of RDF::URI, sub.example.first
     assert_equal RDF::URI.new("http://lirmm.fr/2015/ontology/example.owl"), sub.example.first
     assert_equal "Description Logics", sub.conformsToKnowledgeRepresentationParadigm
+    assert_equal 'Éditions "La Science en Marche"', sub.publisher
+    assert_equal " URI DC terms identifiers ", sub.identifier
+    assert_equal ["http://lirmm.fr/2015/dcterms-source.owl", "http://lirmm.fr/2015/dc-source.owl", "http://lirmm.fr/2015/prov-wasInfluencedBy.owl"].sort, sub.source.sort
 
   end
 
