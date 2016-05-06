@@ -47,7 +47,7 @@ module LinkedData
       attribute :keywords, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:keyword", "dcat:keyword"] # Attention particulier, ça peut être un simple string avec des virgules
       attribute :knownUsage, namespace: :omv, enforce: [:list], extractedMetadata: true
       attribute :notes, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:versionNotes"]
-      attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:KnowledgeRepresentationFormalism"]
+      attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:KnowledgeRepresentationFormalism"]
       attribute :hasContributor, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper"]
       attribute :hasCreator, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer"]
       attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: []
