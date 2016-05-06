@@ -27,11 +27,11 @@ module LinkedData
       attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
 
       # Ontology metadata
-      attribute :homepage, extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog"] # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
-      attribute :publication, extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:isCitedBy", "bibo:isReferencedBy"] # TODO: change default attribute name
+      attribute :homepage, enforce: [:list], extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog"] # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
+      attribute :publication, enforce: [:list], extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:isCitedBy", "bibo:isReferencedBy"] # TODO: change default attribute name
       attribute :URI, namespace: :omv #TODO: attention, attribute particulier. Je le récupère proprement via OWLAPI. le définir direct comme ça sans mappings ? Attention, Il a été passé en majuscule
       attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:language", "dct:language", "doap:language"]
-      attribute :documentation, namespace: :omv, extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
+      attribute :documentation, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
       attribute :version, namespace: :omv, extractedMetadata: true, metadataMappings: ["owl:versionInfo", "mod:version", "doap:release"] # TODO: attention c'est déjà géré (mal) par BioPortal (le virer pour faire plus propre)
       attribute :description, namespace: :omv, extractedMetadata: true, metadataMappings: ["rdfs:comment", "dc:description", "dct:description", "doap:description"]
       attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status"] # Pas de limitation ici, mais seulement 4 possibilité dans l'UI (alpha, beta, production, retired)
