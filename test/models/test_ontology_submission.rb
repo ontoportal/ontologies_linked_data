@@ -941,15 +941,17 @@ eos
                      run_metrics: false, reasoning: true)
     sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission()
     sub.bring_remaining
+    binding.pry
 
     assert_equal false, sub.deprecated
     assert_instance_of RDF::URI, sub.example.first
     assert_equal RDF::URI.new("http://lirmm.fr/2015/ontology/example.owl"), sub.example.first
-    assert_equal "Description Logics", sub.conformsToKnowledgeRepresentationParadigm
+    assert_equal ["Description Logics"], sub.conformsToKnowledgeRepresentationParadigm
     assert_equal 'Éditions "La Science en Marche"', sub.publisher
     assert_equal " URI DC terms identifiers ", sub.identifier
     assert_equal ["http://lirmm.fr/2015/dcterms-source.owl", "http://lirmm.fr/2015/dc-source.owl", "http://lirmm.fr/2015/prov-wasInfluencedBy.owl"].sort, sub.source.sort
-
+    assert_equal ["Léontine Dessaiterm", "Anne Toulet", "Benjamine Dessay", "Augustine Doap", "Vincent Emonet"].sort, sub.hasContributor.sort
+    assert_equal ["Clement Jonquet", "Huguette Doap", "Mirabelle Prov", "Paul Foaf", "Alfred DC", "Gaston Dcterms"].sort, sub.hasCreator.sort
   end
 
 
