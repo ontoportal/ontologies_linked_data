@@ -42,7 +42,7 @@ module LinkedData
 
       # Complementary omv metadata
       attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true, metadataMappings: ["dct:modified"]  # Va falloir faire en sorte de pouvoir extraire la date
-      attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true, metadataMappings: ["mod:noOfAxioms"]  # TODO: extract les integers
+      attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true, metadataMappings: ["mod:noOfAxioms"]
       attribute :keyClasses, namespace: :omv, enforce: [:uri, :list], extractedMetadata: true, metadataMappings: ["foaf:primaryTopic", "void:exampleResource"]
       attribute :keywords, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:keyword", "dcat:keyword"] # Attention particulier, ça peut être un simple string avec des virgules
       attribute :knownUsage, namespace: :omv, enforce: [:list], extractedMetadata: true
