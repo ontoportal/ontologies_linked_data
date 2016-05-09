@@ -941,7 +941,6 @@ eos
                      run_metrics: false, reasoning: true)
     sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission()
     sub.bring_remaining
-    binding.pry
 
     assert_equal false, sub.deprecated
     assert_instance_of RDF::URI, sub.example.first
@@ -953,6 +952,5 @@ eos
     assert_equal ["Léontine Dessaiterm", "Anne Toulet", "Benjamine Dessay", "Augustine Doap", "Vincent Emonet"].sort, sub.hasContributor.sort
     assert_equal ["Clement Jonquet", "Huguette Doap", "Mirabelle Prov", "Paul Foaf", "Alfred DC", "Gaston Dcterms"].sort, sub.hasCreator.sort
   end
-
 
 end
