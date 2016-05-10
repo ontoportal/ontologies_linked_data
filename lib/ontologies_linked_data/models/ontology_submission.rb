@@ -387,7 +387,7 @@ module LinkedData
         end
       end
 
-      def generate_rdf(logger, file_path,reasoning=true)
+      def generate_rdf(logger, file_path,reasoning=true, user_params=nil)
         mime_type = nil
 
         if self.hasOntologyLanguage.umls?
@@ -431,7 +431,7 @@ module LinkedData
         delete_and_append(triples_file_path, logger, mime_type)
         begin
           # Extract metadata directly from the ontology
-          extract_ontology_metadata(logger)
+          extract_ontology_metadata(logger, user_params)
           logger.info("Additional metadata extracted.")
         rescue => e
           logger.error("Error while extracting additional metadata: #{e}")
@@ -445,50 +445,19 @@ module LinkedData
 
       # Extract additional metadata about the ontology
       # First it extracts the main metadata, then the mapped metadata
-      def extract_ontology_metadata(logger)
+      def extract_ontology_metadata(logger, user_params)
         ontology_uri = extract_ontology_uri()
+
         # go through all OntologySubmission attributes. Returns symbols
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
-          # for attribute with the :extractedMetadata setting on
-          if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:extractedMetadata])
-            # a boolean to check if a value that should be single have already been extracted
-            single_extracted = false
+          # for attribute with the :extractedMetadata setting on and that have not been defined by the user
+          if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:extractedMetadata]) && !(user_params.has_key?(attr) && !user_params[attr].nil?)
+              # a boolean to check if a value that should be single have already been extracted
+              single_extracted = false
 
-            if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].nil?
-              property_to_extract = LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].to_s + ":" + attr.to_s
-              hash_results = extract_each_metadata(ontology_uri, attr, property_to_extract, logger)
-
-              if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
-                # Add the retrieved value(s) to the attribute if the attribute take a list of objects
-                if self.send(attr.to_s).nil?
-                  metadata_values = []
-                else
-                  metadata_values = self.send(attr.to_s).dup
-                end
-                hash_results.each do |k,v|
-                  metadata_values.push(v)
-                end
-                self.send("#{attr.to_s}=", metadata_values)
-              else
-                # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
-                hash_results.each do |k,v|
-                  single_extracted = true
-                  self.send("#{attr.to_s}=", v)
-                  break
-                end
-              end
-            end
-
-            # extracts attribute value from metadata mappings
-            if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].nil?
-
-              LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].each do |mapping|
-
-                if single_extracted == true
-                  # if an attribute with only one possible object as already been extracted
-                  break
-                end
-                hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
+              if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].nil?
+                property_to_extract = LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].to_s + ":" + attr.to_s
+                hash_results = extract_each_metadata(ontology_uri, attr, property_to_extract, logger)
 
                 if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
                   # Add the retrieved value(s) to the attribute if the attribute take a list of objects
@@ -497,21 +466,51 @@ module LinkedData
                   else
                     metadata_values = self.send(attr.to_s).dup
                   end
-                  hash_mapping_results.each do |k,v|
+                  hash_results.each do |k,v|
                     metadata_values.push(v)
                   end
                   self.send("#{attr.to_s}=", metadata_values)
                 else
                   # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
-                  hash_mapping_results.each do |k,v|
+                  hash_results.each do |k,v|
+                    single_extracted = true
                     self.send("#{attr.to_s}=", v)
                     break
                   end
                 end
               end
-            end
 
-          end
+              # extracts attribute value from metadata mappings
+              if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].nil?
+
+                LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].each do |mapping|
+                  if single_extracted == true
+                    # if an attribute with only one possible object as already been extracted
+                    break
+                  end
+                  hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
+
+                  if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
+                    # Add the retrieved value(s) to the attribute if the attribute take a list of objects
+                    if self.send(attr.to_s).nil?
+                      metadata_values = []
+                    else
+                      metadata_values = self.send(attr.to_s).dup
+                    end
+                    hash_mapping_results.each do |k,v|
+                      metadata_values.push(v)
+                    end
+                    self.send("#{attr.to_s}=", metadata_values)
+                  else
+                    # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
+                    hash_mapping_results.each do |k,v|
+                      self.send("#{attr.to_s}=", v)
+                      break
+                    end
+                  end
+                end
+              end
+            end
         end
 
         # Automaticaly generate some metadata
@@ -1054,7 +1053,7 @@ eos
                 remove_submission_status(status) #remove RDF status before starting
                 zip_dst = unzip_submission(logger)
                 file_path = zip_dst ? zip_dst.to_s : self.uploadFilePath.to_s
-                generate_rdf(logger, file_path, reasoning=reasoning)
+                generate_rdf(logger, file_path, reasoning=reasoning, options[:params])
                 add_submission_status(status)
                 self.save
               rescue Exception => e
