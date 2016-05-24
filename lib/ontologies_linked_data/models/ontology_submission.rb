@@ -387,7 +387,7 @@ module LinkedData
         end
       end
 
-      def generate_rdf(logger, file_path,reasoning=true, user_params=nil)
+      def generate_rdf(logger, file_path,reasoning=true, user_params={})
         mime_type = nil
 
         if self.hasOntologyLanguage.umls?
