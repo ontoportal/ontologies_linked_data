@@ -389,6 +389,7 @@ module LinkedData
 
       def generate_rdf(logger, file_path,reasoning=true, user_params={})
         mime_type = nil
+        user_params = {} if user_params.nil?
 
         if self.hasOntologyLanguage.umls?
           zip = LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
