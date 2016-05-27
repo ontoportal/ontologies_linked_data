@@ -168,6 +168,10 @@ module LinkedData
       conf.add_namespace(:bibo, RDF::Vocabulary.new("http://purl.org/ontology/bibo/"))
       conf.add_namespace(:wdrs, RDF::Vocabulary.new("http://www.w3.org/2007/05/powder-s#"))
       conf.add_namespace(:cito, RDF::Vocabulary.new("http://purl.org/spar/cito/"))
+      conf.add_namespace(:pav, RDF::Vocabulary.new("http://purl.org/pav/"))
+      conf.add_namespace(:oboInOwl, RDF::Vocabulary.new("http://www.geneontology.org/formats/oboInOwl#"))
+      conf.add_namespace(:idot, RDF::Vocabulary.new("http://identifiers.org/idot/"))
+      conf.add_namespace(:sd, RDF::Vocabulary.new("http://www.w3.org/ns/sparql-service-description#"))
 
 
       conf.id_prefix = "http://data.bioontology.org/"
