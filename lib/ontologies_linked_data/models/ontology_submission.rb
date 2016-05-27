@@ -167,8 +167,8 @@ module LinkedData
       attribute :curatedOn, namespace: :pav, extractedMetadata: true
 
       # New metadata from ADMS and DOAP
-      attribute :translation, namespace: :adms, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: []
-      attribute :repository, namespace: :doap, enforce: [:uri], extractedMetadata: true, metadataMappings: []
+      attribute :translation, namespace: :adms, enforce: [:list, :uri], extractedMetadata: true
+      attribute :repository, namespace: :doap, enforce: [:uri], extractedMetadata: true
       #attribute :bug-database, namespace: :doap, enforce: [:uri], extractedMetadata: true  le tiret ne marche pas dans les attributs
       #attribute :mailing-list, namespace: :doap, enforce: [:uri], extractedMetadata: true
 
