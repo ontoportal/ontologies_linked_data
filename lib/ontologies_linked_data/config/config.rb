@@ -157,7 +157,7 @@ module LinkedData
       conf.add_namespace(:void, RDF::Vocabulary.new("http://rdfs.org/ns/void#"))
       conf.add_namespace(:foaf, RDF::Vocabulary.new("http://xmlns.com/foaf/0.1/"))
       conf.add_namespace(:vann, RDF::Vocabulary.new("http://purl.org/vocab/vann/"))
-      conf.add_namespace(:adms, RDF::Vocabulary.new("https://www.w3.org/TR/vocab-adms/"))
+      conf.add_namespace(:adms, RDF::Vocabulary.new("http://www.w3.org/ns/adms#"))
       conf.add_namespace(:voaf, RDF::Vocabulary.new("http://purl.org/vocommons/voaf#"))
       conf.add_namespace(:dcat, RDF::Vocabulary.new("http://www.w3.org/ns/dcat#"))
       conf.add_namespace(:mod, RDF::Vocabulary.new("http://www.isibang.ac.in/ns/mod#"))
