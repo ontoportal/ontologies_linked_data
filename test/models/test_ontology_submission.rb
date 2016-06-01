@@ -238,7 +238,6 @@ eos
         end
     end
 
-
     # This is testing that treeView is used to traverse the hierarchy
     sub.bring(:hasOntologyLanguage)
     assert sub.hasOntologyLanguage.tree_property == Goo.vocabulary(:metadata)[:treeView]
@@ -271,7 +270,7 @@ eos
 
     #test roots to ack parsing went well
     n_roots = sub.roots.length
-    assert_equal 15, n_roots
+    assert_equal 16, n_roots
   end
 
   def test_submission_parse
@@ -504,6 +503,20 @@ eos
       assert(cls.prefLabel != nil, "Class #{cls.id.to_ntriples} does not have a label")
       assert_instance_of String, cls.prefLabel
     end
+  end
+
+  def test_umls_metrics_file
+    acronym = 'UMLS-TST'
+    submission_parse(acronym, "Test UMLS Ontologory", "./test/data/ontology_files/umls_semantictypes.ttl", 1,
+                     process_rdf: true, index_search: false,
+                     run_metrics: false, reasoning: true)
+    sub = LinkedData::Models::Ontology.find(acronym).first.latest_submission(status: [:rdf])
+    metrics = sub.metrics_from_file(Logger.new(sub.parsing_log_path))
+    assert !metrics.nil?, "Metrics is nil: #{metrics}"
+    assert !metrics.empty?, "Metrics is empty: #{metrics}"
+    metrics.each { |m| assert_equal 3, m.length }
+    assert_equal "Individual Count", metrics[0][1]
+    assert_equal 133, metrics[1][0].to_i
   end
 
   def test_discover_obo_in_owl_obsolete
@@ -868,11 +881,11 @@ eos
     metrics.bring_remaining
     assert_instance_of LinkedData::Models::Metric, metrics
 
-    assert metrics.classes == 143
+    assert metrics.classes == 144
     assert metrics.properties == 78
     assert metrics.individuals == 26
     assert metrics.classesWithOneChild == 11
-    assert metrics.classesWithNoDefinition == 133
+    assert metrics.classesWithNoDefinition == 134
     assert metrics.classesWithMoreThan25Children == 0
     assert metrics.maxChildCount == 19
     assert metrics.averageChildCount == 3
@@ -932,6 +945,17 @@ eos
     assert_equal 0, metrics.maxChildCount
     assert_equal 0, metrics.averageChildCount
     assert_equal 0, metrics.maxDepth
+
+    #test UMLS metrics
+    acronym = 'UMLS-TST'
+    submission_parse(acronym, "Test UMLS Ontologory", "./test/data/ontology_files/umls_semantictypes.ttl", 1,
+                     process_rdf: true, index_search: false,
+                     run_metrics: true, reasoning: true)
+    sub = LinkedData::Models::Ontology.find(acronym).first.latest_submission(status: [:rdf, :metrics])
+    sub.bring(:metrics)
+    metrics = sub.metrics
+    metrics.bring_remaining
+    assert_equal 133, metrics.classes
   end
 
   def test_submission_extract_metadata

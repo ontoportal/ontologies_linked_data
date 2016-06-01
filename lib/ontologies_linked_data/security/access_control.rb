@@ -77,6 +77,9 @@ module LinkedData::Security
       attributes.each do |attr|
         next unless target.respond_to?(attr)
         users = target.send(attr)
+        # There appear to be cases where users = nil, which results in an exception.
+        # The next line handles this case.
+        next if users.nil?
         users = users.is_a?(Array) ? users : [users]
         users.each {|u| user_ids << u.id}
       end

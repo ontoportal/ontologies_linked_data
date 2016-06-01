@@ -7,6 +7,7 @@ module LinkedData
       attribute :relationType, enforce: [:existence, :uri]
       attribute :targetClassId, enforce: [:existence, :uri]
       attribute :targetClassOntology, enforce: [:existence, :ontology]
+      attribute :creator, enforce: [:existence, :user]
       attribute :created, enforce: [:date_time], :default => lambda { |record| DateTime.now }
 
       def self.find_unique(source_id, relation_type, target_class_id, target_ont_id_or_acronym)
@@ -39,6 +40,28 @@ module LinkedData
             self.relationType == that.relationType &&
             self.targetClassId == that.targetClassId &&
             self.targetClassOntology.acronym == that.targetClassOntology.acronym
+      end
+
+      def valid?
+        valid_result = super
+
+        if valid_result
+          self.bring(:targetClassOntology) if self.bring?(:targetClassOntology)
+          sub = self.targetClassOntology.latest_submission
+
+          if sub.nil?
+            self.errors[:targetClassOntology] = {existence: "No processed submission found for ontology #{self.targetClassOntology.id}. A provisional relation must refer to a class in an existing processed ontology submission."}
+            valid_result = false
+          else
+            cls = self.target_class
+
+            if cls.nil?
+              self.errors[:targetClassId] = {existence: "Class with id #{self.targetClassId} in ontology #{self.targetClassOntology.id} was not found."}
+              valid_result = false
+            end
+          end
+        end
+        valid_result
       end
 
     end

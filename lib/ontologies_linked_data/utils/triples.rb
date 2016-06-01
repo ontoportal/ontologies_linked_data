@@ -39,7 +39,7 @@ module LinkedData
           triples << triple(ont_sub.authorProperty, subPropertyOf, Goo.vocabulary(:dc)[:creator])
         end
 
-        if ont_sub.hasOntologyLanguage.obo?
+        if ont_sub.hasOntologyLanguage.obo? || ont_sub.hasOntologyLanguage.owl?
           #obo syns
           #<http://www.geneontology.org/formats/oboInOwl#hasExactSynonym> 10M
           triples << triple(Goo.vocabulary(:oboinowl_gen)[:hasExactSynonym],
