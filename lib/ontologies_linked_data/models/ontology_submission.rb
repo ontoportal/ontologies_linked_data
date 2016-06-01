@@ -136,7 +136,7 @@ module LinkedData
       attribute :source, namespace: :dct, enforce: [:concatenate], extractedMetadata: true,
                 metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn"]
       attribute :abstract, namespace: :dct, extractedMetadata: true
-      attribute :alternative, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true,
+      attribute :alternative, namespace: :dct, extractedMetadata: true,
                 metadataMappings: ["skos:altLabel", "idot:alternatePrefix", "schema:alternativeHeadline", "schema:alternateName"]
       #attribute :hasPart, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"]
       attribute :hasPart, namespace: :dct, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"]
