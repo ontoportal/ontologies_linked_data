@@ -561,6 +561,17 @@ module LinkedData
                     metadata_values.push(v)
                   end
                   self.send("#{attr.to_s}=", metadata_values)
+                elsif (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
+                  if self.send(attr.to_s).nil?
+                    metadata_values = ""
+                  else
+                    metadata_values = self.send(attr.to_s).dup
+                  end
+                  # if multiple value for this attribute, then we concatenate it
+                  hash_results.each do |k,v|
+                    metadata_values << ", #{v}"
+                  end
+                  self.send("#{attr.to_s}=", metadata_values)
                 else
                   # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
                   hash_results.each do |k,v|
@@ -590,6 +601,17 @@ module LinkedData
                     end
                     hash_mapping_results.each do |k,v|
                       metadata_values.push(v)
+                    end
+                    self.send("#{attr.to_s}=", metadata_values)
+                  elsif (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
+                    if self.send(attr.to_s).nil?
+                      metadata_values = ""
+                    else
+                      metadata_values = self.send(attr.to_s).dup
+                    end
+                    # if multiple value for this attribute, then we concatenate it
+                    hash_mapping_results.each do |k,v|
+                      metadata_values << ", #{v}"
                     end
                     self.send("#{attr.to_s}=", metadata_values)
                   else
