@@ -26,6 +26,9 @@ module LinkedData
       attribute :obsoleteParent, enforce: [:uri]
       attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
 
+      # enforce: [:concatenate] is for attribute that will be a single string but where we extract and concatenate the value of multiple properties
+      # be careful, it can't be combined with enforce :uri !
+
       # Ontology metadata
       #attribute :homepage, enforce: [:list], extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"] # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
       attribute :homepage, extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"] # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
@@ -41,8 +44,7 @@ module LinkedData
       attribute :version, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version"]
                 # TODO: attention c'est déjà géré (mal) par BioPortal (le virer pour faire plus propre)
-      attribute :description, namespace: :omv, extractedMetadata: true, metadataMappings: ["rdfs:comment", "dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
-      # TODO: concaténation de tous les champs descriptions... Quand on extrait
+      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
 
       attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status", "idot:state"] # Pas de limitation ici, mais seulement 4 possibilité dans l'UI (alpha, beta, production, retired)
       attribute :contact, enforce: [:existence, :contact, :list]  # Careful its special
@@ -60,7 +62,7 @@ module LinkedData
       attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true,
                 metadataMappings: ["mod:noOfAxioms", "void:triples"]
       #attribute :keyClasses, namespace: :omv, enforce: [:uri, :list], extractedMetadata: true,
-      attribute :keyClasses, namespace: :omv, enforce: [:uri, :concatenate], extractedMetadata: true,
+      attribute :keyClasses, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
                 metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"]
       #attribute :keywords, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :keywords, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
@@ -562,16 +564,12 @@ module LinkedData
                   end
                   self.send("#{attr.to_s}=", metadata_values)
                 elsif (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
-                  if self.send(attr.to_s).nil?
-                    metadata_values = ""
-                  else
-                    metadata_values = self.send(attr.to_s).dup
-                  end
-                  # if multiple value for this attribute, then we concatenate it
+                  # don't keep value from previous submissions for concats
+                  metadata_concat = []
+                  # if multiple value for this attribute, then we concatenate it. And it's send to the attr after getting all metadataMappings
                   hash_results.each do |k,v|
-                    metadata_values << ", #{v}"
+                    metadata_concat << v.to_s
                   end
-                  self.send("#{attr.to_s}=", metadata_values)
                 else
                   # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
                   hash_results.each do |k,v|
@@ -604,16 +602,10 @@ module LinkedData
                     end
                     self.send("#{attr.to_s}=", metadata_values)
                   elsif (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
-                    if self.send(attr.to_s).nil?
-                      metadata_values = ""
-                    else
-                      metadata_values = self.send(attr.to_s).dup
-                    end
                     # if multiple value for this attribute, then we concatenate it
                     hash_mapping_results.each do |k,v|
-                      metadata_values << ", #{v}"
+                      metadata_concat << v.to_s
                     end
-                    self.send("#{attr.to_s}=", metadata_values)
                   else
                     # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
                     hash_mapping_results.each do |k,v|
@@ -621,6 +613,17 @@ module LinkedData
                       break
                     end
                   end
+                end
+              end
+
+              # Add the concat at the very end, to easily join the content of the array
+              if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
+                puts "attr #{attr}"
+                puts metadata_concat.to_s
+                if  metadata_concat.empty?
+                  self.send("#{attr.to_s}=", nil)
+                else
+                  self.send("#{attr.to_s}=", metadata_concat.join(", "))
                 end
               end
             end
@@ -648,37 +651,50 @@ module LinkedData
         end
 
         # Add the sparql endpoint URL
+        # TODO: passer en list quand on remettra toutes les listes
         begin
-          sparql_endpoint = self.sparqlEndpoint.dup
-          if sparql_endpoint.nil?
+=begin
+          if self.endpoint.nil?
             sparql_endpoint = []
+          else
+            sparql_endpoint = self.endpoint.dup
           end
           sparql_endpoint.push(RDF::URI.new(LinkedData.settings.sparql_endpoint_url))
-          self.sparqlEndpoint = sparql_endpoint
+          self.endpoint = sparql_endpoint
+=end
+          self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
         rescue => e
           logger.error("Error while defining SPARQL endpoint metadata: #{e}")
         end
 
         # Add the search endpoint URL
         begin
-          open_search = self.openSearchDescription.dup
-          if open_search.nil?
+=begin
+          if self.openSearchDescription.nil?
             open_search = []
+          else
+            open_search = self.openSearchDescription.dup
           end
           open_search.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}"))
           self.openSearchDescription = open_search
+=end
+          self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}")
         rescue => e
           logger.error("Error while defining openSearchDescription metadata: #{e}")
         end
 
         # Add the dataDump URL
         begin
-          data_dump = self.dataDump.dup
-          if data_dump.nil?
+=begin
+          if self.dataDump.nil?
             data_dump = []
+          else
+            data_dump = self.dataDump.dup
           end
           data_dump.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download"))
           self.dataDump = data_dump
+=end
+          self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download")
         rescue => e
           logger.error("Error while defining dataDump metadata: #{e}")
         end
