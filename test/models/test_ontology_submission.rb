@@ -958,6 +958,8 @@ eos
     assert_equal 133, metrics.classes
   end
 
+  # To test extraction of metadata when parsing a submission (we extract the submission attributes that have the
+  # extractedMetadata on true)
   def test_submission_extract_metadata
     submission_parse("AGROOE", "AGROOE Test extract metadata ontology",
                      "./test/data/ontology_files/agrooeMappings-05-05-2016.owl", 1,
@@ -967,14 +969,12 @@ eos
     sub.bring_remaining
 
     assert_equal false, sub.deprecated
-    assert_instance_of RDF::URI, sub.example.first
-    assert_equal RDF::URI.new("http://lirmm.fr/2015/ontology/example.owl"), sub.example.first
-    assert_equal ["Description Logics"], sub.conformsToKnowledgeRepresentationParadigm
-    assert_equal 'Éditions "La Science en Marche"', sub.publisher
+    assert_equal " LIRMM (default name) ", sub.publisher
     assert_equal " URI DC terms identifiers ", sub.identifier
-    assert_equal ["http://lirmm.fr/2015/dcterms-source.owl", "http://lirmm.fr/2015/dc-source.owl", "http://lirmm.fr/2015/prov-wasInfluencedBy.owl"].sort, sub.source.sort
-    assert_equal ["Léontine Dessaiterm", "Anne Toulet", "Benjamine Dessay", "Augustine Doap", "Vincent Emonet"].sort, sub.hasContributor.sort
-    assert_equal ["Clement Jonquet", "Huguette Doap", "Mirabelle Prov", "Paul Foaf", "Alfred DC", "Gaston Dcterms"].sort, sub.hasCreator.sort
+    assert_equal ["http://lexvo.org/id/iso639-3/fra", "http://lexvo.org/id/iso639-3/eng"].sort, sub.naturalLanguage.sort
+    assert_equal "Vincent Emonet, Anne Toulet, Benjamine Dessay, Léontine Dessaiterm, Augustine Doap", sub.hasContributor
+    assert_equal [RDF::URI.new("http://lirmm.fr/2015/ontology/door-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/dc-relation.owl"),
+                  RDF::URI.new("http://lirmm.fr/2015/ontology/dcterms-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/voaf-relation.owl")].sort, sub.ontologyRelatedTo.sort
   end
 
 end
