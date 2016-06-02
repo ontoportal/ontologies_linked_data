@@ -635,12 +635,50 @@ module LinkedData
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
           # for attribute with the :extractedMetadata setting on and that have not been defined by the user
           if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:extractedMetadata]) && !(user_params.has_key?(attr) && !user_params[attr].nil?)
-              # a boolean to check if a value that should be single have already been extracted
-              single_extracted = false
+            # a boolean to check if a value that should be single have already been extracted
+            single_extracted = false
 
-              if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].nil?
-                property_to_extract = LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].to_s + ":" + attr.to_s
-                hash_results = extract_each_metadata(ontology_uri, attr, property_to_extract, logger)
+            if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].nil?
+              property_to_extract = LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].to_s + ":" + attr.to_s
+              hash_results = extract_each_metadata(ontology_uri, attr, property_to_extract, logger)
+
+              if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
+                # Add the retrieved value(s) to the attribute if the attribute take a list of objects
+                if self.send(attr.to_s).nil?
+                  metadata_values = []
+                else
+                  metadata_values = self.send(attr.to_s).dup
+                end
+                hash_results.each do |k,v|
+                  metadata_values.push(v)
+                end
+                self.send("#{attr.to_s}=", metadata_values)
+              elsif (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
+                # don't keep value from previous submissions for concats
+                metadata_concat = []
+                # if multiple value for this attribute, then we concatenate it. And it's send to the attr after getting all metadataMappings
+                hash_results.each do |k,v|
+                  metadata_concat << v.to_s
+                end
+              else
+                # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
+                hash_results.each do |k,v|
+                  single_extracted = true
+                  self.send("#{attr.to_s}=", v)
+                  break
+                end
+              end
+            end
+
+            # extracts attribute value from metadata mappings
+            if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].nil?
+
+              LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].each do |mapping|
+                if single_extracted == true
+                  # if an attribute with only one possible object as already been extracted
+                  break
+                end
+                hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
 
                 if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
                   # Add the retrieved value(s) to the attribute if the attribute take a list of objects
@@ -649,72 +687,34 @@ module LinkedData
                   else
                     metadata_values = self.send(attr.to_s).dup
                   end
-                  hash_results.each do |k,v|
+                  hash_mapping_results.each do |k,v|
                     metadata_values.push(v)
                   end
                   self.send("#{attr.to_s}=", metadata_values)
                 elsif (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
-                  # don't keep value from previous submissions for concats
-                  metadata_concat = []
-                  # if multiple value for this attribute, then we concatenate it. And it's send to the attr after getting all metadataMappings
-                  hash_results.each do |k,v|
+                  # if multiple value for this attribute, then we concatenate it
+                  hash_mapping_results.each do |k,v|
                     metadata_concat << v.to_s
                   end
                 else
                   # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
-                  hash_results.each do |k,v|
-                    single_extracted = true
+                  hash_mapping_results.each do |k,v|
                     self.send("#{attr.to_s}=", v)
                     break
                   end
                 end
               end
+            end
 
-              # extracts attribute value from metadata mappings
-              if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].nil?
-
-                LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].each do |mapping|
-                  if single_extracted == true
-                    # if an attribute with only one possible object as already been extracted
-                    break
-                  end
-                  hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
-
-                  if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
-                    # Add the retrieved value(s) to the attribute if the attribute take a list of objects
-                    if self.send(attr.to_s).nil?
-                      metadata_values = []
-                    else
-                      metadata_values = self.send(attr.to_s).dup
-                    end
-                    hash_mapping_results.each do |k,v|
-                      metadata_values.push(v)
-                    end
-                    self.send("#{attr.to_s}=", metadata_values)
-                  elsif (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
-                    # if multiple value for this attribute, then we concatenate it
-                    hash_mapping_results.each do |k,v|
-                      metadata_concat << v.to_s
-                    end
-                  else
-                    # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
-                    hash_mapping_results.each do |k,v|
-                      self.send("#{attr.to_s}=", v)
-                      break
-                    end
-                  end
-                end
-              end
-
-              # Add the concat at the very end, to easily join the content of the array
-              if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
-                if  metadata_concat.empty?
-                  self.send("#{attr.to_s}=", nil)
-                else
-                  self.send("#{attr.to_s}=", metadata_concat.join(", "))
-                end
+            # Add the concat at the very end, to easily join the content of the array
+            if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
+              if  metadata_concat.empty?
+                self.send("#{attr.to_s}=", nil)
+              else
+                self.send("#{attr.to_s}=", metadata_concat.join(", "))
               end
             end
+          end
         end
 
         # Automaticaly generate some metadata
@@ -728,18 +728,22 @@ module LinkedData
         #self.downloadCsv = RDF::URI.new("http://data.stageportal.lirmm.fr/ontologies/BIOREFINERY/download?download_format=csv")
         self.downloadCsv = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
 
+        # TODO: passer en list quand on remettra toutes les listes
         # Add the previous submission as a prior version
         if self.submissionId > 1
-          prior_versions = self.hasPriorVersion.dup
+=begin
           if prior_versions.nil?
             prior_versions = []
+          else
+            prior_versions = self.hasPriorVersion.dup
           end
           prior_versions.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}"))
           self.hasPriorVersion = prior_versions
+=end
+          self.hasPriorVersion = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}")
         end
 
         # Add the sparql endpoint URL
-        # TODO: passer en list quand on remettra toutes les listes
         begin
 =begin
           if self.endpoint.nil?
