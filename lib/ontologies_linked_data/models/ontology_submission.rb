@@ -57,6 +57,18 @@ module LinkedData
                                    "prov:generatedAtTime", "pav:createdOn", "pav:authoredOn", "pav:contributedOn", "oboInOwl:date", "oboInOwl:hasDate"]
                 # date de release de l'ontologie par ses développeurs
 
+      # Metrics metadata
+      attribute :numberOfClasses, namespace: :omv, enforce: [:integer], metadataMappings: ["void:classes", "voaf:classNumber" ,"mod:noOfClasses"]
+      attribute :numberOfIndividuals, namespace: :omv, enforce: [:integer], metadataMappings: ["mod:noOfIndividuals"]
+      attribute :numberOfProperties, namespace: :omv, enforce: [:integer], metadataMappings: ["void:properties", "voaf:propertyNumber", "mod:noOfProperties"]
+      attribute :maxDepth, enforce: [:integer]
+      attribute :maxChildCount, enforce: [:integer]
+      attribute :averageChildCount, enforce: [:integer]
+      attribute :classesWithOneChild, enforce: [:integer]
+      attribute :classesWithMoreThan25Children, enforce: [:integer]
+      attribute :classesWithNoDefinition, enforce: [:integer]
+
+
       # Complementary omv metadata
       attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true,
                 metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn"]
@@ -1426,6 +1438,9 @@ eos
                 add_submission_status(status.get_error_status)
               ensure
                 self.save
+                #metrics = LinkedData::Metrics.metrics_for_submission(self, logger)
+                #self.classesWithNoDefinition
+                #TODO: GET METRICS
               end
             end
 
