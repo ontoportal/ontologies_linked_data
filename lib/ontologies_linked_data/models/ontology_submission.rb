@@ -1441,8 +1441,7 @@ eos
               end
 
               # Define metrics in submission metadata
-              numOfClasses = self.metrics.classes
-              self.numberOfClasses = numOfClasses
+              self.numberOfClasses = self.metrics.classes
               self.numberOfIndividuals = self.metrics.individuals
               self.numberOfProperties = self.metrics.properties
               self.maxDepth = self.metrics.maxDepth
