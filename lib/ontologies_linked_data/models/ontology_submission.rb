@@ -1438,10 +1438,19 @@ eos
                 add_submission_status(status.get_error_status)
               ensure
                 self.save
-                #metrics = LinkedData::Metrics.metrics_for_submission(self, logger)
-                #self.classesWithNoDefinition
-                #TODO: GET METRICS
               end
+
+              # Define metrics in submission metadata
+              numOfClasses = self.metrics.classes
+              self.numberOfClasses = numOfClasses
+              self.numberOfIndividuals = self.metrics.individuals
+              self.numberOfProperties = self.metrics.properties
+              self.maxDepth = self.metrics.maxDepth
+              self.maxChildCount = self.metrics.maxChildCount
+              self.averageChildCount = self.metrics.averageChildCount
+              self.classesWithOneChild = self.metrics.classesWithOneChild
+              self.classesWithMoreThan25Children = self.metrics.classesWithMoreThan25Children
+              self.classesWithNoDefinition = self.metrics.classesWithNoDefinition
             end
 
             if diff
