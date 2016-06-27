@@ -1439,17 +1439,6 @@ eos
               ensure
                 self.save
               end
-
-              # Define metrics in submission metadata
-              self.numberOfClasses = self.metrics.classes
-              self.numberOfIndividuals = self.metrics.individuals
-              self.numberOfProperties = self.metrics.properties
-              self.maxDepth = self.metrics.maxDepth
-              self.maxChildCount = self.metrics.maxChildCount
-              self.averageChildCount = self.metrics.averageChildCount
-              self.classesWithOneChild = self.metrics.classesWithOneChild
-              self.classesWithMoreThan25Children = self.metrics.classesWithMoreThan25Children
-              self.classesWithNoDefinition = self.metrics.classesWithNoDefinition
             end
 
             if diff
@@ -1512,6 +1501,18 @@ eos
         exist_metrics = LinkedData::Models::Metric.find(metrics.id).first
         exist_metrics.delete if exist_metrics
         metrics.save
+
+        # Define metrics in submission metadata
+        self.numberOfClasses = metrics.classes
+        self.numberOfIndividuals = metrics.individuals
+        self.numberOfProperties = metrics.properties
+        self.maxDepth = metrics.maxDepth
+        self.maxChildCount = metrics.maxChildCount
+        self.averageChildCount = metrics.averageChildCount
+        self.classesWithOneChild = metrics.classesWithOneChild
+        self.classesWithMoreThan25Children = metrics.classesWithMoreThan25Children
+        self.classesWithNoDefinition = metrics.classesWithNoDefinition
+
         self.metrics = metrics
         self
       end
