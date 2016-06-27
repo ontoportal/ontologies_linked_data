@@ -964,10 +964,10 @@ eos
     submission_parse("AGROOE", "AGROOE Test extract metadata ontology",
                      "./test/data/ontology_files/agrooeMappings-05-05-2016.owl", 1,
                      process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: true)
+                     run_metrics: true, reasoning: true)
     sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission()
     sub.bring_remaining
-
+    
     assert_equal false, sub.deprecated
     assert_equal " LIRMM (default name) ", sub.publisher
     assert_equal " URI DC terms identifiers ", sub.identifier
@@ -975,6 +975,7 @@ eos
     assert_equal "Vincent Emonet, Anne Toulet, Benjamine Dessay, Léontine Dessaiterm, Augustine Doap", sub.hasContributor
     assert_equal [RDF::URI.new("http://lirmm.fr/2015/ontology/door-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/dc-relation.owl"),
                   RDF::URI.new("http://lirmm.fr/2015/ontology/dcterms-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/voaf-relation.owl")].sort, sub.ontologyRelatedTo.sort
+    assert_equal 13, sub.numberOfClasses
   end
 
 end
