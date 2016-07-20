@@ -42,7 +42,7 @@ module LinkedData
     #   diff              = false
     #   delete            = true  # delete any existing submissions
     ##############################################
-    def submission_parse( acronym, name, ontologyFile, id, parse_options={})
+    def submission_parse(acronym, name, ontologyFile, id, parse_options={})
       return if ENV["SKIP_PARSING"]
       parse_options[:process_rdf] = true
       parse_options[:delete].nil? && parse_options[:delete] = true
@@ -62,18 +62,22 @@ module LinkedData
       uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id, ontologyFile)
       ont_submission.uploadFilePath = uploadFilePath
       ontology_type = "OWL"
-      if (ontologyFile && ontologyFile.end_with?("obo"))
+
+      if ontologyFile && ontologyFile.end_with?("obo")
         ontology_type = "OBO"
-      end
-      if (ontologyFile && ontologyFile["skos"])
+      elsif ontologyFile && ontologyFile["skos"]
         ontology_type = "SKOS"
+      elsif ontologyFile && ontologyFile["ttl"]
+        ontology_type = "UMLS"
       end
-      owl, ont, user, contact = submission_dependent_objects(ontology_type, acronym, "test_linked_models", name)
+
+      ont_format, ont, user, contact = submission_dependent_objects(ontology_type, acronym, "test_linked_models", name)
       ont_submission.contact = [contact]
       ont_submission.released = DateTime.now - 4
-      ont_submission.hasOntologyLanguage = owl
+      ont_submission.hasOntologyLanguage = ont_format
       ont_submission.ontology = ont
       masterFileName = parse_options.delete :masterFileName
+
       if masterFileName
         ont_submission.masterFileName = masterFileName
       end

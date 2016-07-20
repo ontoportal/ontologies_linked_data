@@ -138,7 +138,7 @@ module LinkedData
           child_count = self.childrenCount
         rescue Exception => e
           child_count = 0
-          puts "Exception getting childCount for search for #{self.id.to_s}: #{e.class}: #{e.message}\n#{e.backtrace.join("\n\t")}"
+          puts "Exception getting childCount for search for #{self.id.to_s}: #{e.class}: #{e.message}"
         end
 
         doc = {
