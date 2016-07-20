@@ -104,14 +104,18 @@ module LinkedData
             o.submissions.each do |ss|
               ss.bring(:submissionId) if ss.bring?(:submissionId)
               next if (!submissions_to_process.nil? && !submissions_to_process.include?(ss.submissionId))
-              tmp_log = Logger.new(::TestLogFile.new)
+              
+              test_log_file = TestLogFile.new
+              tmp_log = Logger.new(test_log_file)
+              
               begin
                 ss.process_submission(tmp_log,
                                     process_rdf: true, index_search: true,
                                     run_metrics: true, reasoning: true)
               rescue Exception => e
-                puts "See tmp log for errors: #{tmp_log.path}"
-                raise e
+                puts "Error processing submission: #{ss.id.to_s}"
+                puts "See test log for errors: #{test_log_file.path}"
+                raise
               end
             end
           end

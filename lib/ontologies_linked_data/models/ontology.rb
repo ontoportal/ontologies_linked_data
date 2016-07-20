@@ -16,6 +16,9 @@ module LinkedData
       class OntologyAnalyticsError < StandardError; end
 
       ONTOLOGY_ANALYTICS_REDIS_FIELD = "ontology_analytics"
+      ONTOLOGY_RANK_REDIS_FIELD = "ontology_rank"
+      DEFAULT_RANK_WEIGHT_ANALYTICS = 0.50
+      DEFAULT_RANK_WEIGHT_UMLS = 0.50
 
       model :ontology, :name_with => :acronym
       attribute :acronym, namespace: :omv,
@@ -190,18 +193,19 @@ module LinkedData
         parents = []
         annotation_props.each {|prop| prop.parents.each {|parent| parents << parent}}
         LinkedData::Models::AnnotationProperty.in(latest).models(parents).include(:label, :definition).all()
-
-        return datatype_props + object_props + annotation_props
+        datatype_props + object_props + annotation_props
       end
 
       # retrieve Analytics for this ontology
-      def analytics
-        analytics = self.class.load_analytics_data
-        unless analytics.empty?
-          self.bring(:acronym) if self.bring?(:acronym)
-          analytics.delete_if { |key, _| key != self.acronym }
-        end
-        return analytics
+      def analytics(year=nil, month=nil)
+        self.bring(:acronym) if self.bring?(:acronym)
+        self.class.analytics(year, month, [self.acronym])
+      end
+
+      # retrieve Rank for this ontology
+      def rank(weight_analytics=DEFAULT_RANK_WEIGHT_ANALYTICS, weight_umls=DEFAULT_RANK_WEIGHT_UMLS)
+        self.bring(:acronym) if self.bring?(:acronym)
+        self.class.rank(weight_analytics, weight_umls, [self.acronym])
       end
 
       # A static method for retrieving Analytics for a combination of ontologies, year, month
@@ -215,18 +219,38 @@ module LinkedData
             ont_analytics.each { |_, val| val.delete_if { |key, __| key != month } } unless month.nil?
           end
           # sort results by the highest traffic values
-          analytics = Hash[analytics.sort_by {|k, v| v[year][month]}.reverse] if year && month
+          analytics = Hash[analytics.sort_by {|_, v| v[year][month]}.reverse] if year && month
         end
+        analytics
+      end
 
-        return analytics
+      # A static method for retrieving rank for multiple ontologies
+      def self.rank(weight_analytics=DEFAULT_RANK_WEIGHT_ANALYTICS, weight_umls=DEFAULT_RANK_WEIGHT_UMLS, acronyms=nil)
+        ranking = self.load_ranking_data
+
+        unless ranking.empty?
+          ranking.delete_if { |acronym, _| !acronyms.include? acronym } unless acronyms.nil?
+          ranking.each { |_, rank| rank[:normalizedScore] = (weight_analytics * rank[:bioportalScore] + weight_umls * rank[:umlsScore]).round(3) }
+          # sort results by the highest ranking values
+          ranking = Hash[ranking.sort_by {|_, rank| rank[:normalizedScore]}.reverse]
+        end
+        ranking
       end
 
       def self.load_analytics_data
+        self.load_data(ONTOLOGY_ANALYTICS_REDIS_FIELD)
+      end
+
+      def self.load_ranking_data
+        self.load_data(ONTOLOGY_RANK_REDIS_FIELD)
+      end
+
+      def self.load_data(field_name)
         @@redis ||= Redis.new(:host => LinkedData.settings.ontology_analytics_redis_host,
                               :port => LinkedData.settings.ontology_analytics_redis_port,
                               :timeout => 30)
-        raw_analytics = @@redis.get(ONTOLOGY_ANALYTICS_REDIS_FIELD)
-        return raw_analytics.nil?? Hash.new : Marshal.load(raw_analytics)
+        raw_data = @@redis.get(field_name)
+        return raw_data.nil? ? Hash.new : Marshal.load(raw_data)
       end
 
       ##

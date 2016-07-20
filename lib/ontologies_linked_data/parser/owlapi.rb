@@ -64,7 +64,7 @@ module LinkedData
         options << "-r #{@reasoning ? "true" : "false"}"
 
         if options.length == 0
-          raise ArgumentError, "Cannot call java OWLAPI command without options."
+          raise ArgumentError, "Cannot call OWLAPI Java command without options."
         end
         options = options.join ' '
         errors_log = File.join([@output_repo, "errors.log"])
@@ -85,22 +85,22 @@ module LinkedData
                 buffer << line
               end
               stderr = buffer.join "\n"
+              
               if not w.value.success?
-                @logger.error("OWLAPI java error in parse")
-                @logger.error(stderr)
-                @logger.error(stdout)
-                raise Parser::OWLAPIParserException,
-                  "OWLAPI java command exited with #{status.exitstatus}." +
-                  " Check parser logs."
+                @logger.error("OWLAPI Java command: parsing error occurred.")
+                @logger.error("stderr: " + stderr)
+                @logger.error("stdout: " + stdout)
+                raise Parser::OWLAPIParserException, "OWLAPI Java command exited with status #{w.value.exitstatus}. Check parser log for details."
               else
-                @logger.info("OWLAPI java parse finished OK.")
+                @logger.info("OWLAPI Java command: parsing finished successfully.")
                 @logger.info(stderr)
                 @logger.info(stdout)
               end
+
             end
           rescue Timeout::Error
             Process.kill("KILL", w.pid)
-            @logger.error("OWLAPI java process was kill due to timeout")
+            @logger.error("OWLAPI Java command: killed due to timeout.")
             @logger.error("cmd process: #{command_call}")
           end
           if not File.exist?(File.join([@output_repo, "owlapi.xrdf"]))
