@@ -24,10 +24,10 @@ class TestProvisionalRelation < LinkedData::TestCase
     @target_class_uri1 = RDF::IRI.new "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Image_Algorithm"
     @target_class_uri2 = RDF::IRI.new "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Integration_and_Interoperability_Tools"
 
-    @provisional_rel1 = LinkedData::Models::ProvisionalRelation.new({source: @provisional_class, relationType: @relation_type, targetClassId: @target_class_uri1, targetClassOntology: @ontology})
+    @provisional_rel1 = LinkedData::Models::ProvisionalRelation.new({creator: @user, source: @provisional_class, relationType: @relation_type, targetClassId: @target_class_uri1, targetClassOntology: @ontology})
     assert @provisional_rel1.valid?, "Invalid ProvisionalRelation object #{@provisional_rel1.errors}"
     @provisional_rel1.save
-    @provisional_rel2 = LinkedData::Models::ProvisionalRelation.new({source: @provisional_class, relationType: @relation_type, targetClassId: @target_class_uri2, targetClassOntology: @ontology})
+    @provisional_rel2 = LinkedData::Models::ProvisionalRelation.new({creator: @user, source: @provisional_class, relationType: @relation_type, targetClassId: @target_class_uri2, targetClassOntology: @ontology})
     assert @provisional_rel2.valid?, "Invalid ProvisionalRelation object #{@provisional_rel2.errors}"
     @provisional_rel2.save
   end
