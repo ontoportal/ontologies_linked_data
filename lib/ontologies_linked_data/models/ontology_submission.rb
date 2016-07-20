@@ -623,8 +623,6 @@ module LinkedData
           logger.flush
         end
         delete_and_append(triples_file_path, logger, mime_type)
-<<<<<<< HEAD
-=======
         begin
           # Extract metadata directly from the ontology
           extract_ontology_metadata(logger, user_params)
@@ -633,16 +631,9 @@ module LinkedData
           logger.error("Error while extracting additional metadata: #{e}")
         end
         # TODO: Remove this extraction of version, when extract metadata will be good
->>>>>>> sifr_metadata
-        version_info = extract_version()
-
-        if version_info
-          self.version = version_info
-        end
+        #self.version = extract_version()
       end
 
-<<<<<<< HEAD
-=======
       # Extract additional metadata about the ontology
       # First it extracts the main metadata, then the mapped metadata
       def extract_ontology_metadata(logger, user_params)
@@ -955,10 +946,8 @@ eos
         return nil
       end
 
-
->>>>>>> sifr_metadata
+      # TODO: remove?
       def extract_version
-
         query_version_info = <<eos
 SELECT ?versionInfo
 FROM #{self.id.to_ntriples}
