@@ -88,10 +88,10 @@ module LinkedData
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"]
       #attribute :hasContributor, namespace: :omv, enforce: [:list], extractedMetadata: true,
-      attribute :hasContributor, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
+      attribute :hasContributor, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Contributors",
                 metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy"]
       #attribute :hasCreator, namespace: :omv, enforce: [:list], extractedMetadata: true,
-      attribute :hasCreator, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
+      attribute :hasCreator, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Creators",
                 metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"]
       attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true
       attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"]
@@ -102,7 +102,9 @@ module LinkedData
       #attribute :hasLicense, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasLicense, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"]
-      attribute :hasOntologySyntax, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"]
+      attribute :hasOntologySyntax, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"], label: "Ontology Syntax",
+                enforced_values: ["http://www.w3.org/ns/formats/N3", "http://www.w3.org/ns/formats/N-Triples", "http://www.w3.org/ns/formats/RDF_XML",
+                                  "http://www.w3.org/ns/formats/RDFa", "http://www.w3.org/ns/formats/Turtle"]
       attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"]
       #attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
@@ -185,8 +187,8 @@ module LinkedData
       #attribute :depiction, namespace: :foaf, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"]
       attribute :depiction, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"]
       attribute :logo, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:logo"]
-      #attribute :fundedBy, namespace: :foaf, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"]
-      attribute :fundedBy, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"]
+      #attribute :fundedBy, namespace: :foaf, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"]
+      attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"]
 
       # New metadata from MOD
       attribute :competencyQuestion, namespace: :mod, extractedMetadata: true
