@@ -243,13 +243,8 @@ AgroPortal failed to load %ont_name% (%ont_acronym%) from URL: %ont_pull_locatio
 <br><br>
 Please verify the URL you provided for daily loading of your ontology:
 <ol>
-<<<<<<< HEAD
 <li>Make sure you are signed in to AgroPortal.</li>
-<li>Navigate to your ontology summary page: %ontology_location%.</li>
-=======
-<li>Make sure you are signed in to BioPortal.</li>
 <li>Navigate to your ontology summary page: <a href="%ontology_location%">%ontology_location%</a>.</li>
->>>>>>> lirmm_linked_data
 <li>Click the &quot;Edit submission information&quot; link.</li>
 <li>In the Location row, verify that you entered a valid URL for daily loading of your ontology in the URL text area.</li>
 </ol>
