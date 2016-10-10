@@ -718,9 +718,7 @@ module LinkedData
 
             # Add the concat at the very end, to easily join the content of the array
             if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
-              if  metadata_concat.empty?
-                self.send("#{attr.to_s}=", nil)
-              else
+              if !metadata_concat.empty?
                 self.send("#{attr.to_s}=", metadata_concat.join(", "))
               end
             end
