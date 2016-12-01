@@ -640,6 +640,7 @@ module LinkedData
       # First it extracts the main metadata, then the mapped metadata
       def extract_ontology_metadata(logger, user_params)
         ontology_uri = extract_ontology_uri()
+        logger.info("Extraction metadata from ontology #{ontology_uri}")
 
         # go through all OntologySubmission attributes. Returns symbols
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
@@ -718,9 +719,7 @@ module LinkedData
 
             # Add the concat at the very end, to easily join the content of the array
             if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
-              if  metadata_concat.empty?
-                self.send("#{attr.to_s}=", nil)
-              else
+              if !metadata_concat.empty?
                 self.send("#{attr.to_s}=", metadata_concat.join(", "))
               end
             end
