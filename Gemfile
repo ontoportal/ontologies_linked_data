@@ -21,7 +21,7 @@ gem 'pry', :group => :test
 gem 'email_spec', :group => :test
 
 # NCBO gems (can be from a local dev path or from rubygems/git)
-gem 'goo', github: 'ncbo/goo', branch: 'master'
+gem 'goo', github: 'sifrproject/goo', branch: 'agroportal'
 gem 'sparql-client', github: 'ncbo/sparql-client', branch: 'master'
 
 # ResourceIndex dependencies (managed per-platform)
