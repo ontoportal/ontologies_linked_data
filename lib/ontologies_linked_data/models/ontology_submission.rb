@@ -640,6 +640,7 @@ module LinkedData
       # First it extracts the main metadata, then the mapped metadata
       def extract_ontology_metadata(logger, user_params)
         ontology_uri = extract_ontology_uri()
+        logger.info("Extraction metadata from ontology #{ontology_uri}")
 
         # go through all OntologySubmission attributes. Returns symbols
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
