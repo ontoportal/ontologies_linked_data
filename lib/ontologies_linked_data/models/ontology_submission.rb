@@ -315,6 +315,7 @@ module LinkedData
         )
       end
 
+      # Copy file from /tmp/uncompressed-ont-rest-file to /srv/ncbo/repository/MY_ONT/1/
       def self.copy_file_repository(acronym, submissionId, src, filename = nil)
         path_to_repo = File.join([LinkedData.settings.repository_folder, acronym.to_s, submissionId.to_s])
         name = filename || File.basename(File.new(src).path)
@@ -1771,6 +1772,7 @@ eos
         check
       end
 
+      # Download ont file from pullLocation in /tmp/uncompressed-ont-rest-file
       def download_ontology_file
         file, filename = LinkedData::Utils::FileHelpers.download_file(self.pullLocation.to_s)
         return file, filename
