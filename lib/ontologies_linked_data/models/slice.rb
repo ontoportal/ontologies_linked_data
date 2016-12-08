@@ -36,7 +36,7 @@ module LinkedData::Models
             description: g.description,
             ontologies: g.ontologies
           })
-          slice.save
+          slice.save rescue return "create: " + slice.errors.to_s
         end
       end
     end
