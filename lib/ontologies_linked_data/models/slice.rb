@@ -21,6 +21,7 @@ module LinkedData::Models
       return [:acronym_value_validator, nil]
     end
 
+    # CAREFUL, not working when run with ncbo_cron (generate uri with slice instead of slices) 
     # Check to make sure each group has a corresponding slice (and ontologies match)
     def self.synchronize_groups_to_slices
       groups = LinkedData::Models::Group.where.include(LinkedData::Models::Group.attributes(:all)).all
