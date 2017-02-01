@@ -41,7 +41,7 @@ module LinkedData
 
       attribute :URI, namespace: :omv, extractedMetadata: true, display: "complete" # attention, attribute particulier. Je le récupère proprement via OWLAPI
 
-      attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"], display: "simple"
+      attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"], display: "no"
 
       #attribute :documentation, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
       attribute :documentation, namespace: :omv, extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
