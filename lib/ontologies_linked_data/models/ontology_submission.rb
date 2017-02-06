@@ -33,7 +33,7 @@ module LinkedData
       # Ontology metadata
       #attribute :homepage, enforce: [:list], extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"] # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
 
-      attribute :homepage, extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"], display: "simple"
+      attribute :homepage, namespace: :foaf, extractedMetadata: true, metadataMappings: ["cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"], display: "simple"
       # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
 
       #attribute :publication, enforce: [:list], extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
