@@ -641,12 +641,6 @@ module LinkedData
         rescue => e
           logger.error("Error while extracting additional metadata: #{e}")
         end
-        # TODO: Remove this extraction of version, when extract metadata will be good
-        version_info = extract_version()
-
-        if version_info
-          self.version = version_info
-        end
       end
 
       # Extract additional metadata about the ontology
@@ -956,23 +950,6 @@ WHERE {
 eos
         Goo.sparql_query_client.query(query_get_onto_uri).each_solution do |sol|
           return sol[:uri].to_s
-        end
-        return nil
-      end
-
-
-      def extract_version
-
-        query_version_info = <<eos
-SELECT ?versionInfo
-FROM #{self.id.to_ntriples}
-WHERE {
-<http://bioportal.bioontology.org/ontologies/versionSubject>
- <http://www.w3.org/2002/07/owl#versionInfo> ?versionInfo .
-}
-eos
-        Goo.sparql_query_client.query(query_version_info).each_solution do |sol|
-          return sol[:versionInfo].to_s
         end
         return nil
       end
