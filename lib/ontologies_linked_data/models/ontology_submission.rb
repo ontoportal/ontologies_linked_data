@@ -49,7 +49,7 @@ module LinkedData
       attribute :version, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version"]
                 # TODO: attention c'est déjà géré (mal) par BioPortal (le virer pour faire plus propre)
-      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
+      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
 
       attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status", "idot:state"] # Pas de limitation ici, mais seulement 4 possibilité dans l'UI (alpha, beta, production, retired)
       attribute :contact, enforce: [:existence, :contact, :list]  # Careful its special
@@ -87,7 +87,7 @@ module LinkedData
       #attribute :knownUsage, namespace: :omv, enforce: [:list], extractedMetadata: true
       attribute :knownUsage, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "simple"
       #attribute :notes, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["adms:versionNotes"]
-      attribute :notes, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["adms:versionNotes"], display: "complete"
+      attribute :notes, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"], display: "complete"
       #attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"], display: "complete"
