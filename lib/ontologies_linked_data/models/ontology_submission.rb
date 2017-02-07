@@ -760,6 +760,11 @@ module LinkedData
           self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}")
         end
 
+        # Search allow to search by URI too
+        if self.uriLookupEndpoint.nil?
+          self.uriLookupEndpoint = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}")
+        end
+
         # Add the dataDump URL
         if self.dataDump.nil?
           self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download")
