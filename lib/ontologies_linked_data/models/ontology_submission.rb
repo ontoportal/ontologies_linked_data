@@ -235,8 +235,8 @@ module LinkedData
 
       # New metadata from ADMS and DOAP
       attribute :repository, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
-      #attribute :bug-database, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"  le tiret ne marche pas dans les attributs
-      #attribute :mailing-list, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
+      attribute "bug-database", namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
+      attribute "mailing-list", namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
 
       # New metadata from Schema and IDOT
       attribute :exampleIdentifier, namespace: :idot, enforce: [:uri], extractedMetadata: true, display: "complete"
