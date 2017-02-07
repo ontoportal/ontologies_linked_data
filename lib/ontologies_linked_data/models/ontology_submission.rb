@@ -774,6 +774,10 @@ module LinkedData
 =end
           self.hasPriorVersion = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}")
         end
+
+        if self.hasOntologyLanguage.umls?
+          self.hasOntologyLanguage = "http://www.w3.org/ns/formats/Turtle"
+        end
       end
 
 
