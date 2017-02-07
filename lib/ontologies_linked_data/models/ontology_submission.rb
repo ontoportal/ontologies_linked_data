@@ -742,9 +742,25 @@ module LinkedData
         #  self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
         #end
         #self.downloadCsv = RDF::URI.new("http://data.stageportal.lirmm.fr/ontologies/BIOREFINERY/download?download_format=csv")
-        self.csvDump = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
+        if self.csvDump.nil?
+          self.csvDump = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
+        end
 
-        # TODO: passer en list quand on remettra toutes les listes
+        # Add the sparql endpoint URL
+        if self.endpoint.nil?
+          self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
+        end
+
+        # Add the search endpoint URL
+        if self.openSearchDescription.nil?
+          self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}")
+        end
+
+        # Add the dataDump URL
+        if self.dataDump.nil?
+          self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download")
+        end
+
         # Add the previous submission as a prior version
         if self.submissionId > 1
 =begin
@@ -758,55 +774,6 @@ module LinkedData
 =end
           self.hasPriorVersion = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}")
         end
-
-        # Add the sparql endpoint URL
-        begin
-=begin
-          if self.endpoint.nil?
-            sparql_endpoint = []
-          else
-            sparql_endpoint = self.endpoint.dup
-          end
-          sparql_endpoint.push(RDF::URI.new(LinkedData.settings.sparql_endpoint_url))
-          self.endpoint = sparql_endpoint
-=end
-          self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
-        rescue => e
-          logger.error("Error while defining SPARQL endpoint metadata: #{e}")
-        end
-
-        # Add the search endpoint URL
-        begin
-=begin
-          if self.openSearchDescription.nil?
-            open_search = []
-          else
-            open_search = self.openSearchDescription.dup
-          end
-          open_search.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}"))
-          self.openSearchDescription = open_search
-=end
-          self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}")
-        rescue => e
-          logger.error("Error while defining openSearchDescription metadata: #{e}")
-        end
-
-        # Add the dataDump URL
-        begin
-=begin
-          if self.dataDump.nil?
-            data_dump = []
-          else
-            data_dump = self.dataDump.dup
-          end
-          data_dump.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download"))
-          self.dataDump = data_dump
-=end
-          self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download")
-        rescue => e
-          logger.error("Error while defining dataDump metadata: #{e}")
-        end
-
       end
 
 
