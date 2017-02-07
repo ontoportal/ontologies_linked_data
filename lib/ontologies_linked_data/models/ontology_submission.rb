@@ -737,11 +737,15 @@ module LinkedData
 
         # Retrieve ontology URI attribute directly with OWLAPI
         self.URI = ontology_uri
+
+        if self.identifier.nil?
+          self.identifier = self.URI.to_s
+        end
+
         # Metadata specific to BioPortal that have been removed:
         #if self.hostedBy.nil?
         #  self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
         #end
-        #self.downloadCsv = RDF::URI.new("http://data.stageportal.lirmm.fr/ontologies/BIOREFINERY/download?download_format=csv")
         if self.csvDump.nil?
           self.csvDump = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
         end
