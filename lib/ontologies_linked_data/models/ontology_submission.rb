@@ -742,6 +742,14 @@ module LinkedData
           self.identifier = self.URI.to_s
         end
 
+        if self.deprecated.nil?
+          if self.status == "retired"
+            self.deprecated = true
+          else
+            self.deprecated = false
+          end
+        end
+
         # Metadata specific to BioPortal that have been removed:
         #if self.hostedBy.nil?
         #  self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
