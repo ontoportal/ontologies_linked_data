@@ -235,8 +235,10 @@ module LinkedData
 
       # New metadata from ADMS and DOAP
       attribute :repository, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
-      attribute "bug-database".to_sym, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
-      attribute "mailing-list".to_sym, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
+
+      # Should be bug-database and mailing-list but NameError - `@bug-database' is not allowed as an instance variable name
+      attribute :bugDatabase, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
+      attribute :mailingList, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
 
       # New metadata from Schema and IDOT
       attribute :exampleIdentifier, namespace: :idot, enforce: [:uri], extractedMetadata: true, display: "complete"
