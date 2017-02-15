@@ -20,7 +20,20 @@ On pourrait générer également useImports avec les URI des owl:imports
 
 uriregexpattern: uri de l'ontology (où on vire la fin et on met sous forme de regex)
 
+### Not valid property names
 
+Property names with - in it are not valid.
+
+Causing the following error:
+
+```
+NameError - `@bug-database' is not allowed as an instance variable name:
+  /usr/local/rbenv/versions/2.1.5/lib/ruby/gems/2.1.0/bundler/gems/goo-7bbbb557d9f2/lib/goo/base/resource.rb:203:in `instance_variable_set'
+  /usr/local/rbenv/versions/2.1.5/lib/ruby/gems/2.1.0/bundler/gems/goo-7bbbb557d9f2/lib/goo/base/resource.rb:203:in `block in bring'
+```
+
+
+## Unit test status
 
 Unit test status:
  - master branch:   [![Build Status](https://bmir-jenkins.stanford.edu/buildStatus/icon?job=NCBO_OntLD_MasterTest)](https://bmir-jenkins.stanford.edu/job/NCBO_OntLD_MasterTest/)
