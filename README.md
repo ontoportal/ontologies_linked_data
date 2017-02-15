@@ -3,8 +3,7 @@ ontologies_linked_data
 
 ## TODO
 
-Quand ces champs ne sont pas remplis, faut mettre les valeurs par défaut (skos:prefLabel, skos:altLabel)
-
+DONE: Quand ces champs ne sont pas remplis, faut mettre les valeurs par défaut (skos:prefLabel, skos:altLabel)
 ```ruby
 "prefLabelProperty": null,
 "definitionProperty": null,
