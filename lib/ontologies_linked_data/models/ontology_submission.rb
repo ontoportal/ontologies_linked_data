@@ -641,6 +641,13 @@ module LinkedData
         rescue => e
           logger.error("Error while extracting additional metadata: #{e}")
         end
+        begin
+          # Set default metadata
+          set_default_metadata(logger)
+          logger.info("Default metadata set.")
+        rescue => e
+          logger.error("Error while setting default metadata: #{e}")
+        end
       end
 
       # Extract additional metadata about the ontology
@@ -733,17 +740,18 @@ module LinkedData
           end
         end
 
-        # Automaticaly generate some metadata
-
         # Retrieve ontology URI attribute directly with OWLAPI
         self.URI = ontology_uri
+      end
 
+      # Set some metadata to default values if nothing extracted
+      def set_default_metadata(logger)
         if self.identifier.nil?
           self.identifier = self.URI.to_s
         end
 
         if self.deprecated.nil?
-          if self.status == "retired"
+          if self.status.eql?("retired")
             self.deprecated = true
           else
             self.deprecated = false
@@ -795,8 +803,8 @@ module LinkedData
         if self.hasOntologyLanguage.umls?
           self.hasOntologyLanguage = "http://www.w3.org/ns/formats/Turtle"
         end
-      end
 
+      end
 
       # Return a hash with the best literal value for an URI
       # it selects the literal according to their language: no language > english > french > other languages
