@@ -768,11 +768,6 @@ module LinkedData
           self.csvDump = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
         end
 
-        # Add the sparql endpoint URL
-        if self.endpoint.nil?
-          self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
-        end
-
         # Add the search endpoint URL
         if self.openSearchDescription.nil?
           self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}")
@@ -820,6 +815,11 @@ module LinkedData
           self.authorProperty = Goo.vocabulary(:dc)[:creator]
         end
         # Add also hierarchyProperty? Could not find any use of it
+
+        # Add the sparql endpoint URL
+        if self.endpoint.nil?
+          self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
+        end
 
       end
 
