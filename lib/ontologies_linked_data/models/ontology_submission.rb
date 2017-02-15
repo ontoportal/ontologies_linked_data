@@ -798,23 +798,25 @@ module LinkedData
         end
 
         if self.hasOntologyLanguage.umls?
-          self.hasOntologyLanguage = "http://www.w3.org/ns/formats/Turtle"
+          self.hasOntologySyntax = "http://www.w3.org/ns/formats/Turtle"
         end
 
-        # Define default properties:
-        if self.prefLabelProperty.nil?
-          self.prefLabelProperty = Goo.vocabulary(:skos)[:prefLabel]
+        # Define default properties for prefLabel, synonyms, definition, author:
+        if self.hasOntologyLanguage.owl?
+          if self.prefLabelProperty.nil?
+            self.prefLabelProperty = Goo.vocabulary(:skos)[:prefLabel]
+          end
+          if self.synonymProperty.nil?
+            self.synonymProperty = Goo.vocabulary(:skos)[:altLabel]
+          end
+          if self.definitionProperty.nil?
+            self.definitionProperty = Goo.vocabulary(:rdfs)[:comment]
+          end
+          if self.authorProperty.nil?
+            self.authorProperty = Goo.vocabulary(:dc)[:creator]
+          end
+          # Add also hierarchyProperty? Could not find any use of it
         end
-        if self.synonymProperty.nil?
-          self.synonymProperty = Goo.vocabulary(:skos)[:altLabel]
-        end
-        if self.definitionProperty.nil?
-          self.definitionProperty = Goo.vocabulary(:rdfs)[:comment]
-        end
-        if self.authorProperty.nil?
-          self.authorProperty = Goo.vocabulary(:dc)[:creator]
-        end
-        # Add also hierarchyProperty? Could not find any use of it
 
         # Add the sparql endpoint URL
         if self.endpoint.nil?
