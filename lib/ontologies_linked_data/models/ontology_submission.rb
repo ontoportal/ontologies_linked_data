@@ -769,11 +769,6 @@ module LinkedData
           self.csvDump = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
         end
 
-        # Add the sparql endpoint URL
-        if self.endpoint.nil?
-          self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
-        end
-
         # Add the search endpoint URL
         if self.openSearchDescription.nil?
           self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}")
@@ -804,23 +799,30 @@ module LinkedData
         end
 
         if self.hasOntologyLanguage.umls?
-          self.hasOntologyLanguage = "http://www.w3.org/ns/formats/Turtle"
+          self.hasOntologySyntax = "http://www.w3.org/ns/formats/Turtle"
         end
 
-        # Define default properties:
-        if self.prefLabelProperty.nil?
-          self.prefLabelProperty = Goo.vocabulary(:skos)[:prefLabel]
+        # Define default properties for prefLabel, synonyms, definition, author:
+        if self.hasOntologyLanguage.owl?
+          if self.prefLabelProperty.nil?
+            self.prefLabelProperty = Goo.vocabulary(:skos)[:prefLabel]
+          end
+          if self.synonymProperty.nil?
+            self.synonymProperty = Goo.vocabulary(:skos)[:altLabel]
+          end
+          if self.definitionProperty.nil?
+            self.definitionProperty = Goo.vocabulary(:rdfs)[:comment]
+          end
+          if self.authorProperty.nil?
+            self.authorProperty = Goo.vocabulary(:dc)[:creator]
+          end
+          # Add also hierarchyProperty? Could not find any use of it
         end
-        if self.synonymProperty.nil?
-          self.synonymProperty = Goo.vocabulary(:skos)[:altLabel]
+
+        # Add the sparql endpoint URL
+        if self.endpoint.nil?
+          self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
         end
-        if self.definitionProperty.nil?
-          self.definitionProperty = Goo.vocabulary(:rdfs)[:comment]
-        end
-        if self.authorProperty.nil?
-          self.authorProperty = Goo.vocabulary(:dc)[:creator]
-        end
-        # Add also hierarchyProperty? Could not find any use of it
 
       end
 
