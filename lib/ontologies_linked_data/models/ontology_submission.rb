@@ -33,7 +33,7 @@ module LinkedData
       # Ontology metadata
       #attribute :homepage, enforce: [:list], extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"] # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
 
-      attribute :homepage, extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"], display: "simple"
+      attribute :homepage, namespace: :foaf, extractedMetadata: true, metadataMappings: ["cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"], display: "no"
       # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
 
       #attribute :publication, enforce: [:list], extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
@@ -49,7 +49,7 @@ module LinkedData
       attribute :version, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version"]
                 # TODO: attention c'est déjà géré (mal) par BioPortal (le virer pour faire plus propre)
-      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
+      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
 
       attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status", "idot:state"] # Pas de limitation ici, mais seulement 4 possibilité dans l'UI (alpha, beta, production, retired)
       attribute :contact, enforce: [:existence, :contact, :list]  # Careful its special
@@ -87,7 +87,7 @@ module LinkedData
       #attribute :knownUsage, namespace: :omv, enforce: [:list], extractedMetadata: true
       attribute :knownUsage, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "simple"
       #attribute :notes, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["adms:versionNotes"]
-      attribute :notes, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["adms:versionNotes"], display: "complete"
+      attribute :notes, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"], display: "complete"
       #attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"], display: "complete"
@@ -235,8 +235,10 @@ module LinkedData
 
       # New metadata from ADMS and DOAP
       attribute :repository, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
-      #attribute :bug-database, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"  le tiret ne marche pas dans les attributs
-      #attribute :mailing-list, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
+
+      # Should be bug-database and mailing-list but NameError - `@bug-database' is not allowed as an instance variable name
+      attribute :bugDatabase, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
+      attribute :mailingList, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
 
       # New metadata from Schema and IDOT
       attribute :exampleIdentifier, namespace: :idot, enforce: [:uri], extractedMetadata: true, display: "complete"
@@ -642,8 +644,13 @@ module LinkedData
         rescue => e
           logger.error("Error while extracting additional metadata: #{e}")
         end
-        # TODO: Remove this extraction of version, when extract metadata will be good
-        #self.version = extract_version()
+        begin
+          # Set default metadata
+          set_default_metadata(logger)
+          logger.info("Default metadata set.")
+        rescue => e
+          logger.error("Error while setting default metadata: #{e}")
+        end
       end
 
       # Extract additional metadata about the ontology
@@ -736,18 +743,47 @@ module LinkedData
           end
         end
 
-        # Automaticaly generate some metadata
-
         # Retrieve ontology URI attribute directly with OWLAPI
         self.URI = ontology_uri
+      end
+
+      # Set some metadata to default values if nothing extracted
+      def set_default_metadata(logger)
+        if self.identifier.nil?
+          self.identifier = self.URI.to_s
+        end
+
+        if self.deprecated.nil?
+          if self.status.eql?("retired")
+            self.deprecated = true
+          else
+            self.deprecated = false
+          end
+        end
+
         # Metadata specific to BioPortal that have been removed:
         #if self.hostedBy.nil?
         #  self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
         #end
-        #self.downloadCsv = RDF::URI.new("http://data.stageportal.lirmm.fr/ontologies/BIOREFINERY/download?download_format=csv")
-        self.csvDump = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
+        if self.csvDump.nil?
+          self.csvDump = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
+        end
 
-        # TODO: passer en list quand on remettra toutes les listes
+        # Add the search endpoint URL
+        if self.openSearchDescription.nil?
+          self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}")
+        end
+
+        # Search allow to search by URI too
+        if self.uriLookupEndpoint.nil?
+          self.uriLookupEndpoint = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}")
+        end
+
+        # Add the dataDump URL
+        if self.dataDump.nil?
+          self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download")
+        end
+
         # Add the previous submission as a prior version
         if self.submissionId > 1
 =begin
@@ -762,56 +798,33 @@ module LinkedData
           self.hasPriorVersion = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}")
         end
 
+        if self.hasOntologyLanguage.umls?
+          self.hasOntologySyntax = "http://www.w3.org/ns/formats/Turtle"
+        end
+
+        # Define default properties for prefLabel, synonyms, definition, author:
+        if self.hasOntologyLanguage.owl?
+          if self.prefLabelProperty.nil?
+            self.prefLabelProperty = Goo.vocabulary(:skos)[:prefLabel]
+          end
+          if self.synonymProperty.nil?
+            self.synonymProperty = Goo.vocabulary(:skos)[:altLabel]
+          end
+          if self.definitionProperty.nil?
+            self.definitionProperty = Goo.vocabulary(:rdfs)[:comment]
+          end
+          if self.authorProperty.nil?
+            self.authorProperty = Goo.vocabulary(:dc)[:creator]
+          end
+          # Add also hierarchyProperty? Could not find any use of it
+        end
+
         # Add the sparql endpoint URL
-        begin
-=begin
-          if self.endpoint.nil?
-            sparql_endpoint = []
-          else
-            sparql_endpoint = self.endpoint.dup
-          end
-          sparql_endpoint.push(RDF::URI.new(LinkedData.settings.sparql_endpoint_url))
-          self.endpoint = sparql_endpoint
-=end
+        if self.endpoint.nil?
           self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
-        rescue => e
-          logger.error("Error while defining SPARQL endpoint metadata: #{e}")
-        end
-
-        # Add the search endpoint URL
-        begin
-=begin
-          if self.openSearchDescription.nil?
-            open_search = []
-          else
-            open_search = self.openSearchDescription.dup
-          end
-          open_search.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}"))
-          self.openSearchDescription = open_search
-=end
-          self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}")
-        rescue => e
-          logger.error("Error while defining openSearchDescription metadata: #{e}")
-        end
-
-        # Add the dataDump URL
-        begin
-=begin
-          if self.dataDump.nil?
-            data_dump = []
-          else
-            data_dump = self.dataDump.dup
-          end
-          data_dump.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download"))
-          self.dataDump = data_dump
-=end
-          self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download")
-        rescue => e
-          logger.error("Error while defining dataDump metadata: #{e}")
         end
 
       end
-
 
       # Return a hash with the best literal value for an URI
       # it selects the literal according to their language: no language > english > french > other languages
@@ -953,22 +966,6 @@ WHERE {
 eos
         Goo.sparql_query_client.query(query_get_onto_uri).each_solution do |sol|
           return sol[:uri].to_s
-        end
-        return nil
-      end
-
-      # TODO: remove?
-      def extract_version
-        query_version_info = <<eos
-SELECT ?versionInfo
-FROM #{self.id.to_ntriples}
-WHERE {
-<http://bioportal.bioontology.org/ontologies/versionSubject>
- <http://www.w3.org/2002/07/owl#versionInfo> ?versionInfo .
-}
-eos
-        Goo.sparql_query_client.query(query_version_info).each_solution do |sol|
-          return sol[:versionInfo].to_s
         end
         return nil
       end
