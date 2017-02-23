@@ -23,7 +23,7 @@ GIT
 
 GIT
   remote: git://github.com/sifrproject/goo.git
-  revision: 7bbbb557d9f2b84fd0eff89cd27c97df819b8bed
+  revision: c923eeacaad737b37e1d757ee8957463e89601a8
   branch: sifr
   specs:
     goo (0.0.2)
@@ -52,7 +52,7 @@ GEM
     coderay (1.1.1)
     cube-ruby (0.0.3)
     docile (1.1.5)
-    domain_name (0.5.20160826)
+    domain_name (0.5.20170223)
       unf (>= 0.0.5, < 1.0.0)
     elasticsearch (1.0.17)
       elasticsearch-api (= 1.0.17)
@@ -107,9 +107,9 @@ GEM
     rake (10.5.0)
     rdf (1.0.8)
       addressable (>= 2.2)
-    redis (3.3.1)
+    redis (3.3.3)
     ref (2.0.0)
-    rest-client (2.0.0)
+    rest-client (2.0.1)
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
@@ -161,4 +161,4 @@ DEPENDENCIES
   sparql-client!
 
 BUNDLED WITH
-   1.13.5
+   1.14.3
