@@ -39,7 +39,9 @@ module LinkedData
       #attribute :publication, enforce: [:list], extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
       attribute :publication, extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
 
-      attribute :URI, namespace: :omv, extractedMetadata: true, display: "complete" # attention, attribute particulier. Je le récupère proprement via OWLAPI
+      # attention, attribute particulier. Je le récupère proprement via OWLAPI
+      # TODO: careful in bioportal_web_ui (submissions_helper.rb) @submission.send("URI") causes a bug! Didn't get why
+      attribute :URI, namespace: :omv, extractedMetadata: true, display: "complete"
 
       attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"], display: "no"
 
