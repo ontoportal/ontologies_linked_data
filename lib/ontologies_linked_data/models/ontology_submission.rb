@@ -57,7 +57,7 @@ module LinkedData
       attribute :contact, enforce: [:existence, :contact, :list]  # Careful its special
 
       attribute :creationDate, namespace: :omv, enforce: [:date_time], metadataMappings: ["dct:dateSubmitted", "schema:datePublished"],
-                default: lambda { |record| DateTime.now } # Attention c'est créé automatiquement ça, quand la submission est créée
+                default: lambda { |record| DateTime.now } # Attention c'est généré automatiquement, quand la submission est créée
       attribute :released, enforce: [:date_time, :existence], extractedMetadata: true,
                 metadataMappings: ["omv:creationDate", "dc:date", "dct:date", "dct:issued", "mod:creationDate", "doap:created", "schema:dateCreated",
                                    "prov:generatedAtTime", "pav:createdOn", "pav:authoredOn", "pav:contributedOn", "oboInOwl:date", "oboInOwl:hasDate"]
