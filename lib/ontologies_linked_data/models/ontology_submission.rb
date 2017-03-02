@@ -37,21 +37,24 @@ module LinkedData
       # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
 
       #attribute :publication, enforce: [:list], extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
-      attribute :publication, extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
+      attribute :publication, extractedMetadata: true, display: "no"
+                metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
 
       # attention, attribute particulier. Je le récupère proprement via OWLAPI
       # TODO: careful in bioportal_web_ui (submissions_helper.rb) @submission.send("URI") causes a bug! Didn't get why
-      attribute :URI, namespace: :omv, extractedMetadata: true, display: "complete"
+      attribute :URI, namespace: :omv, extractedMetadata: true, display: "no"
 
-      attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"], display: "no"
+      attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "no",
+                metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"]
 
       #attribute :documentation, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
       attribute :documentation, namespace: :omv, extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
 
-      attribute :version, namespace: :omv, extractedMetadata: true,
+      attribute :version, namespace: :omv, extractedMetadata: true, display: "no",
                 metadataMappings: ["owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version"]
-                # TODO: attention c'est déjà géré (mal) par BioPortal (le virer pour faire plus propre)
-      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
+
+      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
+                metadataMappings: ["dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
 
       attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status", "idot:state"] # Pas de limitation ici, mais seulement 4 possibilité dans l'UI (alpha, beta, production, retired)
       attribute :contact, enforce: [:existence, :contact, :list]  # Careful its special
@@ -77,12 +80,12 @@ module LinkedData
 
       # Complementary omv metadata
       attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true,
-                metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn"], display: "simple"
+                metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn"], display: "no"
       attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true,
-                metadataMappings: ["mod:noOfAxioms", "void:triples"], display: "complete"
+                metadataMappings: ["mod:noOfAxioms", "void:triples"], display: "content"
       #attribute :keyClasses, namespace: :omv, enforce: [:uri, :list], extractedMetadata: true,
       attribute :keyClasses, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"], display: "simple"
+                metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"], display: "content"
       #attribute :keywords, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :keywords, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
                 metadataMappings: ["mod:keyword", "dcat:keyword", "schema:keywords"], display: "simple" # Attention particulier, ça peut être un simple string avec des virgules
@@ -158,7 +161,7 @@ module LinkedData
       #attribute :source, namespace: :dct, enforce: [:list], extractedMetadata: true,
       attribute :source, namespace: :dct, enforce: [:concatenate], extractedMetadata: true, display: "complete",
                 metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn"]
-      attribute :abstract, namespace: :dct, extractedMetadata: true, display: "complete"
+      attribute :abstract, namespace: :dct, extractedMetadata: true, display: "no"
       attribute :alternative, namespace: :dct, extractedMetadata: true, display: "simple",
                 metadataMappings: ["skos:altLabel", "idot:alternatePrefix", "schema:alternativeHeadline", "schema:alternateName"]
       #attribute :hasPart, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"]
