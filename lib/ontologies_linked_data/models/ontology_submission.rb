@@ -37,7 +37,7 @@ module LinkedData
       # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
 
       #attribute :publication, enforce: [:list], extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
-      attribute :publication, extractedMetadata: true, display: "no"
+      attribute :publication, extractedMetadata: true, display: "no",
                 metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
 
       # attention, attribute particulier. Je le récupère proprement via OWLAPI
