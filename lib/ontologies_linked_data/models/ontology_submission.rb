@@ -138,7 +138,7 @@ module LinkedData
       # New metadata to BioPortal
       #attribute :hostedBy, enforce: [:list, :uri]
       attribute :deprecated, namespace: :owl, enforce: [:boolean], extractedMetadata: true, metadataMappings: ["idot:obsolete"], display: "dates"
-      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "simple"
+      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "description"
 
       # New metadata from DOOR
       attribute :ontologyRelatedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true,
@@ -248,7 +248,7 @@ module LinkedData
 
       # New metadata from Schema and IDOT
       attribute :exampleIdentifier, namespace: :idot, enforce: [:uri], extractedMetadata: true, display: "content"
-      attribute :award, namespace: :schema, extractedMetadata: true, display: "complete"
+      attribute :award, namespace: :schema, extractedMetadata: true, display: "community"
       attribute :copyrightHolder, namespace: :schema, extractedMetadata: true, display: "people"
       attribute :translator, namespace: :schema, extractedMetadata: true, display: "people"
       attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "content"
