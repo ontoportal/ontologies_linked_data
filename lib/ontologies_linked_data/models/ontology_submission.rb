@@ -101,7 +101,7 @@ module LinkedData
       attribute :hasContributor, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Contributors",
                 metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy"], display: "people"
       #attribute :hasCreator, namespace: :omv, enforce: [:list], extractedMetadata: true,
-      attribute :hasCreator, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Creators", display: "people"
+      attribute :hasCreator, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Creators", display: "people",
                 metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"]
       attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "description"
       attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"], display: "people"
