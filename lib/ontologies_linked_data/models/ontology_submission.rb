@@ -786,7 +786,7 @@ module LinkedData
 
         # Add the dataDump URL
         if self.dataDump.nil?
-          self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download")
+          self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download?download_format=rdf")
         end
 
         # Add the previous submission as a prior version
