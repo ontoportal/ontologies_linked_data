@@ -770,9 +770,6 @@ module LinkedData
         #if self.hostedBy.nil?
         #  self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
         #end
-        if self.csvDump.nil?
-          self.csvDump = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
-        end
 
         # Add the search endpoint URL
         if self.openSearchDescription.nil?
@@ -787,6 +784,10 @@ module LinkedData
         # Add the dataDump URL
         if self.dataDump.nil?
           self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download?download_format=rdf")
+        end
+
+        if self.csvDump.nil?
+          self.csvDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download?download_format=csv")
         end
 
         # Add the previous submission as a prior version
