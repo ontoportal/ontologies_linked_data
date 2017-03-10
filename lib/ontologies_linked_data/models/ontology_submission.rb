@@ -227,7 +227,7 @@ module LinkedData
                 metadataMappings: ["idot:preferredPrefix", "oboInOwl:default-namespace", "oboInOwl:hasDefaultNamespace"]
 
       # New metadata from CC
-      attribute :morePermissions, namespace: :cc, extractedMetadata: true, display: "community"
+      attribute :morePermissions, namespace: :cc, extractedMetadata: true
       attribute :useGuidelines, namespace: :cc, extractedMetadata: true, display: "community"
 
       # New metadata from PROV and PAV
@@ -249,7 +249,7 @@ module LinkedData
       # New metadata from Schema and IDOT
       attribute :exampleIdentifier, namespace: :idot, enforce: [:uri], extractedMetadata: true, display: "content"
       attribute :award, namespace: :schema, extractedMetadata: true, display: "community"
-      attribute :copyrightHolder, namespace: :schema, extractedMetadata: true, display: "people"
+      attribute :copyrightHolder, namespace: :schema, extractedMetadata: true
       attribute :translator, namespace: :schema, extractedMetadata: true, display: "people"
       attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "content"
       #attribute :translationOfWork, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["adms:translation"]
