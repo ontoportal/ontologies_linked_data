@@ -51,7 +51,7 @@ module LinkedData
       attribute :documentation, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
 
-      attribute :version, namespace: :omv, extractedMetadata: true, display: "no",
+      attribute :version, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version"]
 
       attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
@@ -93,7 +93,7 @@ module LinkedData
       #attribute :knownUsage, namespace: :omv, enforce: [:list], extractedMetadata: true
       attribute :knownUsage, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "description"
       #attribute :notes, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["adms:versionNotes"]
-      attribute :notes, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"], display: "description"
+      attribute :notes, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"]
       #attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"], display: "description"
@@ -123,7 +123,7 @@ module LinkedData
                 metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "description"
       attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"]
-      attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true, display: "relations",
+      attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true
                 metadataMappings: ["owl:imports", "door:imports", "void:vocabulary", "voaf:extends", "dct:requires", "oboInOwl:import"]
       #attribute :hasPriorVersion, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
       attribute :hasPriorVersion, namespace: :omv, enforce: [:uri], extractedMetadata: true, display: "relations",
@@ -183,7 +183,7 @@ module LinkedData
       attribute :endpoint, namespace: :sd, enforce: [:uri], extractedMetadata: true, metadataMappings: ["void:sparqlEndpoint"], display: "content"
 
       # New metadata from VOID
-      attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, display: "description"
+      attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, display: "content"
       attribute :dataDump, namespace: :void, enforce: [:uri], extractedMetadata: true,
                 metadataMappings: ["doap:download-mirror", "schema:distribution"], display: "content"
       # TODO: SEMBLE BUGé d'après google spreadsheet
