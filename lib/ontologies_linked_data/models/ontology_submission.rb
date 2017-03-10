@@ -42,7 +42,7 @@ module LinkedData
 
       # attention, attribute particulier. Je le récupère proprement via OWLAPI
       # TODO: careful in bioportal_web_ui (submissions_helper.rb) @submission.send("URI") causes a bug! Didn't get why
-      attribute :URI, namespace: :omv, extractedMetadata: true
+      attribute :URI, namespace: :omv, extractedMetadata: true, label: "URI"
 
       attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "no",
                 metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"]
@@ -62,7 +62,7 @@ module LinkedData
 
       attribute :creationDate, namespace: :omv, enforce: [:date_time], metadataMappings: ["dct:dateSubmitted", "schema:datePublished"],
                 default: lambda { |record| DateTime.now } # Attention c'est généré automatiquement, quand la submission est créée
-      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true,
+      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true, label: "Release date"
                 metadataMappings: ["omv:creationDate", "dc:date", "dct:date", "dct:issued", "mod:creationDate", "doap:created", "schema:dateCreated",
                                    "prov:generatedAtTime", "pav:createdOn", "pav:authoredOn", "pav:contributedOn", "oboInOwl:date", "oboInOwl:hasDate"]
                 # date de release de l'ontologie par ses développeurs
@@ -99,12 +99,12 @@ module LinkedData
                 metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"], display: "description"
       #attribute :hasContributor, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasContributor, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Contributors",
-                metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy"], display: "people"
+                metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy"]
       #attribute :hasCreator, namespace: :omv, enforce: [:list], extractedMetadata: true,
-      attribute :hasCreator, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Creators", display: "people",
+      attribute :hasCreator, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Creators",
                 metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"]
       attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "description"
-      attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"], display: "people"
+      attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"], display: "community"
       #attribute :hasDomain, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasDomain, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
                 metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "description"
@@ -122,7 +122,7 @@ module LinkedData
       attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
                 metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "description"
       attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"], display: "description"
+                metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"]
       attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true, display: "relations",
                 metadataMappings: ["owl:imports", "door:imports", "void:vocabulary", "voaf:extends", "dct:requires", "oboInOwl:import"]
       #attribute :hasPriorVersion, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
@@ -156,7 +156,7 @@ module LinkedData
 
       # New metadata from DC terms
       attribute :coverage, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:coverage", "schema:spatial"], display: "description"
-      attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "adms:schemaAgency", "schema:publisher"], display: "people"
+      attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "adms:schemaAgency", "schema:publisher"], display: "community"
       #attribute :identifier, namespace: :dct, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"]
       attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"], display: "description"
       #attribute :source, namespace: :dct, enforce: [:list], extractedMetadata: true,
@@ -203,7 +203,7 @@ module LinkedData
       attribute :depiction, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"], display: "description"
       attribute :logo, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:logo"], display: "description"
       #attribute :fundedBy, namespace: :foaf, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"]
-      attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "people"
+      attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "community"
 
       # New metadata from MOD
       attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, display: "description"
@@ -222,8 +222,8 @@ module LinkedData
       # New metadata from VANN
       #attribute :example, namespace: :vann, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["schema:workExample"]
       attribute :example, namespace: :vann, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:workExample"], display: "content"
-      attribute :preferredNamespaceUri, namespace: :vann, extractedMetadata: true, metadataMappings: ["void:uriSpace"], display: "content"
-      attribute :preferredNamespacePrefix, namespace: :vann, extractedMetadata: true, display: "content",
+      attribute :preferredNamespaceUri, namespace: :vann, extractedMetadata: true, metadataMappings: ["void:uriSpace"]
+      attribute :preferredNamespacePrefix, namespace: :vann, extractedMetadata: true,
                 metadataMappings: ["idot:preferredPrefix", "oboInOwl:default-namespace", "oboInOwl:hasDefaultNamespace"]
 
       # New metadata from CC
@@ -232,11 +232,11 @@ module LinkedData
 
       # New metadata from PROV and PAV
       #attribute :wasGeneratedBy, namespace: :prov, enforce: [:list], extractedMetadata: true
-      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "people"
+      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "community"
       #attribute :wasInvalidatedBy, namespace: :prov, enforce: [:list], extractedMetadata: true
-      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "people"
+      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "community"
       #attribute :curatedBy, namespace: :pav, enforce: [:list], extractedMetadata: true
-      attribute :curatedBy, namespace: :pav, enforce: [:concatenate], extractedMetadata: true, display: "people"
+      attribute :curatedBy, namespace: :pav, enforce: [:concatenate], extractedMetadata: true, display: "community"
       attribute :curatedOn, namespace: :pav, enforce: [:date_time], extractedMetadata: true, display: "dates"
 
       # New metadata from ADMS and DOAP
@@ -250,7 +250,7 @@ module LinkedData
       attribute :exampleIdentifier, namespace: :idot, enforce: [:uri], extractedMetadata: true, display: "content"
       attribute :award, namespace: :schema, extractedMetadata: true, display: "community"
       attribute :copyrightHolder, namespace: :schema, extractedMetadata: true
-      attribute :translator, namespace: :schema, extractedMetadata: true, display: "people"
+      attribute :translator, namespace: :schema, extractedMetadata: true, display: "community"
       attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "content"
       #attribute :translationOfWork, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["adms:translation"]
       attribute :translationOfWork, namespace: :schema, enforce: [:uri], extractedMetadata: true, metadataMappings: ["adms:translation"], display: "relations"
