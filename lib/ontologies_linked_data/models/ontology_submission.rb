@@ -157,7 +157,7 @@ module LinkedData
 
       # New metadata from DC terms
       attribute :coverage, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:coverage", "schema:spatial"], display: "description"
-      attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "adms:schemaAgency", "schema:publisher"], display: "community"
+      attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "adms:schemaAgency", "schema:publisher"]
       #attribute :identifier, namespace: :dct, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"]
       attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"], display: "description"
       #attribute :source, namespace: :dct, enforce: [:list], extractedMetadata: true,
@@ -175,9 +175,9 @@ module LinkedData
       attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience", "schema:audience"], display: "community"
       attribute :valid, namespace: :dct, enforce: [:date_time], extractedMetadata: true,
                 metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"], display: "dates"
-      attribute :accrualMethod, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "description"
-      attribute :accrualPeriodicity, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "description"
-      attribute :accrualPolicy, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "description"
+      attribute :accrualMethod, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "accrual"
+      attribute :accrualPeriodicity, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "accrual"
+      attribute :accrualPolicy, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "accrual"
 
       # New metadata from sd
       #attribute :endpoint, namespace: :sd, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["void:sparqlEndpoint"]
