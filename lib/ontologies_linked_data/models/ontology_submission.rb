@@ -29,6 +29,7 @@ module LinkedData
 
       # enforce: [:concatenate] is for attribute that will be a single string but where we extract and concatenate the value of multiple properties
       # be careful, it can't be combined with enforce :uri !
+      # display [:isOntology] allows to define that a metadata is an ontology (like relations)
 
       # Ontology metadata
       #attribute :homepage, enforce: [:list], extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"] # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
@@ -37,26 +38,32 @@ module LinkedData
       # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
 
       #attribute :publication, enforce: [:list], extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
-      attribute :publication, extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
+      attribute :publication, extractedMetadata: true, display: "no",
+                metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
 
-      attribute :URI, namespace: :omv, extractedMetadata: true, display: "complete" # attention, attribute particulier. Je le récupère proprement via OWLAPI
+      # attention, attribute particulier. Je le récupère proprement via OWLAPI
+      # TODO: careful in bioportal_web_ui (submissions_helper.rb) @submission.send("URI") causes a bug! Didn't get why
+      attribute :URI, namespace: :omv, extractedMetadata: true, label: "URI"
 
-      attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"], display: "no"
+      attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "no",
+                metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"]
 
       #attribute :documentation, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
-      attribute :documentation, namespace: :omv, extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
+      attribute :documentation, namespace: :omv, extractedMetadata: true,
+                metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
 
       attribute :version, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version"]
-                # TODO: attention c'est déjà géré (mal) par BioPortal (le virer pour faire plus propre)
-      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
+
+      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
+                metadataMappings: ["dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
 
       attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status", "idot:state"] # Pas de limitation ici, mais seulement 4 possibilité dans l'UI (alpha, beta, production, retired)
       attribute :contact, enforce: [:existence, :contact, :list]  # Careful its special
 
       attribute :creationDate, namespace: :omv, enforce: [:date_time], metadataMappings: ["dct:dateSubmitted", "schema:datePublished"],
-                default: lambda { |record| DateTime.now } # Attention c'est créé automatiquement ça, quand la submission est créée
-      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true,
+                default: lambda { |record| DateTime.now } # Attention c'est généré automatiquement, quand la submission est créée
+      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true, label: "Release date",
                 metadataMappings: ["omv:creationDate", "dc:date", "dct:date", "dct:issued", "mod:creationDate", "doap:created", "schema:dateCreated",
                                    "prov:generatedAtTime", "pav:createdOn", "pav:authoredOn", "pav:contributedOn", "oboInOwl:date", "oboInOwl:hasDate"]
                 # date de release de l'ontologie par ses développeurs
@@ -75,182 +82,183 @@ module LinkedData
 
       # Complementary omv metadata
       attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true,
-                metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn"], display: "simple"
+                metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn"]
       attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true,
-                metadataMappings: ["mod:noOfAxioms", "void:triples"], display: "complete"
+                metadataMappings: ["mod:noOfAxioms", "void:triples"], display: "content"
       #attribute :keyClasses, namespace: :omv, enforce: [:uri, :list], extractedMetadata: true,
       attribute :keyClasses, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"], display: "simple"
+                metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"], display: "content"
       #attribute :keywords, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :keywords, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                metadataMappings: ["mod:keyword", "dcat:keyword", "schema:keywords"], display: "simple" # Attention particulier, ça peut être un simple string avec des virgules
+                metadataMappings: ["mod:keyword", "dcat:keyword", "schema:keywords"] # Attention particulier, ça peut être un simple string avec des virgules
       #attribute :knownUsage, namespace: :omv, enforce: [:list], extractedMetadata: true
-      attribute :knownUsage, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "simple"
+      attribute :knownUsage, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "usage"
       #attribute :notes, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["adms:versionNotes"]
-      attribute :notes, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"], display: "complete"
+      attribute :notes, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"]
       #attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"], display: "complete"
+                metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"], display: "methodology"
       #attribute :hasContributor, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasContributor, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Contributors",
-                metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy"], display: "simple"
+                metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy"]
       #attribute :hasCreator, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasCreator, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Creators",
-                metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"], display: "simple"
-      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "simple"
-      attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"], display: "simple"
+                metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"]
+      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "usage"
+      attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"], display: "community"
       #attribute :hasDomain, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasDomain, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "simple"
+                metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "usage"
 
-      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"], display: "no"
+      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"]
       attribute :hasLicense, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"], display: "no"
+                metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"]
       attribute :hasOntologySyntax, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"], label: "Ontology Syntax",
                 enforced_values: ["http://www.w3.org/ns/formats/N3", "http://www.w3.org/ns/formats/N-Triples", "http://www.w3.org/ns/formats/RDF_XML",
-                                  "http://www.w3.org/ns/formats/RDFa", "http://www.w3.org/ns/formats/Turtle"], display: "no"
-      attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"], display: "no"
+                                  "http://www.w3.org/ns/formats/RDFa", "http://www.w3.org/ns/formats/Turtle"]
+      attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"]
       # we display them directly in the UI (enforced select dropdown)
 
       #attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "complete"
+                metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "methodology"
       attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"], display: "simple"
-      attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true, display: "no",
+                metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"]
+      attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
                 metadataMappings: ["owl:imports", "door:imports", "void:vocabulary", "voaf:extends", "dct:requires", "oboInOwl:import"]
       #attribute :hasPriorVersion, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
-      attribute :hasPriorVersion, namespace: :omv, enforce: [:uri], extractedMetadata: true, display: "no",
+      attribute :hasPriorVersion, namespace: :omv, enforce: [:uri], extractedMetadata: true, display: "relations",
                 metadataMappings: ["owl:priorVersion", "dct:isVersionOf", "door:priorVersion", "prov:wasRevisionOf", "adms:prev", "pav:previousVersion", "pav:hasEarlierVersion"]
       #attribute :isBackwardCompatibleWith, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
       attribute :isBackwardCompatibleWith, namespace: :omv, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["owl:backwardCompatibleWith", "door:backwardCompatibleWith"], display: "complete"
+                metadataMappings: ["owl:backwardCompatibleWith", "door:backwardCompatibleWith"], display: "isOntology"
       #attribute :isIncompatibleWith, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
       attribute :isIncompatibleWith, namespace: :omv, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["owl:incompatibleWith", "door:owlIncompatibleWith"], display: "complete"
+                metadataMappings: ["owl:incompatibleWith", "door:owlIncompatibleWith"], display: "isOntology"
 
       # New metadata to BioPortal
       #attribute :hostedBy, enforce: [:list, :uri]
-      attribute :deprecated, namespace: :owl, enforce: [:boolean], extractedMetadata: true, metadataMappings: ["idot:obsolete"], display: "simple"
-      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "simple"
+      attribute :deprecated, namespace: :owl, enforce: [:boolean], extractedMetadata: true, metadataMappings: ["idot:obsolete"], display: "dates"
+      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "links"
 
       # New metadata from DOOR
       attribute :ontologyRelatedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true,
-                metadataMappings: ["dc:relation", "dct:relation", "voaf:reliesOn"], display: "simple"
-      attribute :comesFromTheSameDomain, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, display: "complete"
-      attribute :similarTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "simple"
-      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith"], display: "simple"
+                metadataMappings: ["dc:relation", "dct:relation", "voaf:reliesOn"], display: "isOntology"
+      attribute :comesFromTheSameDomain, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, display: "isOntology"
+      attribute :similarTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "isOntology"
+      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith"], display: "isOntology"
       #attribute :explanationEvolution, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"]
-      attribute :explanationEvolution, namespace: :door, enforce: [:uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"], display: "complete"
+      attribute :explanationEvolution, namespace: :door, enforce: [:uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"], display: "relations"
       #attribute :hasDisparateModelling, namespace: :door, enforce: [:list, :uri], extractedMetadata: true
-      attribute :hasDisparateModelling, namespace: :door, enforce: [:uri], extractedMetadata: true, display: "simple"
+      attribute :hasDisparateModelling, namespace: :door, enforce: [:uri], extractedMetadata: true, display: "isOntology"
 
       # New metadata from SKOS
-      attribute :hiddenLabel, namespace: :skos, extractedMetadata: true, display: "simple"
+      attribute :hiddenLabel, namespace: :skos, extractedMetadata: true, display: "links"
 
       # New metadata from DC terms
-      attribute :coverage, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:coverage", "schema:spatial"], display: "complete"
-      attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "adms:schemaAgency", "schema:publisher"], display: "no"
+      attribute :coverage, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:coverage", "schema:spatial"], display: "usage"
+      attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "adms:schemaAgency", "schema:publisher"]
       #attribute :identifier, namespace: :dct, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"]
-      attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"], display: "simple"
+      attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"], display: "links"
       #attribute :source, namespace: :dct, enforce: [:list], extractedMetadata: true,
-      attribute :source, namespace: :dct, enforce: [:concatenate], extractedMetadata: true, display: "complete",
+      attribute :source, namespace: :dct, enforce: [:concatenate], extractedMetadata: true, display: "links",
                 metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn"]
-      attribute :abstract, namespace: :dct, extractedMetadata: true, display: "complete"
-      attribute :alternative, namespace: :dct, extractedMetadata: true, display: "simple",
+      attribute :abstract, namespace: :dct, extractedMetadata: true
+      attribute :alternative, namespace: :dct, extractedMetadata: true, display: "links",
                 metadataMappings: ["skos:altLabel", "idot:alternatePrefix", "schema:alternativeHeadline", "schema:alternateName"]
       #attribute :hasPart, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"]
-      attribute :hasPart, namespace: :dct, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"], display: "simple"
+      attribute :hasPart, namespace: :dct, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"], display: "isOntology"
       #attribute :isFormatOf, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true
-      attribute :isFormatOf, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "complete"
+      attribute :isFormatOf, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "relations"
       #attribute :hasFormat, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true
-      attribute :hasFormat, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "complete"
-      attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience", "schema:audience"], display: "complete"
+      attribute :hasFormat, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "relations"
+      attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience", "schema:audience"], display: "community"
       attribute :valid, namespace: :dct, enforce: [:date_time], extractedMetadata: true,
-                metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"], display: "complete"
-      attribute :accrualMethod, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "complete"
-      attribute :accrualPeriodicity, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "complete"
-      attribute :accrualPolicy, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "complete"
+                metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"], display: "dates"
+      attribute :accrualMethod, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology"
+      attribute :accrualPeriodicity, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology"
+      attribute :accrualPolicy, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology"
 
       # New metadata from sd
       #attribute :endpoint, namespace: :sd, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["void:sparqlEndpoint"]
-      attribute :endpoint, namespace: :sd, enforce: [:uri], extractedMetadata: true, metadataMappings: ["void:sparqlEndpoint"], display: "complete"
+      attribute :endpoint, namespace: :sd, enforce: [:uri], extractedMetadata: true, metadataMappings: ["void:sparqlEndpoint"], display: "content"
 
       # New metadata from VOID
-      attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, display: "simple"
+      attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, display: "content"
       attribute :dataDump, namespace: :void, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["doap:download-mirror", "schema:distribution"], display: "complete"
+                metadataMappings: ["doap:download-mirror", "schema:distribution"], display: "content"
       # TODO: SEMBLE BUGé d'après google spreadsheet
 
-      attribute :csvDump, enforce: [:uri], display: "complete"
+      attribute :csvDump, enforce: [:uri], display: "content"
 
       #attribute :openSearchDescription, namespace: :void, enforce: [:list, :uri], extractedMetadata: true,
       attribute :openSearchDescription, namespace: :void, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["doap:service-endpoint"], display: "complete"
+                metadataMappings: ["doap:service-endpoint"], display: "content"
       #attribute :uriLookupEndpoint, namespace: :void, enforce: [:list, :uri], extractedMetadata: true
-      attribute :uriLookupEndpoint, namespace: :void, enforce: [:uri], extractedMetadata: true, display: "complete"
+      attribute :uriLookupEndpoint, namespace: :void, enforce: [:uri], extractedMetadata: true, display: "content"
       attribute :uriRegexPattern, namespace: :void, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["idot:identifierPattern"], display: "no"
+                metadataMappings: ["idot:identifierPattern"], display: "content"
 
       # New metadata from foaf
       #attribute :depiction, namespace: :foaf, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"]
-      attribute :depiction, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"], display: "complete"
-      attribute :logo, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:logo"], display: "simple"
+      attribute :depiction, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"], display: "images"
+      attribute :logo, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:logo"], display: "images"
       #attribute :fundedBy, namespace: :foaf, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"]
-      attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "simple"
+      attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "community"
 
       # New metadata from MOD
-      attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, display: "complete"
+      attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, display: "methodology"
 
       # New metadata from VOAF
-      attribute :usedBy, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "complete"  # Range : Ontology
-      attribute :metadataVoc, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "simple",
+      attribute :usedBy, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "isOntology"  # Range : Ontology
+      attribute :metadataVoc, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "content",
                 metadataMappings: ["mod:vocabularyUsed", "adms:supportedSchema", "schema:schemaVersion"]
       #attribute :generalizes, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true # Ontology range
-      attribute :generalizes, namespace: :voaf, enforce: [:uri], extractedMetadata: true, display: "complete" # Ontology range
+      attribute :generalizes, namespace: :voaf, enforce: [:uri], extractedMetadata: true, display: "isOntology" # Ontology range
       #attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true # Ontology range
-      attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:uri], extractedMetadata: true, display: "complete" # Ontology range
+      attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:uri], extractedMetadata: true, display: "isOntology" # Ontology range
       #attribute :toDoList, namespace: :voaf, enforce: [:list], extractedMetadata: true
-      attribute :toDoList, namespace: :voaf, enforce: [:concatenate], extractedMetadata: true, display: "simple"
+      attribute :toDoList, namespace: :voaf, enforce: [:concatenate], extractedMetadata: true, display: "community"
 
       # New metadata from VANN
       #attribute :example, namespace: :vann, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["schema:workExample"]
-      attribute :example, namespace: :vann, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:workExample"], display: "simple"
-      attribute :preferredNamespaceUri, namespace: :vann, extractedMetadata: true, metadataMappings: ["void:uriSpace"], display: "complete"
-      attribute :preferredNamespacePrefix, namespace: :vann, extractedMetadata: true, display: "simple",
+      attribute :example, namespace: :vann, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:workExample"], display: "content"
+      attribute :preferredNamespaceUri, namespace: :vann, extractedMetadata: true, metadataMappings: ["void:uriSpace"]
+      attribute :preferredNamespacePrefix, namespace: :vann, extractedMetadata: true,
                 metadataMappings: ["idot:preferredPrefix", "oboInOwl:default-namespace", "oboInOwl:hasDefaultNamespace"]
 
       # New metadata from CC
-      attribute :morePermissions, namespace: :cc, extractedMetadata: true, display: "complete"
-      attribute :useGuidelines, namespace: :cc, extractedMetadata: true, display: "complete"
+      attribute :morePermissions, namespace: :cc, extractedMetadata: true
+      attribute :useGuidelines, namespace: :cc, extractedMetadata: true, display: "community"
 
       # New metadata from PROV and PAV
       #attribute :wasGeneratedBy, namespace: :prov, enforce: [:list], extractedMetadata: true
-      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "simple"
+      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "community"
       #attribute :wasInvalidatedBy, namespace: :prov, enforce: [:list], extractedMetadata: true
-      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "simple"
+      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "community"
       #attribute :curatedBy, namespace: :pav, enforce: [:list], extractedMetadata: true
-      attribute :curatedBy, namespace: :pav, enforce: [:concatenate], extractedMetadata: true, display: "simple"
-      attribute :curatedOn, namespace: :pav, extractedMetadata: true, display: "no"
+      attribute :curatedBy, namespace: :pav, enforce: [:concatenate], extractedMetadata: true, display: "community"
+      attribute :curatedOn, namespace: :pav, enforce: [:date_time], extractedMetadata: true, display: "dates"
 
       # New metadata from ADMS and DOAP
-      attribute :repository, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
+      attribute :repository, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community"
 
       # Should be bug-database and mailing-list but NameError - `@bug-database' is not allowed as an instance variable name
-      attribute :bugDatabase, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
-      attribute :mailingList, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "simple"
+      attribute :bugDatabase, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community"
+      attribute :mailingList, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community"
 
       # New metadata from Schema and IDOT
-      attribute :exampleIdentifier, namespace: :idot, enforce: [:uri], extractedMetadata: true, display: "complete"
-      attribute :award, namespace: :schema, extractedMetadata: true, display: "complete"
-      attribute :copyrightHolder, namespace: :schema, extractedMetadata: true, display: "complete"
-      attribute :translator, namespace: :schema, extractedMetadata: true, display: "complete"
-      attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "complete"
+      attribute :exampleIdentifier, namespace: :idot, enforce: [:uri], extractedMetadata: true, display: "content"
+      attribute :award, namespace: :schema, extractedMetadata: true, display: "community"
+      attribute :copyrightHolder, namespace: :schema, extractedMetadata: true
+      attribute :translator, namespace: :schema, extractedMetadata: true, display: "community"
+      attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "content"
       #attribute :translationOfWork, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["adms:translation"]
-      attribute :translationOfWork, namespace: :schema, enforce: [:uri], extractedMetadata: true, metadataMappings: ["adms:translation"], display: "simple"
+      attribute :translationOfWork, namespace: :schema, enforce: [:uri], extractedMetadata: true, metadataMappings: ["adms:translation"], display: "isOntology"
       #attribute :workTranslation, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true
-      attribute :workTranslation, namespace: :schema, enforce: [:uri], extractedMetadata: true, display: "simple"
-      attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "simple" # Généré automatiquement par BioPortal ?
+      attribute :workTranslation, namespace: :schema, enforce: [:uri], extractedMetadata: true, display: "isOntology"
+      attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "relations"
+      # TODO: Généré automatiquement par BioPortal ?
 
       # Internal values for parsing - not definitive
       attribute :uploadFilePath
@@ -765,9 +773,6 @@ module LinkedData
         #if self.hostedBy.nil?
         #  self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
         #end
-        if self.csvDump.nil?
-          self.csvDump = RDF::URI.new("#{self.ontology.id.to_s}/download?download_format=csv")
-        end
 
         # Add the search endpoint URL
         if self.openSearchDescription.nil?
@@ -781,7 +786,11 @@ module LinkedData
 
         # Add the dataDump URL
         if self.dataDump.nil?
-          self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download")
+          self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download?download_format=rdf")
+        end
+
+        if self.csvDump.nil?
+          self.csvDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download?download_format=csv")
         end
 
         # Add the previous submission as a prior version
