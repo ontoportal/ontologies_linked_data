@@ -63,7 +63,7 @@ module LinkedData
 
       attribute :creationDate, namespace: :omv, enforce: [:date_time], metadataMappings: ["dct:dateSubmitted", "schema:datePublished"],
                 default: lambda { |record| DateTime.now } # Attention c'est généré automatiquement, quand la submission est créée
-      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true, label: "Release date"
+      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true, label: "Release date",
                 metadataMappings: ["omv:creationDate", "dc:date", "dct:date", "dct:issued", "mod:creationDate", "doap:created", "schema:dateCreated",
                                    "prov:generatedAtTime", "pav:createdOn", "pav:authoredOn", "pav:contributedOn", "oboInOwl:date", "oboInOwl:hasDate"]
                 # date de release de l'ontologie par ses développeurs
@@ -124,7 +124,7 @@ module LinkedData
                 metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "description"
       attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"]
-      attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true
+      attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
                 metadataMappings: ["owl:imports", "door:imports", "void:vocabulary", "voaf:extends", "dct:requires", "oboInOwl:import"]
       #attribute :hasPriorVersion, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
       attribute :hasPriorVersion, namespace: :omv, enforce: [:uri], extractedMetadata: true, display: "relations",
@@ -257,7 +257,8 @@ module LinkedData
       attribute :translationOfWork, namespace: :schema, enforce: [:uri], extractedMetadata: true, metadataMappings: ["adms:translation"], display: "isOntology"
       #attribute :workTranslation, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true
       attribute :workTranslation, namespace: :schema, enforce: [:uri], extractedMetadata: true, display: "isOntology"
-      attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "relations" # Généré automatiquement par BioPortal ?
+      attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "relations"
+      # TODO: Généré automatiquement par BioPortal ?
 
       # Internal values for parsing - not definitive
       attribute :uploadFilePath
