@@ -29,6 +29,7 @@ module LinkedData
 
       # enforce: [:concatenate] is for attribute that will be a single string but where we extract and concatenate the value of multiple properties
       # be careful, it can't be combined with enforce :uri !
+      # display [:isOntology] allows to define that a metadata is an ontology (like relations)
 
       # Ontology metadata
       #attribute :homepage, enforce: [:list], extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"] # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
@@ -130,10 +131,10 @@ module LinkedData
                 metadataMappings: ["owl:priorVersion", "dct:isVersionOf", "door:priorVersion", "prov:wasRevisionOf", "adms:prev", "pav:previousVersion", "pav:hasEarlierVersion"]
       #attribute :isBackwardCompatibleWith, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
       attribute :isBackwardCompatibleWith, namespace: :omv, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["owl:backwardCompatibleWith", "door:backwardCompatibleWith"], display: "relations"
+                metadataMappings: ["owl:backwardCompatibleWith", "door:backwardCompatibleWith"], display: "isOntology"
       #attribute :isIncompatibleWith, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
       attribute :isIncompatibleWith, namespace: :omv, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["owl:incompatibleWith", "door:owlIncompatibleWith"], display: "relations"
+                metadataMappings: ["owl:incompatibleWith", "door:owlIncompatibleWith"], display: "isOntology"
 
       # New metadata to BioPortal
       #attribute :hostedBy, enforce: [:list, :uri]
@@ -142,14 +143,14 @@ module LinkedData
 
       # New metadata from DOOR
       attribute :ontologyRelatedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true,
-                metadataMappings: ["dc:relation", "dct:relation", "voaf:reliesOn"], display: "relations"
-      attribute :comesFromTheSameDomain, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, display: "relations"
-      attribute :similarTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "relations"
-      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith"], display: "relations"
+                metadataMappings: ["dc:relation", "dct:relation", "voaf:reliesOn"], display: "isOntology"
+      attribute :comesFromTheSameDomain, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, display: "isOntology"
+      attribute :similarTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "isOntology"
+      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith"], display: "isOntology"
       #attribute :explanationEvolution, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"]
       attribute :explanationEvolution, namespace: :door, enforce: [:uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"], display: "relations"
       #attribute :hasDisparateModelling, namespace: :door, enforce: [:list, :uri], extractedMetadata: true
-      attribute :hasDisparateModelling, namespace: :door, enforce: [:uri], extractedMetadata: true, display: "relations"
+      attribute :hasDisparateModelling, namespace: :door, enforce: [:uri], extractedMetadata: true, display: "isOntology"
 
       # New metadata from SKOS
       attribute :hiddenLabel, namespace: :skos, extractedMetadata: true, display: "description"
@@ -166,7 +167,7 @@ module LinkedData
       attribute :alternative, namespace: :dct, extractedMetadata: true, display: "description",
                 metadataMappings: ["skos:altLabel", "idot:alternatePrefix", "schema:alternativeHeadline", "schema:alternateName"]
       #attribute :hasPart, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"]
-      attribute :hasPart, namespace: :dct, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"], display: "relations"
+      attribute :hasPart, namespace: :dct, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"], display: "isOntology"
       #attribute :isFormatOf, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true
       attribute :isFormatOf, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "relations"
       #attribute :hasFormat, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true
@@ -209,13 +210,13 @@ module LinkedData
       attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, display: "description"
 
       # New metadata from VOAF
-      attribute :usedBy, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "relations"  # Range : Ontology
+      attribute :usedBy, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "isOntology"  # Range : Ontology
       attribute :metadataVoc, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "content",
                 metadataMappings: ["mod:vocabularyUsed", "adms:supportedSchema", "schema:schemaVersion"]
       #attribute :generalizes, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true # Ontology range
-      attribute :generalizes, namespace: :voaf, enforce: [:uri], extractedMetadata: true, display: "relations" # Ontology range
+      attribute :generalizes, namespace: :voaf, enforce: [:uri], extractedMetadata: true, display: "isOntology" # Ontology range
       #attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true # Ontology range
-      attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:uri], extractedMetadata: true, display: "relations" # Ontology range
+      attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:uri], extractedMetadata: true, display: "isOntology" # Ontology range
       #attribute :toDoList, namespace: :voaf, enforce: [:list], extractedMetadata: true
       attribute :toDoList, namespace: :voaf, enforce: [:concatenate], extractedMetadata: true, display: "community"
 
@@ -253,9 +254,9 @@ module LinkedData
       attribute :translator, namespace: :schema, extractedMetadata: true, display: "community"
       attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "content"
       #attribute :translationOfWork, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["adms:translation"]
-      attribute :translationOfWork, namespace: :schema, enforce: [:uri], extractedMetadata: true, metadataMappings: ["adms:translation"], display: "relations"
+      attribute :translationOfWork, namespace: :schema, enforce: [:uri], extractedMetadata: true, metadataMappings: ["adms:translation"], display: "isOntology"
       #attribute :workTranslation, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true
-      attribute :workTranslation, namespace: :schema, enforce: [:uri], extractedMetadata: true, display: "relations"
+      attribute :workTranslation, namespace: :schema, enforce: [:uri], extractedMetadata: true, display: "isOntology"
       attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "relations" # Généré automatiquement par BioPortal ?
 
       # Internal values for parsing - not definitive
