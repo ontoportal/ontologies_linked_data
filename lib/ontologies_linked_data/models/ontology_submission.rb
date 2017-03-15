@@ -201,8 +201,8 @@ module LinkedData
 
       # New metadata from foaf
       #attribute :depiction, namespace: :foaf, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"]
-      attribute :depiction, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"]
-      attribute :logo, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:logo"]
+      attribute :depiction, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"], display: "images"
+      attribute :logo, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:logo"], display: "images"
       #attribute :fundedBy, namespace: :foaf, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"]
       attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "community"
 
