@@ -90,25 +90,25 @@ module LinkedData
                 metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"], display: "content"
       #attribute :keywords, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :keywords, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                metadataMappings: ["mod:keyword", "dcat:keyword", "schema:keywords"], display: "description" # Attention particulier, ça peut être un simple string avec des virgules
+                metadataMappings: ["mod:keyword", "dcat:keyword", "schema:keywords"] # Attention particulier, ça peut être un simple string avec des virgules
       #attribute :knownUsage, namespace: :omv, enforce: [:list], extractedMetadata: true
-      attribute :knownUsage, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "description"
+      attribute :knownUsage, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "usage"
       #attribute :notes, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["adms:versionNotes"]
       attribute :notes, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"]
       #attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"], display: "description"
+                metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"], display: "methodology"
       #attribute :hasContributor, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasContributor, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Contributors",
                 metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy"]
       #attribute :hasCreator, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasCreator, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Creators",
                 metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"]
-      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "description"
+      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "usage"
       attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"], display: "community"
       #attribute :hasDomain, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasDomain, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "description"
+                metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "usage"
 
       attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"]
       attribute :hasLicense, namespace: :omv, extractedMetadata: true,
@@ -121,7 +121,7 @@ module LinkedData
 
       #attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "description"
+                metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "methodology"
       attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"]
       attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
@@ -139,7 +139,7 @@ module LinkedData
       # New metadata to BioPortal
       #attribute :hostedBy, enforce: [:list, :uri]
       attribute :deprecated, namespace: :owl, enforce: [:boolean], extractedMetadata: true, metadataMappings: ["idot:obsolete"], display: "dates"
-      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "description"
+      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "links"
 
       # New metadata from DOOR
       attribute :ontologyRelatedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true,
@@ -153,18 +153,18 @@ module LinkedData
       attribute :hasDisparateModelling, namespace: :door, enforce: [:uri], extractedMetadata: true, display: "isOntology"
 
       # New metadata from SKOS
-      attribute :hiddenLabel, namespace: :skos, extractedMetadata: true, display: "description"
+      attribute :hiddenLabel, namespace: :skos, extractedMetadata: true, display: "links"
 
       # New metadata from DC terms
-      attribute :coverage, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:coverage", "schema:spatial"], display: "description"
+      attribute :coverage, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:coverage", "schema:spatial"], display: "usage"
       attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "adms:schemaAgency", "schema:publisher"]
       #attribute :identifier, namespace: :dct, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"]
-      attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"], display: "description"
+      attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"], display: "links"
       #attribute :source, namespace: :dct, enforce: [:list], extractedMetadata: true,
-      attribute :source, namespace: :dct, enforce: [:concatenate], extractedMetadata: true, display: "description",
+      attribute :source, namespace: :dct, enforce: [:concatenate], extractedMetadata: true, display: "links",
                 metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn"]
       attribute :abstract, namespace: :dct, extractedMetadata: true
-      attribute :alternative, namespace: :dct, extractedMetadata: true, display: "description",
+      attribute :alternative, namespace: :dct, extractedMetadata: true, display: "links",
                 metadataMappings: ["skos:altLabel", "idot:alternatePrefix", "schema:alternativeHeadline", "schema:alternateName"]
       #attribute :hasPart, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"]
       attribute :hasPart, namespace: :dct, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"], display: "isOntology"
@@ -175,9 +175,9 @@ module LinkedData
       attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience", "schema:audience"], display: "community"
       attribute :valid, namespace: :dct, enforce: [:date_time], extractedMetadata: true,
                 metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"], display: "dates"
-      attribute :accrualMethod, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "accrual"
-      attribute :accrualPeriodicity, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "accrual"
-      attribute :accrualPolicy, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "accrual"
+      attribute :accrualMethod, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology"
+      attribute :accrualPeriodicity, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology"
+      attribute :accrualPolicy, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology"
 
       # New metadata from sd
       #attribute :endpoint, namespace: :sd, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["void:sparqlEndpoint"]
@@ -207,7 +207,7 @@ module LinkedData
       attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "community"
 
       # New metadata from MOD
-      attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, display: "description"
+      attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, display: "methodology"
 
       # New metadata from VOAF
       attribute :usedBy, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "isOntology"  # Range : Ontology
