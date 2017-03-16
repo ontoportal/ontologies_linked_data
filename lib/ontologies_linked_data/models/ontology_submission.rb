@@ -50,20 +50,24 @@ module LinkedData
 
       #attribute :documentation, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
       attribute :documentation, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
+                metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"],
+                helpText: "URL for further documentation"
 
-      attribute :version, namespace: :omv, extractedMetadata: true,
+      attribute :version, namespace: :omv, extractedMetadata: true, helpText: "The version of the released ontology",
                 metadataMappings: ["owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version"]
 
-      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
+      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, helpText: "Free text description of an ontology"
                 metadataMappings: ["dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
 
-      attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status", "idot:state"] # Pas de limitation ici, mais seulement 4 possibilité dans l'UI (alpha, beta, production, retired)
+      attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status", "idot:state"],
+                helpText: "Information about the ontology status (alpha, beta, production, retired)"
+      # Pas de limitation ici, mais seulement 4 possibilité dans l'UI (alpha, beta, production, retired)
+
       attribute :contact, enforce: [:existence, :contact, :list]  # Careful its special
 
       attribute :creationDate, namespace: :omv, enforce: [:date_time], metadataMappings: ["dct:dateSubmitted", "schema:datePublished"],
                 default: lambda { |record| DateTime.now } # Attention c'est généré automatiquement, quand la submission est créée
-      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true, label: "Release date",
+      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true, label: "Release date", helpText: "Date of the ontology release",
                 metadataMappings: ["omv:creationDate", "dc:date", "dct:date", "dct:issued", "mod:creationDate", "doap:created", "schema:dateCreated",
                                    "prov:generatedAtTime", "pav:createdOn", "pav:authoredOn", "pav:contributedOn", "oboInOwl:date", "oboInOwl:hasDate"]
                 # date de release de l'ontologie par ses développeurs
@@ -82,104 +86,173 @@ module LinkedData
 
       # Complementary omv metadata
       attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true,
-                metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn"]
+                metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn"], helpText: "Date of the last modification made to the ontology"
       attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true,
                 metadataMappings: ["mod:noOfAxioms", "void:triples"], display: "content"
       #attribute :keyClasses, namespace: :omv, enforce: [:uri, :list], extractedMetadata: true,
       attribute :keyClasses, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"], display: "content"
+                metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"], display: "content", helptext: "Representative classes in the ontology."
       #attribute :keywords, namespace: :omv, enforce: [:list], extractedMetadata: true,
-      attribute :keywords, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
+      attribute :keywords, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, helpText: "List of keywords related to an ontology",
                 metadataMappings: ["mod:keyword", "dcat:keyword", "schema:keywords"] # Attention particulier, ça peut être un simple string avec des virgules
+
       #attribute :knownUsage, namespace: :omv, enforce: [:list], extractedMetadata: true
-      attribute :knownUsage, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "usage"
+      attribute :knownUsage, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "usage",
+                helpText: "The applications where the ontology is being used"
+
       #attribute :notes, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["adms:versionNotes"]
-      attribute :notes, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"]
+      attribute :notes, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"],
+                helpText: "Additional information about the ontology that is not included somewhere else (e.g. information that you do not want to include in the documentation)."
+
       #attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"], display: "methodology"
+                metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"], display: "methodology",
+                helptext: "Information about the paradigm model used to create the ontology"
+
       #attribute :hasContributor, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasContributor, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Contributors",
-                metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy"]
+                metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy"],
+                helpText: "Contributors to the creation of the ontology (ex: Clément Jonquet)"
+
       #attribute :hasCreator, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasCreator, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Creators",
-                metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"]
-      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "usage"
-      attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"], display: "community"
+                metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"],
+                helpText: "Main responsible for the creation of the ontology"
+
+      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "usage",
+                helpText: "The purpose for which the ontology was originally designed"
+
+      attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"],
+                helpText: "The parties that have expressed support or approval to this ontology", display: "community"
+
       #attribute :hasDomain, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasDomain, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
+                helpText: "Typically, the domain can refer to established topic hierarchies such as the general purpose topic hierarchy DMOZ or the domain specific topic hierarchy ACM for the computer science domain",
                 metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "usage"
 
       attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
-                helpText: "Properties taken from &lt;a href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt"
+                helpText: "Level of formality of the ontology.&lt;br&gt;Properties taken from &lt;a href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt"
+
       attribute :hasLicense, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"]
+                metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"],
+                helpText: "Underlying license model"
+
       attribute :hasOntologySyntax, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"], label: "Ontology Syntax",
                 enforced_values: ["http://www.w3.org/ns/formats/N3", "http://www.w3.org/ns/formats/N-Triples", "http://www.w3.org/ns/formats/RDF_XML",
-                                  "http://www.w3.org/ns/formats/RDFa", "http://www.w3.org/ns/formats/Turtle"]
+                                  "http://www.w3.org/ns/formats/RDFa", "http://www.w3.org/ns/formats/Turtle"],
+                helpText: "The presentation syntax for the ontology langage"
+
       attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"],
-                helpText: "Properties taken from &lt;a href=&quot;http://wiki.dublincore.org/index.php/NKOS_Vocabularies#KOS_Types_Vocabulary&quot;&gt;DCMI KOS type vocabularies&lt;/a&gt"
+                helpText: "The nature of the content of the ontology."
       # we display them directly in the UI (enforced select dropdown)
 
       #attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "methodology"
+                metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "methodology",
+                helpText: "Information about the method model used to create the ontology"
+
       attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"]
+                metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"],
+                helpText: "Information about the tool used to create the ontology"
+
       attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
-                metadataMappings: ["owl:imports", "door:imports", "void:vocabulary", "voaf:extends", "dct:requires", "oboInOwl:import"]
+                metadataMappings: ["owl:imports", "door:imports", "void:vocabulary", "voaf:extends", "dct:requires", "oboInOwl:import"],
+                helpText: "References another ontology metadata instance that describes an ontology containing definitions, whose meaning is considered to be part of the meaning of the ontology described by this ontology metadata instance"
+
       #attribute :hasPriorVersion, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
       attribute :hasPriorVersion, namespace: :omv, enforce: [:uri], extractedMetadata: true, display: "relations",
-                metadataMappings: ["owl:priorVersion", "dct:isVersionOf", "door:priorVersion", "prov:wasRevisionOf", "adms:prev", "pav:previousVersion", "pav:hasEarlierVersion"]
+                metadataMappings: ["owl:priorVersion", "dct:isVersionOf", "door:priorVersion", "prov:wasRevisionOf", "adms:prev", "pav:previousVersion", "pav:hasEarlierVersion"],
+                helpText: "An URI to the prior version of the ontology"
+
       #attribute :isBackwardCompatibleWith, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
       attribute :isBackwardCompatibleWith, namespace: :omv, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["owl:backwardCompatibleWith", "door:backwardCompatibleWith"], display: "isOntology"
+                metadataMappings: ["owl:backwardCompatibleWith", "door:backwardCompatibleWith"], display: "isOntology",
+                helpText: "URI of an ontology that has its prior version compatible with the described ontology"
+
       #attribute :isIncompatibleWith, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
       attribute :isIncompatibleWith, namespace: :omv, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["owl:incompatibleWith", "door:owlIncompatibleWith"], display: "isOntology"
+                metadataMappings: ["owl:incompatibleWith", "door:owlIncompatibleWith"], display: "isOntology",
+                helpText: "URI of an ontology that is a prior version of this ontology, but not compatible"
 
       # New metadata to BioPortal
       #attribute :hostedBy, enforce: [:list, :uri]
-      attribute :deprecated, namespace: :owl, enforce: [:boolean], extractedMetadata: true, metadataMappings: ["idot:obsolete"], display: "dates"
-      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "links"
+      attribute :deprecated, namespace: :owl, enforce: [:boolean], extractedMetadata: true, metadataMappings: ["idot:obsolete"], display: "dates",
+                helpText: "To specify if the ontology IRI is deprecated"
+      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "links",
+                helpText: "Identifies the version IRI of an ontology."
 
       # New metadata from DOOR
       attribute :ontologyRelatedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true,
-                metadataMappings: ["dc:relation", "dct:relation", "voaf:reliesOn"], display: "isOntology"
-      attribute :comesFromTheSameDomain, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, display: "isOntology"
-      attribute :similarTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "isOntology"
-      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith"], display: "isOntology"
+                metadataMappings: ["dc:relation", "dct:relation", "voaf:reliesOn"], display: "isOntology",
+                helpText: "An ontology that uses or extends some class or property of the described ontology"
+
+      attribute :comesFromTheSameDomain, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, display: "isOntology",
+                helpText: "Ontologies that come from the same domain"
+
+      attribute :similarTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "isOntology",
+                helpText: "Vocabularies that are similar in scope and objectives, independently of the fact that they otherwise refer to each other."
+
+      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith"], display: "isOntology",
+                helpText: "Ontologies that have an alignment which covers a substantial part of the described ontology"
+
       #attribute :explanationEvolution, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"]
       attribute :explanationEvolution, namespace: :door, enforce: [:uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"], display: "relations"
+
       #attribute :hasDisparateModelling, namespace: :door, enforce: [:list, :uri], extractedMetadata: true
-      attribute :hasDisparateModelling, namespace: :door, enforce: [:uri], extractedMetadata: true, display: "isOntology"
+      attribute :hasDisparateModelling, namespace: :door, enforce: [:uri], extractedMetadata: true, display: "isOntology",
+                helpText: "URI of an ontology that is considered to have a different model, because they represent corresponding entities in different ways.&lt;br&gt;e.g. an instance in one case and a class in the other for the same concept"
 
       # New metadata from SKOS
-      attribute :hiddenLabel, namespace: :skos, extractedMetadata: true, display: "links"
+      attribute :hiddenLabel, namespace: :skos, extractedMetadata: true, display: "links",
+                helpText: "The hidden labels are useful when a user is interacting with a knowledge organization system via a text-based search function. The user may, for example, enter mis-spelled words when trying to find a relevant concept. If the mis-spelled query can be matched against a hidden label, the user will be able to find the relevant concept, but the hidden label won't otherwise be visible to the user"
 
       # New metadata from DC terms
-      attribute :coverage, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:coverage", "schema:spatial"], display: "usage"
-      attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "adms:schemaAgency", "schema:publisher"]
+      attribute :coverage, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:coverage", "schema:spatial"], display: "usage",
+                helpText: "The spatial or temporal topic of the ontology, the spatial applicability of the ontology, or the jurisdiction under which the ontology is relevant."
+
+      attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "adms:schemaAgency", "schema:publisher"],
+                helpText: "An entity responsible for making the ontology available."
+
       #attribute :identifier, namespace: :dct, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"]
-      attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"], display: "links"
+      attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"], display: "links",
+                helpText: "An unambiguous reference to the ontology."
+
       #attribute :source, namespace: :dct, enforce: [:list], extractedMetadata: true,
       attribute :source, namespace: :dct, enforce: [:concatenate], extractedMetadata: true, display: "links",
-                metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn"]
-      attribute :abstract, namespace: :dct, extractedMetadata: true
+                metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn"],
+                helpText: "A related resource from which the described resource is derived."
+
+      attribute :abstract, namespace: :dct, extractedMetadata: true, helpText: "A summary of the ontology"
+
       attribute :alternative, namespace: :dct, extractedMetadata: true, display: "links",
-                metadataMappings: ["skos:altLabel", "idot:alternatePrefix", "schema:alternativeHeadline", "schema:alternateName"]
+                metadataMappings: ["skos:altLabel", "idot:alternatePrefix", "schema:alternativeHeadline", "schema:alternateName"],
+                helpText: "An alternative title for the ontology"
+
       #attribute :hasPart, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"]
-      attribute :hasPart, namespace: :dct, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"], display: "isOntology"
+      attribute :hasPart, namespace: :dct, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"], display: "isOntology",
+                helpText: "A related ontology that is included either physically or logically in the described ontology."
+
       #attribute :isFormatOf, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true
-      attribute :isFormatOf, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "relations"
+      attribute :isFormatOf, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "relations",
+                helpText: "A related ontology that is substantially the same as the described ontology, but in another format"
+
       #attribute :hasFormat, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true
-      attribute :hasFormat, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "relations"
-      attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience", "schema:audience"], display: "community"
+      attribute :hasFormat, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "relations",
+                helpText: "A related resource that is substantially the same as the pre-existing described ontology, but in another format."
+
+      attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience", "schema:audience"], display: "community",
+                helpText: "Description of the target user base of the ontology."
+
       attribute :valid, namespace: :dct, enforce: [:date_time], extractedMetadata: true,
-                metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"], display: "dates"
-      attribute :accrualMethod, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology"
-      attribute :accrualPeriodicity, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology"
-      attribute :accrualPolicy, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology"
+                metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"], display: "dates",
+                helpText: "Date (often a range) of validity of the ontology."
+
+      attribute :accrualMethod, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology",
+                helpText: "The method by which items are added to the ontology."
+      attribute :accrualPeriodicity, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology",
+                helpText: "The frequency with which items are added to the ontology."
+      attribute :accrualPolicy, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology",
+                helpText: "The policy governing the addition of items to the ontology."
 
       # New metadata from sd
       #attribute :endpoint, namespace: :sd, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["void:sparqlEndpoint"]
@@ -196,71 +269,120 @@ module LinkedData
       #attribute :openSearchDescription, namespace: :void, enforce: [:list, :uri], extractedMetadata: true,
       attribute :openSearchDescription, namespace: :void, enforce: [:uri], extractedMetadata: true,
                 metadataMappings: ["doap:service-endpoint"], display: "content"
+
       #attribute :uriLookupEndpoint, namespace: :void, enforce: [:list, :uri], extractedMetadata: true
-      attribute :uriLookupEndpoint, namespace: :void, enforce: [:uri], extractedMetadata: true, display: "content"
+      attribute :uriLookupEndpoint, namespace: :void, enforce: [:uri], extractedMetadata: true, display: "content",
+                helpText: "A protocol endpoint for simple URI lookups for the ontology."
+
       attribute :uriRegexPattern, namespace: :void, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["idot:identifierPattern"], display: "content"
+                metadataMappings: ["idot:identifierPattern"], display: "content",
+                helpText: "A regular expression that matches the URIs of the ontology entities."
 
       # New metadata from foaf
       #attribute :depiction, namespace: :foaf, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"]
-      attribute :depiction, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"], display: "images"
-      attribute :logo, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:logo"], display: "images"
+      attribute :depiction, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"], display: "images",
+                helpText: "An image representing the ontology"
+
+      attribute :logo, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:logo"], display: "images",
+                helpText: "The logo of the ontology"
+
       #attribute :fundedBy, namespace: :foaf, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"]
-      attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "community"
+      attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "community",
+                helpText: "The organization funding the ontology development."
 
       # New metadata from MOD
-      attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, display: "methodology"
+      attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, display: "methodology",
+                helpText: "A set of questions made to build an ontology at the design time."
 
       # New metadata from VOAF
-      attribute :usedBy, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "isOntology"  # Range : Ontology
+      attribute :usedBy, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "isOntology",  # Range : Ontology
+                helpText: "Ontologies that use the described ontology."
+
       attribute :metadataVoc, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "content",
-                metadataMappings: ["mod:vocabularyUsed", "adms:supportedSchema", "schema:schemaVersion"]
+                metadataMappings: ["mod:vocabularyUsed", "adms:supportedSchema", "schema:schemaVersion"],
+                helpText: "Vocabularies that are used and/or referred to create the described ontology."
+
       #attribute :generalizes, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true # Ontology range
-      attribute :generalizes, namespace: :voaf, enforce: [:uri], extractedMetadata: true, display: "isOntology" # Ontology range
+      attribute :generalizes, namespace: :voaf, enforce: [:uri], extractedMetadata: true, display: "isOntology",
+                helpText: "Vocabulary that is generalized by some superclasses or superproperties by the described ontology"
+
       #attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true # Ontology range
-      attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:uri], extractedMetadata: true, display: "isOntology" # Ontology range
+      attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:uri], extractedMetadata: true, display: "isOntology",
+                helpText: "Ontology that declares some disjunct classes with the described ontology."
+
       #attribute :toDoList, namespace: :voaf, enforce: [:list], extractedMetadata: true
-      attribute :toDoList, namespace: :voaf, enforce: [:concatenate], extractedMetadata: true, display: "community"
+      attribute :toDoList, namespace: :voaf, enforce: [:concatenate], extractedMetadata: true, display: "community",
+                helpText: "Describes future tasks planned by a resource curator."
 
       # New metadata from VANN
       #attribute :example, namespace: :vann, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["schema:workExample"]
-      attribute :example, namespace: :vann, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:workExample"], display: "content"
-      attribute :preferredNamespaceUri, namespace: :vann, extractedMetadata: true, metadataMappings: ["void:uriSpace"]
+      attribute :example, namespace: :vann, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:workExample"], display: "content",
+                helpText: "A reference to a resource that provides an example of how this ontology can be used."
+
+      attribute :preferredNamespaceUri, namespace: :vann, extractedMetadata: true, metadataMappings: ["void:uriSpace"],
+                helpText: "The preferred namespace URI to use when using terms from this ontology."
+
       attribute :preferredNamespacePrefix, namespace: :vann, extractedMetadata: true,
-                metadataMappings: ["idot:preferredPrefix", "oboInOwl:default-namespace", "oboInOwl:hasDefaultNamespace"]
+                metadataMappings: ["idot:preferredPrefix", "oboInOwl:default-namespace", "oboInOwl:hasDefaultNamespace"],
+                helpText: "The preferred namespace prefix to use when using terms from this ontology."
 
       # New metadata from CC
-      attribute :morePermissions, namespace: :cc, extractedMetadata: true
-      attribute :useGuidelines, namespace: :cc, extractedMetadata: true, display: "community"
+      attribute :morePermissions, namespace: :cc, extractedMetadata: true,
+                helpText: "A related resource which describes additional permissions or alternative licenses."
+
+      attribute :useGuidelines, namespace: :cc, extractedMetadata: true, display: "community",
+                helpText: "A related resource which defines how the ontology should be used. "
 
       # New metadata from PROV and PAV
       #attribute :wasGeneratedBy, namespace: :prov, enforce: [:list], extractedMetadata: true
-      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "community"
+      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "community",
+                helpText: "People who generated the ontology."
       #attribute :wasInvalidatedBy, namespace: :prov, enforce: [:list], extractedMetadata: true
-      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "community"
+      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "community",
+                helpText: "People who invalidated the ontology."
       #attribute :curatedBy, namespace: :pav, enforce: [:list], extractedMetadata: true
-      attribute :curatedBy, namespace: :pav, enforce: [:concatenate], extractedMetadata: true, display: "community"
-      attribute :curatedOn, namespace: :pav, enforce: [:date_time], extractedMetadata: true, display: "dates"
+      attribute :curatedBy, namespace: :pav, enforce: [:concatenate], extractedMetadata: true, display: "community",
+                helpText: "People who curated the ontology."
+      attribute :curatedOn, namespace: :pav, enforce: [:date_time], extractedMetadata: true, display: "dates",
+                helpText: "The date the ontology was curated."
 
       # New metadata from ADMS and DOAP
-      attribute :repository, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community"
+      attribute :repository, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community",
+                helpText: "Link to the source code repository."
 
       # Should be bug-database and mailing-list but NameError - `@bug-database' is not allowed as an instance variable name
-      attribute :bugDatabase, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community"
-      attribute :mailingList, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community"
+      attribute :bugDatabase, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community",
+                helpText: "Link to the bug tracker of the ontology (i.e.: GitHub issues)."
+
+      attribute :mailingList, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community",
+                helpText: "Mailing list home page or email address."
 
       # New metadata from Schema and IDOT
-      attribute :exampleIdentifier, namespace: :idot, enforce: [:uri], extractedMetadata: true, display: "content"
-      attribute :award, namespace: :schema, extractedMetadata: true, display: "community"
-      attribute :copyrightHolder, namespace: :schema, extractedMetadata: true
-      attribute :translator, namespace: :schema, extractedMetadata: true, display: "community"
-      attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "content"
+      attribute :exampleIdentifier, namespace: :idot, enforce: [:uri], extractedMetadata: true, display: "content",
+                helpText: "An example identifier used by one item (or record) from a dataset."
+
+      attribute :award, namespace: :schema, extractedMetadata: true, display: "community",
+                helpText: "An award won by this ontology."
+
+      attribute :copyrightHolder, namespace: :schema, extractedMetadata: true,
+                helpText: "The party holding the legal copyright to the CreativeWork."
+
+      attribute :translator, namespace: :schema, extractedMetadata: true, display: "community",
+                helpText: "Organization or person who adapted the ontology to different languages, regional differences and technical requirements"
+
+      attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "content",
+                helpText: "A media object that encodes this ontology. This property is a synonym for encoding."
+
       #attribute :translationOfWork, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["adms:translation"]
-      attribute :translationOfWork, namespace: :schema, enforce: [:uri], extractedMetadata: true, metadataMappings: ["adms:translation"], display: "isOntology"
+      attribute :translationOfWork, namespace: :schema, enforce: [:uri], extractedMetadata: true, metadataMappings: ["adms:translation"], display: "isOntology",
+                helpText: "The ontology that this ontology has been translated from."
+
       #attribute :workTranslation, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true
-      attribute :workTranslation, namespace: :schema, enforce: [:uri], extractedMetadata: true, display: "isOntology"
-      attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "relations"
-      # TODO: Généré automatiquement par BioPortal ?
+      attribute :workTranslation, namespace: :schema, enforce: [:uri], extractedMetadata: true, display: "isOntology",
+                helpText: "A ontology that is a translation of the content of this ontology."
+
+      attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "relations",
+                helpText: "A data catalog which contains this ontology (i.e.: OBOfoundry, aber-owl, EBI, VEST registry...)."
 
       # Internal values for parsing - not definitive
       attribute :uploadFilePath
