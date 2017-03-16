@@ -56,7 +56,7 @@ module LinkedData
       attribute :version, namespace: :omv, extractedMetadata: true, helpText: "The version of the released ontology",
                 metadataMappings: ["owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version"]
 
-      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, helpText: "Free text description of an ontology"
+      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, helpText: "Free text description of an ontology",
                 metadataMappings: ["dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
 
       attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status", "idot:state"],
