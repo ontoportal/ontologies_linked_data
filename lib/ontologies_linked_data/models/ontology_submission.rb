@@ -110,13 +110,15 @@ module LinkedData
       attribute :hasDomain, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
                 metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "usage"
 
-      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"]
+      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
+                helpText: "Properties taken from &lt;a href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt"
       attribute :hasLicense, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"]
       attribute :hasOntologySyntax, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"], label: "Ontology Syntax",
                 enforced_values: ["http://www.w3.org/ns/formats/N3", "http://www.w3.org/ns/formats/N-Triples", "http://www.w3.org/ns/formats/RDF_XML",
                                   "http://www.w3.org/ns/formats/RDFa", "http://www.w3.org/ns/formats/Turtle"]
-      attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"]
+      attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"],
+                helpText: "Properties taken from &lt;a href=&quot;http://wiki.dublincore.org/index.php/NKOS_Vocabularies#KOS_Types_Vocabulary&quot;&gt;DCMI KOS type vocabularies&lt;/a&gt"
       # we display them directly in the UI (enforced select dropdown)
 
       #attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:list], extractedMetadata: true,
