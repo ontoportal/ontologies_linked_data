@@ -43,10 +43,10 @@ module LinkedData
 
       # attention, attribute particulier. Je le récupère proprement via OWLAPI
       # TODO: careful in bioportal_web_ui (submissions_helper.rb) @submission.send("URI") causes a bug! Didn't get why
-      attribute :URI, namespace: :omv, extractedMetadata: true, label: "URI", helpText: ""
+      attribute :URI, namespace: :omv, extractedMetadata: true, label: "URI", helpText: "The URI of the ontology "
 
       attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "no",
-                metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"]
+                metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"], helpText: "The language of the content of the ontology"
 
       #attribute :documentation, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
       attribute :documentation, namespace: :omv, extractedMetadata: true,
