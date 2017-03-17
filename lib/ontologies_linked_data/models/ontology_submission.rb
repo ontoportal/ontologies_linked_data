@@ -97,11 +97,11 @@ module LinkedData
                 metadataMappings: ["mod:keyword", "dcat:keyword", "schema:keywords"] # Attention particulier, ça peut être un simple string avec des virgules
 
       #attribute :knownUsage, namespace: :omv, enforce: [:list], extractedMetadata: true
-      attribute :knownUsage, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "usage",
+      attribute :knownUsage, namespace: :omv, enforce: [:concatenate, :textarea], extractedMetadata: true, display: "usage",
                 helpText: "The applications where the ontology is being used"
 
       #attribute :notes, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["adms:versionNotes"]
-      attribute :notes, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"],
+      attribute :notes, namespace: :omv, enforce: [:concatenate, :textarea], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"],
                 helpText: "Additional information about the ontology that is not included somewhere else (e.g. information that you do not want to include in the documentation)."
 
       #attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, enforce: [:list], extractedMetadata: true,
@@ -176,9 +176,10 @@ module LinkedData
 
       # New metadata to BioPortal
       #attribute :hostedBy, enforce: [:list, :uri]
-      attribute :deprecated, namespace: :owl, enforce: [:boolean], extractedMetadata: true, metadataMappings: ["idot:obsolete"], display: "dates",
+      attribute :deprecated, namespace: :owl, enforce: [:boolean], extractedMetadata: true, metadataMappings: ["idot:obsolete"],
                 helpText: "To specify if the ontology IRI is deprecated"
-      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "links",
+
+      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "links", label: "IRI",
                 helpText: "Identifies the version IRI of an ontology."
 
       # New metadata from DOOR
@@ -222,7 +223,7 @@ module LinkedData
                 metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn"],
                 helpText: "A related resource from which the described resource is derived."
 
-      attribute :abstract, namespace: :dct, extractedMetadata: true, helpText: "A summary of the ontology"
+      attribute :abstract, namespace: :dct, extractedMetadata: true, enforce: [:textarea], helpText: "A summary of the ontology"
 
       attribute :alternative, namespace: :dct, extractedMetadata: true, display: "links",
                 metadataMappings: ["skos:altLabel", "idot:alternatePrefix", "schema:alternativeHeadline", "schema:alternateName"],
@@ -291,7 +292,7 @@ module LinkedData
                 helpText: "The organization funding the ontology development."
 
       # New metadata from MOD
-      attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, display: "methodology",
+      attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, enforce: [:textarea], display: "methodology",
                 helpText: "A set of questions made to build an ontology at the design time."
 
       # New metadata from VOAF
