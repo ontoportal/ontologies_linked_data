@@ -234,11 +234,11 @@ module LinkedData
 
       #attribute :isFormatOf, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true
       attribute :isFormatOf, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "relations",
-                helpText: "A related ontology that is substantially the same as the described ontology, but in another format"
+                helpText: "URL to the original document that describe this ontology in a not ontological format (i.e.: the OBO original file)"
 
       #attribute :hasFormat, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true
       attribute :hasFormat, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "relations",
-                helpText: "A related resource that is substantially the same as the pre-existing described ontology, but in another format."
+                helpText: "URL to a document that describe this ontology in a not ontological format (i.e.: the OBO original file) generated from this ontology."
 
       attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience", "schema:audience"], display: "community",
                 helpText: "Description of the target user base of the ontology."
