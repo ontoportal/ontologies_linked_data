@@ -160,7 +160,7 @@ module LinkedData
                 helpText: "References another ontology metadata instance that describes an ontology containing definitions, whose meaning is considered to be part of the meaning of the ontology described by this ontology metadata instance"
 
       #attribute :hasPriorVersion, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
-      attribute :hasPriorVersion, namespace: :omv, enforce: [:uri], extractedMetadata: true, display: "relations",
+      attribute :hasPriorVersion, namespace: :omv, enforce: [:uri], extractedMetadata: true,
                 metadataMappings: ["owl:priorVersion", "dct:isVersionOf", "door:priorVersion", "prov:wasRevisionOf", "adms:prev", "pav:previousVersion", "pav:hasEarlierVersion"],
                 helpText: "An URI to the prior version of the ontology"
 
@@ -312,7 +312,7 @@ module LinkedData
                 helpText: "Ontology that declares some disjunct classes with the described ontology."
 
       #attribute :toDoList, namespace: :voaf, enforce: [:list], extractedMetadata: true
-      attribute :toDoList, namespace: :voaf, enforce: [:concatenate], extractedMetadata: true, display: "community",
+      attribute :toDoList, namespace: :voaf, enforce: [:concatenate, :textarea], extractedMetadata: true, display: "community",
                 helpText: "Describes future tasks planned by a resource curator."
 
       # New metadata from VANN
@@ -331,7 +331,7 @@ module LinkedData
       attribute :morePermissions, namespace: :cc, extractedMetadata: true, display: "license",
                 helpText: "A related resource which describes additional permissions or alternative licenses."
 
-      attribute :useGuidelines, namespace: :cc, extractedMetadata: true, display: "community",
+      attribute :useGuidelines, namespace: :cc, extractedMetadata: true, enforce: [:textarea], display: "community",
                 helpText: "A related resource which defines how the ontology should be used. "
 
       # New metadata from PROV and PAV
