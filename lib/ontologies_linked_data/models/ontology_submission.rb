@@ -134,19 +134,19 @@ module LinkedData
                 helpText: "Typically, the domain can refer to established topic hierarchies such as the general purpose topic hierarchy DMOZ or the domain specific topic hierarchy ACM for the computer science domain",
                 metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "usage"
 
-      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
+      attribute :hasFormalityLevel, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
                 helpText: "Level of formality of the ontology.&lt;br&gt;Properties taken from &lt;a href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt"
 
       attribute :hasLicense, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"],
                 helpText: "Underlying license model"
 
-      attribute :hasOntologySyntax, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"], label: "Ontology Syntax",
+      attribute :hasOntologySyntax, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"], label: "Ontology Syntax",
                 enforced_values: ["http://www.w3.org/ns/formats/N3", "http://www.w3.org/ns/formats/N-Triples", "http://www.w3.org/ns/formats/RDF_XML",
                                   "http://www.w3.org/ns/formats/RDFa", "http://www.w3.org/ns/formats/Turtle"],
                 helpText: "The presentation syntax for the ontology langage"
 
-      attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"],
+      attribute :isOfType, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"],
                 helpText: "The nature of the content of the ontology."
       # we display them directly in the UI (enforced select dropdown)
 
