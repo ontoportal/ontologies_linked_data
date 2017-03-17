@@ -387,7 +387,7 @@ module LinkedData
       attribute :workTranslation, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations",
                 helpText: "A ontology that is a translation of the content of this ontology.", label: "Translated from"
 
-      attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "relations",
+      attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "links",
                 helpText: "A data catalog which contains this ontology (i.e.: OBOfoundry, aber-owl, EBI, VEST registry...)."
 
       # Internal values for parsing - not definitive
