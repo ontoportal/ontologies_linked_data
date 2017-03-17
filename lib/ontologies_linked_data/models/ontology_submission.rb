@@ -87,8 +87,12 @@ module LinkedData
       # Complementary omv metadata
       attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true,
                 metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn"], helpText: "Date of the last modification made to the ontology"
-      attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true,
-                metadataMappings: ["mod:noOfAxioms", "void:triples"], display: "content"
+
+      attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, display: "content", label: "Number of entities"
+
+      attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true, metadataMappings: ["mod:noOfAxioms", "void:triples"],
+                display: "content", helpText: "Other ontology metrics will be automatically computed."
+
       #attribute :keyClasses, namespace: :omv, enforce: [:uri, :list], extractedMetadata: true,
       attribute :keyClasses, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
                 metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"], display: "content", helptext: "Representative classes in the ontology."
@@ -188,7 +192,7 @@ module LinkedData
                 helpText: "An ontology that uses or extends some class or property of the described ontology"
 
       attribute :comesFromTheSameDomain, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, display: "relations",
-                helpText: "Ontologies that come from the same domain"
+                helpText: "Ontologies that come from the same domain", label: "From the same domain than"
 
       attribute :similarTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "relations",
                 helpText: "Vocabularies that are similar in scope and objectives, independently of the fact that they otherwise refer to each other."
@@ -197,10 +201,15 @@ module LinkedData
                 helpText: "Ontologies that have an alignment which covers a substantial part of the described ontology"
 
       #attribute :explanationEvolution, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"]
-      attribute :explanationEvolution, namespace: :door, enforce: [:uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"], display: "relations"
+      attribute :explanationEvolution, namespace: :door, enforce: [:uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"],
+                display: "relations", label: "Specialization of"
+
+      #attribute :generalizes, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true # Ontology range
+      attribute :generalizes, namespace: :voaf, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations", label: "Generalization of",
+                helpText: "Vocabulary that is generalized by some superclasses or superproperties by the described ontology"
 
       #attribute :hasDisparateModelling, namespace: :door, enforce: [:list, :uri], extractedMetadata: true
-      attribute :hasDisparateModelling, namespace: :door, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations",
+      attribute :hasDisparateModelling, namespace: :door, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations", label: "Disparate modelling with",
                 helpText: "URI of an ontology that is considered to have a different model, because they represent corresponding entities in different ways.&lt;br&gt;e.g. an instance in one case and a class in the other for the same concept"
 
       # New metadata from SKOS
@@ -260,23 +269,22 @@ module LinkedData
       attribute :endpoint, namespace: :sd, enforce: [:uri], extractedMetadata: true, metadataMappings: ["void:sparqlEndpoint"], display: "content"
 
       # New metadata from VOID
-      attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, display: "content"
       attribute :dataDump, namespace: :void, enforce: [:uri], extractedMetadata: true,
                 metadataMappings: ["doap:download-mirror", "schema:distribution"], display: "content"
       # TODO: SEMBLE BUGé d'après google spreadsheet
 
-      attribute :csvDump, enforce: [:uri], display: "content"
+      attribute :csvDump, enforce: [:uri], display: "content", label: "CSV dump"
 
       #attribute :openSearchDescription, namespace: :void, enforce: [:list, :uri], extractedMetadata: true,
       attribute :openSearchDescription, namespace: :void, enforce: [:uri], extractedMetadata: true,
                 metadataMappings: ["doap:service-endpoint"], display: "content"
 
       #attribute :uriLookupEndpoint, namespace: :void, enforce: [:list, :uri], extractedMetadata: true
-      attribute :uriLookupEndpoint, namespace: :void, enforce: [:uri], extractedMetadata: true, display: "content",
+      attribute :uriLookupEndpoint, namespace: :void, enforce: [:uri], extractedMetadata: true, display: "content", label: "URI Lookup Endpoint",
                 helpText: "A protocol endpoint for simple URI lookups for the ontology."
 
       attribute :uriRegexPattern, namespace: :void, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["idot:identifierPattern"], display: "content",
+                metadataMappings: ["idot:identifierPattern"], display: "content", label: "URI Regex Pattern",
                 helpText: "A regular expression that matches the URIs of the ontology entities."
 
       # New metadata from foaf
@@ -299,13 +307,10 @@ module LinkedData
       attribute :usedBy, namespace: :voaf, enforce: [:list, :uri, :isOntology], extractedMetadata: true, display: "relations",  # Range : Ontology
                 helpText: "Ontologies that use the described ontology."
 
-      attribute :metadataVoc, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "content",
+      attribute :metadataVoc, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "content", label: "Metadata vocabulary used",
                 metadataMappings: ["mod:vocabularyUsed", "adms:supportedSchema", "schema:schemaVersion"],
                 helpText: "Vocabularies that are used and/or referred to create the described ontology."
 
-      #attribute :generalizes, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true # Ontology range
-      attribute :generalizes, namespace: :voaf, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations",
-                helpText: "Vocabulary that is generalized by some superclasses or superproperties by the described ontology"
 
       #attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true # Ontology range
       attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations",
@@ -317,8 +322,8 @@ module LinkedData
 
       # New metadata from VANN
       #attribute :example, namespace: :vann, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["schema:workExample"]
-      attribute :example, namespace: :vann, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:workExample"], display: "content",
-                helpText: "A reference to a resource that provides an example of how this ontology can be used."
+      attribute :example, namespace: :vann, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:workExample"], display: "usage",
+                helpText: "A reference to a resource that provides an example of how this ontology can be used.", label: "Example of use"
 
       attribute :preferredNamespaceUri, namespace: :vann, extractedMetadata: true, metadataMappings: ["void:uriSpace"],
                 helpText: "The preferred namespace URI to use when using terms from this ontology."
@@ -376,11 +381,11 @@ module LinkedData
 
       #attribute :translationOfWork, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["adms:translation"]
       attribute :translationOfWork, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["adms:translation"], display: "relations",
-                helpText: "The ontology that this ontology has been translated from."
+                helpText: "The ontology that this ontology has been translated from.", label: "Translation of"
 
       #attribute :workTranslation, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true
       attribute :workTranslation, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations",
-                helpText: "A ontology that is a translation of the content of this ontology."
+                helpText: "A ontology that is a translation of the content of this ontology.", label: "Translated from"
 
       attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "relations",
                 helpText: "A data catalog which contains this ontology (i.e.: OBOfoundry, aber-owl, EBI, VEST registry...)."
