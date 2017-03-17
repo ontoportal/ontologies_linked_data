@@ -211,12 +211,12 @@ module LinkedData
       attribute :coverage, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:coverage", "schema:spatial"], display: "usage",
                 helpText: "The spatial or temporal topic of the ontology, the spatial applicability of the ontology, or the jurisdiction under which the ontology is relevant."
 
-      attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "adms:schemaAgency", "schema:publisher"],
+      attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "adms:schemaAgency", "schema:publisher"], display: "license",
                 helpText: "An entity responsible for making the ontology available."
 
       #attribute :identifier, namespace: :dct, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"]
       attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"], display: "links",
-                helpText: "An unambiguous reference to the ontology."
+                helpText: "An unambiguous reference to the ontology. Use the ontology URI if not provided in the ontology metadata."
 
       #attribute :source, namespace: :dct, enforce: [:list], extractedMetadata: true,
       attribute :source, namespace: :dct, enforce: [:concatenate], extractedMetadata: true, display: "links",
@@ -234,11 +234,11 @@ module LinkedData
                 helpText: "A related ontology that is included either physically or logically in the described ontology."
 
       #attribute :isFormatOf, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true
-      attribute :isFormatOf, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "relations",
+      attribute :isFormatOf, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "links",
                 helpText: "URL to the original document that describe this ontology in a not ontological format (i.e.: the OBO original file)"
 
       #attribute :hasFormat, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true
-      attribute :hasFormat, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "relations",
+      attribute :hasFormat, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "links",
                 helpText: "URL to a document that describe this ontology in a not ontological format (i.e.: the OBO original file) generated from this ontology."
 
       attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience", "schema:audience"], display: "community",
@@ -328,7 +328,7 @@ module LinkedData
                 helpText: "The preferred namespace prefix to use when using terms from this ontology."
 
       # New metadata from CC
-      attribute :morePermissions, namespace: :cc, extractedMetadata: true,
+      attribute :morePermissions, namespace: :cc, extractedMetadata: true, display: "license",
                 helpText: "A related resource which describes additional permissions or alternative licenses."
 
       attribute :useGuidelines, namespace: :cc, extractedMetadata: true, display: "community",
@@ -365,7 +365,7 @@ module LinkedData
       attribute :award, namespace: :schema, extractedMetadata: true, display: "community",
                 helpText: "An award won by this ontology."
 
-      attribute :copyrightHolder, namespace: :schema, extractedMetadata: true,
+      attribute :copyrightHolder, namespace: :schema, extractedMetadata: true, display: "license",
                 helpText: "The party holding the legal copyright to the CreativeWork."
 
       attribute :translator, namespace: :schema, extractedMetadata: true, display: "community",
