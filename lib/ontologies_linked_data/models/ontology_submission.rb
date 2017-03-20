@@ -255,11 +255,11 @@ module LinkedData
                 metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"], display: "dates",
                 helpText: "Date (often a range) of validity of the ontology."
 
-      attribute :accrualMethod, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology",
+      attribute :accrualMethod, namespace: :dct, extractedMetadata: true, display: "methodology",
                 helpText: "The method by which items are added to the ontology."
-      attribute :accrualPeriodicity, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology",
+      attribute :accrualPeriodicity, namespace: :dct, extractedMetadata: true, display: "methodology",
                 helpText: "The frequency with which items are added to the ontology."
-      attribute :accrualPolicy, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "methodology",
+      attribute :accrualPolicy, namespace: :dct, extractedMetadata: true, display: "methodology",
                 helpText: "The policy governing the addition of items to the ontology."
 
       # New metadata from sd
