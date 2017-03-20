@@ -45,7 +45,7 @@ module LinkedData
       # TODO: careful in bioportal_web_ui (submissions_helper.rb) @submission.send("URI") causes a bug! Didn't get why
       attribute :URI, namespace: :omv, extractedMetadata: true, label: "URI", helpText: "The URI of the ontology "
 
-      attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "no",
+      attribute :naturalLanguage, namespace: :omv, enforce: [:list, :selectOther], extractedMetadata: true, display: "no",
                 metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"], helpText: "The language of the content of the ontology"
 
       #attribute :documentation, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
@@ -137,7 +137,7 @@ module LinkedData
       attribute :hasFormalityLevel, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
                 helpText: "Level of formality of the ontology.&lt;br&gt;Properties taken from &lt;a href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt"
 
-      attribute :hasLicense, namespace: :omv, extractedMetadata: true,
+      attribute :hasLicense, namespace: :omv, extractedMetadata: true, enforce: [:selectOther],
                 metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"],
                 helpText: "Underlying license model"
 
@@ -155,7 +155,7 @@ module LinkedData
                 metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "methodology",
                 helpText: "Information about the method model used to create the ontology"
 
-      attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
+      attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true, enforce: [:selectOther],
                 metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"],
                 helpText: "Information about the tool used to create the ontology"
 
@@ -197,7 +197,7 @@ module LinkedData
       attribute :similarTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "relations",
                 helpText: "Vocabularies that are similar in scope and objectives, independently of the fact that they otherwise refer to each other."
 
-      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith"], display: "relations",
+      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith"],
                 helpText: "Ontologies that have an alignment which covers a substantial part of the described ontology"
 
       #attribute :explanationEvolution, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"]
@@ -380,7 +380,7 @@ module LinkedData
                 helpText: "A media object that encodes this ontology. This property is a synonym for encoding."
 
       #attribute :translationOfWork, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["adms:translation"]
-      attribute :translationOfWork, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["adms:translation"], display: "relations",
+      attribute :translationOfWork, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["adms:translation"],
                 helpText: "The ontology that this ontology has been translated from.", label: "Translation of"
 
       #attribute :workTranslation, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true
