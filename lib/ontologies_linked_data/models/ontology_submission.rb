@@ -45,8 +45,9 @@ module LinkedData
       # TODO: careful in bioportal_web_ui (submissions_helper.rb) @submission.send("URI") causes a bug! Didn't get why
       attribute :URI, namespace: :omv, extractedMetadata: true, label: "URI", helpText: "The URI of the ontology "
 
-      attribute :naturalLanguage, namespace: :omv, enforce: [:list, :selectOther], extractedMetadata: true, display: "no",
-                metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"], helpText: "The language of the content of the ontology"
+      attribute :naturalLanguage, namespace: :omv, enforce: [:list, :selectOther], extractedMetadata: true,
+                metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"],
+                helpText: "The language of the content of the ontology.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://www.lexvo.org/&quot;&gt;Lexvo URI&lt;/a&gt; with ISO639-3 code.&lt;br&gt;e.g.: http://lexvo.org/id/iso639-3/eng"
 
       #attribute :documentation, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
       attribute :documentation, namespace: :omv, extractedMetadata: true,
@@ -135,22 +136,19 @@ module LinkedData
                 metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "usage"
 
       attribute :hasFormalityLevel, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
-                helpText: "Level of formality of the ontology.&lt;br&gt;Properties taken from &lt;a href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt"
+                helpText: "Level of formality of the ontology."
 
       attribute :hasLicense, namespace: :omv, extractedMetadata: true, enforce: [:selectOther],
                 metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"],
-                helpText: "Underlying license model"
+                helpText: "Underlying license model.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://rdflicense.appspot.com/&quot;&gt;URI to describe your License&lt;/a&gt;&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://licentia.inria.fr/&quot;&gt;INRIA licentia&lt;/a&gt; to choose your license"
 
       attribute :hasOntologySyntax, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"], label: "Ontology Syntax",
-                enforced_values: ["http://www.w3.org/ns/formats/N3", "http://www.w3.org/ns/formats/N-Triples", "http://www.w3.org/ns/formats/RDF_XML",
-                                  "http://www.w3.org/ns/formats/RDFa", "http://www.w3.org/ns/formats/Turtle"],
-                helpText: "The presentation syntax for the ontology langage"
+                helpText: "The presentation syntax for the ontology langage.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt;"
+      #enforced_values: ["http://www.w3.org/ns/formats/N3", "http://www.w3.org/ns/formats/N-Triples", "http://www.w3.org/ns/formats/RDF_XML", "http://www.w3.org/ns/formats/RDFa", "http://www.w3.org/ns/formats/Turtle"],
 
       attribute :isOfType, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"],
-                helpText: "The nature of the content of the ontology."
-      # we display them directly in the UI (enforced select dropdown)
+                helpText: "The nature of the content of the ontology.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;http://wiki.dublincore.org/index.php/NKOS_Vocabularies#KOS_Types_Vocabulary&quot;&gt;DCMI KOS type vocabularies&lt;/a&gt;"
 
-      #attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
                 metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "methodology",
                 helpText: "Information about the method model used to create the ontology"
