@@ -181,7 +181,7 @@ module LinkedData
       attribute :deprecated, namespace: :owl, enforce: [:boolean], extractedMetadata: true, metadataMappings: ["idot:obsolete"],
                 helpText: "To specify if the ontology IRI is deprecated"
 
-      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "links", label: "IRI",
+      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "links", label: "Version IRI",
                 helpText: "Identifies the version IRI of an ontology."
 
       # New metadata from DOOR
@@ -232,7 +232,7 @@ module LinkedData
 
       attribute :abstract, namespace: :dct, extractedMetadata: true, enforce: [:textarea], helpText: "A summary of the ontology"
 
-      attribute :alternative, namespace: :dct, extractedMetadata: true, display: "links",
+      attribute :alternative, namespace: :dct, extractedMetadata: true, label: "Alternative name",
                 metadataMappings: ["skos:altLabel", "idot:alternatePrefix", "schema:alternativeHeadline", "schema:alternateName"],
                 helpText: "An alternative title for the ontology"
 
