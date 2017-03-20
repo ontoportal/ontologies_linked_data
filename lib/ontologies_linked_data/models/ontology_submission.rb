@@ -74,9 +74,10 @@ module LinkedData
                 # date de release de l'ontologie par ses développeurs
 
       # Metrics metadata
-      attribute :numberOfClasses, namespace: :omv, enforce: [:integer], metadataMappings: ["void:classes", "voaf:classNumber" ,"mod:noOfClasses"]
-      attribute :numberOfIndividuals, namespace: :omv, enforce: [:integer], metadataMappings: ["mod:noOfIndividuals"]
-      attribute :numberOfProperties, namespace: :omv, enforce: [:integer], metadataMappings: ["void:properties", "voaf:propertyNumber", "mod:noOfProperties"]
+      # LES metrics sont auto calculés par BioPortal (utilisant OWLAPI)
+      attribute :numberOfClasses, namespace: :omv, enforce: [:integer], metadataMappings: ["void:classes", "voaf:classNumber" ,"mod:noOfClasses"], display: "metrics"
+      attribute :numberOfIndividuals, namespace: :omv, enforce: [:integer], metadataMappings: ["mod:noOfIndividuals"], display: "metrics"
+      attribute :numberOfProperties, namespace: :omv, enforce: [:integer], metadataMappings: ["void:properties", "voaf:propertyNumber", "mod:noOfProperties"], display: "metrics"
       attribute :maxDepth, enforce: [:integer]
       attribute :maxChildCount, enforce: [:integer]
       attribute :averageChildCount, enforce: [:integer]
@@ -89,10 +90,10 @@ module LinkedData
       attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true,
                 metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn"], helpText: "Date of the last modification made to the ontology"
 
-      attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, display: "content", label: "Number of entities"
+      attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, label: "Number of entities", display: "metrics"
 
       attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true, metadataMappings: ["mod:noOfAxioms", "void:triples"],
-                display: "content", helpText: "Other ontology metrics will be automatically computed."
+                display: "metrics", helpText: "Other ontology metrics will be automatically computed."
 
       #attribute :keyClasses, namespace: :omv, enforce: [:uri, :list], extractedMetadata: true,
       attribute :keyClasses, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
@@ -374,7 +375,7 @@ module LinkedData
       attribute :translator, namespace: :schema, extractedMetadata: true, display: "community",
                 helpText: "Organization or person who adapted the ontology to different languages, regional differences and technical requirements"
 
-      attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "content",
+      attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "images",
                 helpText: "A media object that encodes this ontology. This property is a synonym for encoding."
 
       #attribute :translationOfWork, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["adms:translation"]
