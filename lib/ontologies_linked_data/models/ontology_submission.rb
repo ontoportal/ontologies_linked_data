@@ -137,7 +137,7 @@ module LinkedData
       attribute :hasFormalityLevel, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
                 helpText: "Level of formality of the ontology.&lt;br&gt;Properties taken from &lt;a href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt"
 
-      attribute :hasLicense, namespace: :omv, extractedMetadata: true,
+      attribute :hasLicense, namespace: :omv, extractedMetadata: true, enforce: [:selectOther]
                 metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"],
                 helpText: "Underlying license model"
 
@@ -155,7 +155,7 @@ module LinkedData
                 metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "methodology",
                 helpText: "Information about the method model used to create the ontology"
 
-      attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
+      attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true, enforce: [:selectOther],
                 metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"],
                 helpText: "Information about the tool used to create the ontology"
 
