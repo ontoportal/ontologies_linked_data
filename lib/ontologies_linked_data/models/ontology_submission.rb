@@ -222,7 +222,7 @@ module LinkedData
                 helpText: "An entity responsible for making the ontology available."
 
       #attribute :identifier, namespace: :dct, enforce: [:list], extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"]
-      attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"], display: "links",
+      attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"],
                 helpText: "An unambiguous reference to the ontology. Use the ontology URI if not provided in the ontology metadata."
 
       #attribute :source, namespace: :dct, enforce: [:list], extractedMetadata: true,
@@ -251,7 +251,7 @@ module LinkedData
       attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience", "schema:audience"], display: "community",
                 helpText: "Description of the target user base of the ontology."
 
-      attribute :valid, namespace: :dct, enforce: [:date_time], extractedMetadata: true,
+      attribute :valid, namespace: :dct, enforce: [:date_time], extractedMetadata: true, label: "Valid until",
                 metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"], display: "dates",
                 helpText: "Date (often a range) of validity of the ontology."
 
