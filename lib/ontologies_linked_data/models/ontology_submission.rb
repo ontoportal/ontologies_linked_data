@@ -211,7 +211,7 @@ module LinkedData
                 helpText: "URI of an ontology that is considered to have a different model, because they represent corresponding entities in different ways.&lt;br&gt;e.g. an instance in one case and a class in the other for the same concept"
 
       # New metadata from SKOS
-      attribute :hiddenLabel, namespace: :skos, extractedMetadata: true, display: "links",
+      attribute :hiddenLabel, namespace: :skos, extractedMetadata: true,
                 helpText: "The hidden labels are useful when a user is interacting with a knowledge organization system via a text-based search function. The user may, for example, enter mis-spelled words when trying to find a relevant concept. If the mis-spelled query can be matched against a hidden label, the user will be able to find the relevant concept, but the hidden label won't otherwise be visible to the user"
 
       # New metadata from DC terms
@@ -311,7 +311,7 @@ module LinkedData
 
 
       #attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true # Ontology range
-      attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations",
+      attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:uri, :isOntology], extractedMetadata: true,
                 helpText: "Ontology that declares some disjunct classes with the described ontology."
 
       #attribute :toDoList, namespace: :voaf, enforce: [:list], extractedMetadata: true
