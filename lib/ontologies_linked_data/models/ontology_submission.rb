@@ -197,7 +197,7 @@ module LinkedData
       attribute :similarTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "relations",
                 helpText: "Vocabularies that are similar in scope and objectives, independently of the fact that they otherwise refer to each other."
 
-      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith"], display: "relations",
+      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith"],
                 helpText: "Ontologies that have an alignment which covers a substantial part of the described ontology"
 
       #attribute :explanationEvolution, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"]
@@ -380,7 +380,7 @@ module LinkedData
                 helpText: "A media object that encodes this ontology. This property is a synonym for encoding."
 
       #attribute :translationOfWork, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["adms:translation"]
-      attribute :translationOfWork, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["adms:translation"], display: "relations",
+      attribute :translationOfWork, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["adms:translation"],
                 helpText: "The ontology that this ontology has been translated from.", label: "Translation of"
 
       #attribute :workTranslation, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true
