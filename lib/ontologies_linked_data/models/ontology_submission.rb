@@ -137,7 +137,7 @@ module LinkedData
       attribute :hasFormalityLevel, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
                 helpText: "Level of formality of the ontology.&lt;br&gt;Properties taken from &lt;a href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt"
 
-      attribute :hasLicense, namespace: :omv, extractedMetadata: true, enforce: [:selectOther]
+      attribute :hasLicense, namespace: :omv, extractedMetadata: true, enforce: [:selectOther],
                 metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"],
                 helpText: "Underlying license model"
 
