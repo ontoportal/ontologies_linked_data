@@ -204,7 +204,7 @@ module LinkedData
 
       # New metadata from DOOR
       attribute :ontologyRelatedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true,
-                metadataMappings: ["dc:relation", "dct:relation", "voaf:reliesOn"], display: "relations",
+                metadataMappings: ["dc:relation", "dct:relation", "voaf:reliesOn"],
                 helpText: "An ontology that uses or extends some class or property of the described ontology"
 
       attribute :comesFromTheSameDomain, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, display: "relations",
@@ -379,13 +379,13 @@ module LinkedData
       attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "images",
                 helpText: "A media object that encodes this ontology. This property is a synonym for encoding."
 
-      #attribute :translationOfWork, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["adms:translation"]
-      attribute :translationOfWork, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["adms:translation"],
-                helpText: "The ontology that this ontology has been translated from.", label: "Translation of"
-
       #attribute :workTranslation, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true
       attribute :workTranslation, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations",
                 helpText: "A ontology that is a translation of the content of this ontology.", label: "Translated from"
+
+      #attribute :translationOfWork, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["adms:translation"]
+      attribute :translationOfWork, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["adms:translation"],
+                helpText: "The ontology that this ontology has been translated from.", label: "Translation of", display: "relations"
 
       attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "links",
                 helpText: "A data catalog which contains this ontology (i.e.: OBOfoundry, aber-owl, EBI, VEST registry...)."
