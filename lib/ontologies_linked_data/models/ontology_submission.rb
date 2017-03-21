@@ -898,6 +898,7 @@ module LinkedData
           end
         end
 
+        # TODO: seems to not work when updating from 1 to 2 hasDomain... See AGROOE on the VM
         ontology_domain_list = []
         self.ontology.bring(:hasDomain).hasDomain.each do |domain|
           ontology_domain_list << domain.id
