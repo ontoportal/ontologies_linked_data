@@ -128,8 +128,25 @@ module LinkedData
       attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "usage",
                 helpText: "The purpose for which the ontology was originally designed"
 
+      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "people",
+                helpText: "People who generated the ontology."
+
+      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "people",
+                helpText: "People who invalidated the ontology."
+
+      attribute :curatedBy, namespace: :pav, enforce: [:concatenate], extractedMetadata: true, display: "people",
+                helpText: "People who curated the ontology."
+
       attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"],
-                helpText: "The parties that have expressed support or approval to this ontology", display: "community"
+                helpText: "The parties that have expressed support or approval to this ontology", display: "people"
+
+      #attribute :fundedBy, namespace: :foaf, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"]
+      attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "people",
+                helpText: "The organization funding the ontology development."
+
+      attribute :translator, namespace: :schema, extractedMetadata: true, display: "people",
+                helpText: "Organization or person who adapted the ontology to different languages, regional differences and technical requirements"
+
 
       #attribute :hasDomain, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasDomain, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
@@ -294,9 +311,6 @@ module LinkedData
       attribute :logo, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:logo"], display: "images",
                 helpText: "The URL of the ontology logo."
 
-      #attribute :fundedBy, namespace: :foaf, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"]
-      attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "community",
-                helpText: "The organization funding the ontology development."
 
       # New metadata from MOD
       attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, enforce: [:textarea], display: "methodology",
@@ -338,16 +352,6 @@ module LinkedData
       attribute :useGuidelines, namespace: :cc, extractedMetadata: true, enforce: [:textarea], display: "community",
                 helpText: "A related resource which defines how the ontology should be used. "
 
-      # New metadata from PROV and PAV
-      #attribute :wasGeneratedBy, namespace: :prov, enforce: [:list], extractedMetadata: true
-      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "community",
-                helpText: "People who generated the ontology."
-      #attribute :wasInvalidatedBy, namespace: :prov, enforce: [:list], extractedMetadata: true
-      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "community",
-                helpText: "People who invalidated the ontology."
-      #attribute :curatedBy, namespace: :pav, enforce: [:list], extractedMetadata: true
-      attribute :curatedBy, namespace: :pav, enforce: [:concatenate], extractedMetadata: true, display: "community",
-                helpText: "People who curated the ontology."
       attribute :curatedOn, namespace: :pav, enforce: [:date_time], extractedMetadata: true, display: "dates",
                 helpText: "The date the ontology was curated."
 
@@ -371,9 +375,6 @@ module LinkedData
 
       attribute :copyrightHolder, namespace: :schema, extractedMetadata: true, display: "license",
                 helpText: "The party holding the legal copyright to the CreativeWork."
-
-      attribute :translator, namespace: :schema, extractedMetadata: true, display: "community",
-                helpText: "Organization or person who adapted the ontology to different languages, regional differences and technical requirements"
 
       attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "images",
                 helpText: "A media object that encodes this ontology. This property is a synonym for encoding."
