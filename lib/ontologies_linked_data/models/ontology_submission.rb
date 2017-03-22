@@ -907,6 +907,12 @@ module LinkedData
         end
         self.hasDomain << ontology_domain_list.join(", ")
 
+        # Only get the first view because the attribute is not a list
+        ontology_view = self.ontology.bring(:views).views.first
+        if (self.hasPart.nil? && !ontology_view.nil?)
+          self.hasPart = ontology_view.id
+        end
+
         # Metadata specific to BioPortal that have been removed:
         #if self.hostedBy.nil?
         #  self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
