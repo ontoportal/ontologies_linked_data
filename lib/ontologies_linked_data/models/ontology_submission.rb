@@ -915,7 +915,7 @@ module LinkedData
 
         # If no example identifier extracted: take the first class
         if self.exampleIdentifier.nil?
-          LinkedData::Models::Class.in(self).first.id
+          self.exampleIdentifier = LinkedData::Models::Class.in(self).first.id
         end
 
         # Metadata specific to BioPortal that have been removed:
