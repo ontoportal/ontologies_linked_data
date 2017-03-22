@@ -913,6 +913,11 @@ module LinkedData
           self.hasPart = ontology_view.id
         end
 
+        # If no example identifier extracted: take the first class
+        if self.exampleIdentifier.nil?
+          LinkedData::Models::Class.in(self).first.id
+        end
+
         # Metadata specific to BioPortal that have been removed:
         #if self.hostedBy.nil?
         #  self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
