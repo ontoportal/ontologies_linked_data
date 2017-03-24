@@ -34,16 +34,17 @@ module LinkedData
       # Ontology metadata
       #attribute :homepage, enforce: [:list], extractedMetadata: true, metadataMappings: ["foaf:homepage", "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"] # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
 
-      attribute :homepage, namespace: :foaf, extractedMetadata: true, metadataMappings: ["cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"], display: "no"
+      attribute :homepage, namespace: :foaf, extractedMetadata: true, metadataMappings: ["cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"],
+                helpText: "The URL of the homepage for the ontology."
       # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
 
       #attribute :publication, enforce: [:list], extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
-      attribute :publication, extractedMetadata: true, display: "no",
+      attribute :publication, extractedMetadata: true, helpText: "The URL of bibliographic reference for the ontology.",
                 metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
 
       # attention, attribute particulier. Je le récupère proprement via OWLAPI
       # TODO: careful in bioportal_web_ui (submissions_helper.rb) @submission.send("URI") causes a bug! Didn't get why
-      attribute :URI, namespace: :omv, extractedMetadata: true, label: "URI", helpText: "The URI of the ontology "
+      attribute :URI, namespace: :omv, extractedMetadata: true, label: "URI", helpText: "The URI of the ontology which is described by this metadata."
 
       attribute :naturalLanguage, namespace: :omv, enforce: [:list, :selectOther], extractedMetadata: true,
                 metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"],
@@ -52,7 +53,7 @@ module LinkedData
       #attribute :documentation, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
       attribute :documentation, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"],
-                helpText: "URL for further documentation"
+                helpText: "URL for further documentation."
 
       attribute :version, namespace: :omv, extractedMetadata: true, helpText: "The version of the released ontology",
                 metadataMappings: ["owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version"]
@@ -61,23 +62,27 @@ module LinkedData
                 metadataMappings: ["dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
 
       attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status", "idot:state"],
-                helpText: "Information about the ontology status (alpha, beta, production, retired)"
+                helpText: "Information about the ontology status (alpha, beta, production, retired)."
       # Pas de limitation ici, mais seulement 4 possibilité dans l'UI (alpha, beta, production, retired)
 
-      attribute :contact, enforce: [:existence, :contact, :list]  # Careful its special
+      attribute :contact, enforce: [:existence, :contact, :list],  # Careful its special
+                helpText: "The people to contact when questions about the ontology. Composed of the contacts name and email."
 
       attribute :creationDate, namespace: :omv, enforce: [:date_time], metadataMappings: ["dct:dateSubmitted", "schema:datePublished"],
                 default: lambda { |record| DateTime.now } # Attention c'est généré automatiquement, quand la submission est créée
-      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true, label: "Release date", helpText: "Date of the ontology release",
+      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true, label: "Release date", helpText: "Date of the ontology release.",
                 metadataMappings: ["omv:creationDate", "dc:date", "dct:date", "dct:issued", "mod:creationDate", "doap:created", "schema:dateCreated",
                                    "prov:generatedAtTime", "pav:createdOn", "pav:authoredOn", "pav:contributedOn", "oboInOwl:date", "oboInOwl:hasDate"]
                 # date de release de l'ontologie par ses développeurs
 
       # Metrics metadata
       # LES metrics sont auto calculés par BioPortal (utilisant OWLAPI)
-      attribute :numberOfClasses, namespace: :omv, enforce: [:integer], metadataMappings: ["void:classes", "voaf:classNumber" ,"mod:noOfClasses"], display: "metrics"
-      attribute :numberOfIndividuals, namespace: :omv, enforce: [:integer], metadataMappings: ["mod:noOfIndividuals"], display: "metrics"
-      attribute :numberOfProperties, namespace: :omv, enforce: [:integer], metadataMappings: ["void:properties", "voaf:propertyNumber", "mod:noOfProperties"], display: "metrics"
+      attribute :numberOfClasses, namespace: :omv, enforce: [:integer], metadataMappings: ["void:classes", "voaf:classNumber" ,"mod:noOfClasses"], display: "metrics",
+                helpText: "Number of classes in this ontology. Automatically computed by OWLAPI."
+      attribute :numberOfIndividuals, namespace: :omv, enforce: [:integer], metadataMappings: ["mod:noOfIndividuals"], display: "metrics",
+                helpText: "Number of individuals in this ontology. Automatically computed by OWLAPI."
+      attribute :numberOfProperties, namespace: :omv, enforce: [:integer], metadataMappings: ["void:properties", "voaf:propertyNumber", "mod:noOfProperties"], display: "metrics",
+                helpText: "Number of properties in this ontology. Automatically computed by OWLAPI."
       attribute :maxDepth, enforce: [:integer]
       attribute :maxChildCount, enforce: [:integer]
       attribute :averageChildCount, enforce: [:integer]
@@ -90,21 +95,23 @@ module LinkedData
       attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true,
                 metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn"], helpText: "Date of the last modification made to the ontology"
 
-      attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, label: "Number of entities", display: "metrics"
+      attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, label: "Number of entities", display: "metrics",
+                helpText: "Number of entities in this ontology."
 
       attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true, metadataMappings: ["mod:noOfAxioms", "void:triples"],
-                display: "metrics", helpText: "Other ontology metrics will be automatically computed."
+                display: "metrics", helpText: "Number of axioms in this ontology."
 
       #attribute :keyClasses, namespace: :omv, enforce: [:uri, :list], extractedMetadata: true,
-      attribute :keyClasses, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"], display: "content", helptext: "Representative classes in the ontology."
+      attribute :keyClasses, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "content",
+                metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"], helptext: "Representative classes in the ontology."
+
       #attribute :keywords, namespace: :omv, enforce: [:list], extractedMetadata: true,
-      attribute :keywords, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, helpText: "List of keywords related to an ontology",
+      attribute :keywords, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, helpText: "List of keywords related to the ontology.",
                 metadataMappings: ["mod:keyword", "dcat:keyword", "schema:keywords"] # Attention particulier, ça peut être un simple string avec des virgules
 
       #attribute :knownUsage, namespace: :omv, enforce: [:list], extractedMetadata: true
       attribute :knownUsage, namespace: :omv, enforce: [:concatenate, :textarea], extractedMetadata: true, display: "usage",
-                helpText: "The applications where the ontology is being used"
+                helpText: "The applications where the ontology is being used."
 
       #attribute :notes, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["adms:versionNotes"]
       attribute :notes, namespace: :omv, enforce: [:concatenate, :textarea], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"],
@@ -118,15 +125,15 @@ module LinkedData
       #attribute :hasContributor, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasContributor, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Contributors",
                 metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy"],
-                helpText: "Contributors to the creation of the ontology (ex: Clément Jonquet)"
+                helpText: "Contributors to the creation of the ontology."
 
       #attribute :hasCreator, namespace: :omv, enforce: [:list], extractedMetadata: true,
       attribute :hasCreator, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Creators",
                 metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"],
-                helpText: "Main responsible for the creation of the ontology"
+                helpText: "Main responsible for the creation of the ontology."
 
       attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "usage",
-                helpText: "The purpose for which the ontology was originally designed"
+                helpText: "The purpose for which the ontology was originally designed."
 
       attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "people",
                 helpText: "People who generated the ontology."
