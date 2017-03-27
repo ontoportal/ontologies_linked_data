@@ -905,6 +905,7 @@ module LinkedData
           end
         end
 
+        # Add the ontology hasDomain to the submission hasDomain metadata value
         ontology_domain_list = []
         self.ontology.bring(:hasDomain).hasDomain.each do |domain|
           ontology_domain_list << domain.id
@@ -912,7 +913,9 @@ module LinkedData
         if (ontology_domain_list.length > 0 && self.hasDomain.nil?)
           self.hasDomain = ""
         end
-        self.hasDomain << ontology_domain_list.join(", ")
+        if !self.hasDomain.nil?
+          self.hasDomain << ontology_domain_list.join(", ")
+        end
 
         # Only get the first view because the attribute is not a list
         ontology_view = self.ontology.bring(:views).views.first
