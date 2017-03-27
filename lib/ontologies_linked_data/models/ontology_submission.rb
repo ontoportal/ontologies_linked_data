@@ -1072,7 +1072,7 @@ eos
             begin
               hash_results[sol[:extractedObject]] = DateTime.iso8601(sol[:extractedObject].to_s)
             rescue => e
-              logger.error("Impossible to extract DateTime metadata for #{attr.to_s}: #{sol[:extractedObject].to_s}. Error message: #{e}")
+              logger.error("Impossible to extract DateTime metadata for #{attr.to_s}: #{sol[:extractedObject].to_s}. It should follow iso8601 standards. Error message: #{e}")
             end
 
           elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:integer)
