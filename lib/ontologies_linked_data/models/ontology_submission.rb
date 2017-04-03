@@ -936,12 +936,12 @@ module LinkedData
 
         # Add the search endpoint URL
         if self.openSearchDescription.nil?
-          self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}")
+          self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}&q=")
         end
 
         # Search allow to search by URI too
         if self.uriLookupEndpoint.nil?
-          self.uriLookupEndpoint = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}")
+          self.uriLookupEndpoint = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}&require_exact_match=true&q=")
         end
 
         # Add the dataDump URL
@@ -1735,7 +1735,6 @@ eos
       # def index_post(artifacts={}, logger, paging)
       #
       # end
-
       def index(logger, commit = true, optimize = true)
         page = 1
         size = 500
@@ -1753,15 +1752,9 @@ eos
           cls_count = class_count(logger)
           paging.page_count_set(cls_count) unless cls_count < 0
 
-
-
-
           # TODO: this needs to us its own parameter and moved into a callback
           csv_writer = LinkedData::Utils::OntologyCSVWriter.new
           csv_writer.open(self.ontology, self.csv_path)
-
-
-
 
           begin #per page
             t0 = Time.now
@@ -1770,19 +1763,12 @@ eos
             t0 = Time.now
 
 
-
-
-
             # TODO: CSV writing needs to be moved to its own callback
             page_classes.each do |c|
               # this cal is needed for indexing of properties
               LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
               csv_writer.write_class(c)
             end
-
-
-
-
 
             logger.info("Page #{page} of #{page_classes.total_pages} attributes mapped in #{Time.now - t0} sec.")
             count_classes += page_classes.length
@@ -1796,12 +1782,8 @@ eos
             page = page_classes.next? ? page + 1 : nil
           end while !page.nil?
 
-
-
           # TODO: move this into its own callback
           csv_writer.close
-
-
 
           begin
             # index provisional classes
