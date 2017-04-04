@@ -46,7 +46,7 @@ module LinkedData
       # TODO: careful in bioportal_web_ui (submissions_helper.rb) @submission.send("URI") causes a bug! Didn't get why
       attribute :URI, namespace: :omv, extractedMetadata: true, label: "URI", helpText: "The URI of the ontology which is described by this metadata."
 
-      attribute :naturalLanguage, namespace: :omv, enforce: [:list, :selectOther], extractedMetadata: true,
+      attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true,
                 metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"],
                 helpText: "The language of the content of the ontology.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://www.lexvo.org/&quot;&gt;Lexvo URI&lt;/a&gt; with ISO639-3 code.&lt;br&gt;e.g.: http://lexvo.org/id/iso639-3/eng",
                 enforcedValues: {
@@ -140,7 +140,7 @@ module LinkedData
                 metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"],
                 helpText: "Main responsible for the creation of the ontology."
 
-      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list, :selectOther], extractedMetadata: true, display: "usage",
+      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "usage",
                 helpText: "The purpose for which the ontology was originally designed.", enforcedValues: {
                     "http://omv.ontoware.org/2005/05/ontology#AnnotationTask" => "Annotation Task",
                     "http://omv.ontoware.org/2005/05/ontology#ConfigurationTask" => "Configuration Task",
@@ -180,7 +180,7 @@ module LinkedData
                 helpText: "Typically, the domain can refer to established topic hierarchies such as the general purpose topic hierarchy DMOZ or the domain specific topic hierarchy ACM for the computer science domain",
                 metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "usage"
 
-      attribute :hasFormalityLevel, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
+      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
                 helpText: "Level of formality of the ontology.", enforcedValues: {
               "http://w3id.org/nkos/nkostype#classification_schema" => "Classification scheme",
               "http://w3id.org/nkos/nkostype#dictionary" => "Dictionary",
@@ -197,7 +197,7 @@ module LinkedData
               "http://w3id.org/nkos/nkostype#thesaurus" => "Thesaurus"
           }
 
-      attribute :hasLicense, namespace: :omv, extractedMetadata: true, enforce: [:selectOther],
+      attribute :hasLicense, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"],
                 helpText: "Underlying license model.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://rdflicense.appspot.com/&quot;&gt;URI to describe your License&lt;/a&gt;&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://licentia.inria.fr/&quot;&gt;INRIA licentia&lt;/a&gt; to choose your license",
                 enforcedValues: {
@@ -212,7 +212,7 @@ module LinkedData
                     "http://www.apache.org/licenses/LICENSE-2.0" => "Apache License 2.0"
                 }
 
-      attribute :hasOntologySyntax, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"], label: "Ontology Syntax",
+      attribute :hasOntologySyntax, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"], label: "Ontology Syntax",
                 helpText: "The presentation syntax for the ontology langage.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt;",
                 enforcedValues: {
                     "http://www.w3.org/ns/formats/JSON-LD" => "JSON-LD",
@@ -238,7 +238,7 @@ module LinkedData
 
 
 
-      attribute :isOfType, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"],
+      attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"],
                 helpText: "The nature of the content of the ontology.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;http://wiki.dublincore.org/index.php/NKOS_Vocabularies#KOS_Types_Vocabulary&quot;&gt;DCMI KOS type vocabularies&lt;/a&gt;",
                 enforcedValues: {
                     "http://omv.ontoware.org/2005/05/ontology#ApplicationOntology" => "Application Ontology",
@@ -252,7 +252,7 @@ module LinkedData
                 metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "methodology",
                 helpText: "Information about the method model used to create the ontology"
 
-      attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true, enforce: [:selectOther],
+      attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"],
                 helpText: "Information about the tool used to create the ontology", enforcedValues: {
                     "NeOn-Toolkit" => "NeOn-Toolkit",
