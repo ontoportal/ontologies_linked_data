@@ -141,7 +141,19 @@ module LinkedData
                 helpText: "Main responsible for the creation of the ontology."
 
       attribute :designedForOntologyTask, namespace: :omv, enforce: [:list, :selectOther], extractedMetadata: true, display: "usage",
-                helpText: "The purpose for which the ontology was originally designed."
+                helpText: "The purpose for which the ontology was originally designed.", enforcedValues: {
+                    "http://omv.ontoware.org/2005/05/ontology#AnnotationTask" => "Annotation Task",
+                    "http://omv.ontoware.org/2005/05/ontology#ConfigurationTask" => "Configuration Task",
+                    "http://omv.ontoware.org/2005/05/ontology#FilteringTask" => "Filtering Task",
+                    "http://omv.ontoware.org/2005/05/ontology#IndexingTask" => "Indexing Task",
+                    "http://omv.ontoware.org/2005/05/ontology#IntegrationTask" => "Integration Task",
+                    "http://omv.ontoware.org/2005/05/ontology#MatchingTask" => "Matching Task",
+                    "http://omv.ontoware.org/2005/05/ontology#MediationTask" => "Mediation Task",
+                    "http://omv.ontoware.org/2005/05/ontology#PersonalizationTask" => "Personalization Task",
+                    "http://omv.ontoware.org/2005/05/ontology#QueryFormulationTask" => "Query Formulation Task",
+                    "http://omv.ontoware.org/2005/05/ontology#QueryRewritingTask" => "Query Rewriting Task",
+                    "http://omv.ontoware.org/2005/05/ontology#SearchTask" => "Search Task"
+                }
 
       attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "people",
                 helpText: "People who generated the ontology."
