@@ -48,7 +48,15 @@ module LinkedData
 
       attribute :naturalLanguage, namespace: :omv, enforce: [:list, :selectOther], extractedMetadata: true,
                 metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"],
-                helpText: "The language of the content of the ontology.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://www.lexvo.org/&quot;&gt;Lexvo URI&lt;/a&gt; with ISO639-3 code.&lt;br&gt;e.g.: http://lexvo.org/id/iso639-3/eng"
+                helpText: "The language of the content of the ontology.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://www.lexvo.org/&quot;&gt;Lexvo URI&lt;/a&gt; with ISO639-3 code.&lt;br&gt;e.g.: http://lexvo.org/id/iso639-3/eng",
+                enforcedValues: {
+                    "http://lexvo.org/id/iso639-3/eng" => "English",
+                    "http://lexvo.org/id/iso639-3/fra" => "French",
+                    "http://lexvo.org/id/iso639-3/spa" => "Spanish",
+                    "http://lexvo.org/id/iso639-3/por" => "Portuguese",
+                    "http://lexvo.org/id/iso639-3/ita" => "Italian",
+                    "http://lexvo.org/id/iso639-3/deu" => "German"
+                }
 
       #attribute :documentation, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"]
       attribute :documentation, namespace: :omv, extractedMetadata: true,
@@ -132,7 +140,7 @@ module LinkedData
                 metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"],
                 helpText: "Main responsible for the creation of the ontology."
 
-      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "usage",
+      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list, :selectOther], extractedMetadata: true, display: "usage",
                 helpText: "The purpose for which the ontology was originally designed."
 
       attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "people",
@@ -161,18 +169,72 @@ module LinkedData
                 metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "usage"
 
       attribute :hasFormalityLevel, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
-                helpText: "Level of formality of the ontology."
+                helpText: "Level of formality of the ontology.", enforcedValues: {
+              "http://w3id.org/nkos/nkostype#classification_schema" => "Classification scheme",
+              "http://w3id.org/nkos/nkostype#dictionary" => "Dictionary",
+              "http://w3id.org/nkos/nkostype#gazetteer" => "Gazetteer",
+              "http://w3id.org/nkos/nkostype#glossary" => "Glossary",
+              "http://w3id.org/nkos/nkostype#list" => "List",
+              "http://w3id.org/nkos/nkostype#name_authority_list" => "Name authority list",
+              "http://w3id.org/nkos/nkostype#ontology" => "Ontology",
+              "http://w3id.org/nkos/nkostype#semantic_network" => "Semantic network",
+              "http://w3id.org/nkos/nkostype#subject_heading_scheme" => "Subject heading scheme",
+              "http://w3id.org/nkos/nkostype#synonym_ring" => "Synonym ring",
+              "http://w3id.org/nkos/nkostype#taxonomy" => "Taxonomy",
+              "http://w3id.org/nkos/nkostype#terminology" => "Terminology",
+              "http://w3id.org/nkos/nkostype#thesaurus" => "Thesaurus"
+          }
 
       attribute :hasLicense, namespace: :omv, extractedMetadata: true, enforce: [:selectOther],
                 metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"],
-                helpText: "Underlying license model.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://rdflicense.appspot.com/&quot;&gt;URI to describe your License&lt;/a&gt;&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://licentia.inria.fr/&quot;&gt;INRIA licentia&lt;/a&gt; to choose your license"
+                helpText: "Underlying license model.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://rdflicense.appspot.com/&quot;&gt;URI to describe your License&lt;/a&gt;&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://licentia.inria.fr/&quot;&gt;INRIA licentia&lt;/a&gt; to choose your license",
+                enforcedValues: {
+                    "https://creativecommons.org/licenses/by/4.0/" => "CC Attribution 4.0 International",
+                    "https://creativecommons.org/licenses/by/3.0/" => "CC Attribution 3.0",
+                    "https://creativecommons.org/publicdomain/zero/1.0/" => "CC Public Domain Dedication",
+                    "http://www.gnu.org/licenses/gpl-3.0" => "GNU General Public License 3.0",
+                    "http://www.gnu.org/licenses/gpl-2.0" => "GNU General Public License 2.0",
+                    "https://opensource.org/licenses/Artistic-2.0" => "Open Source Artictic license 2.0",
+                    "https://opensource.org/licenses/MIT" => "MIT License",
+                    "https://opensource.org/licenses/BSD-3-Clause" => "BSD 3-Clause License",
+                    "http://www.apache.org/licenses/LICENSE-2.0" => "Apache License 2.0"
+                }
 
       attribute :hasOntologySyntax, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"], label: "Ontology Syntax",
-                helpText: "The presentation syntax for the ontology langage.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt;"
-      #enforced_values: ["http://www.w3.org/ns/formats/N3", "http://www.w3.org/ns/formats/N-Triples", "http://www.w3.org/ns/formats/RDF_XML", "http://www.w3.org/ns/formats/RDFa", "http://www.w3.org/ns/formats/Turtle"],
+                helpText: "The presentation syntax for the ontology langage.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt;",
+                enforcedValues: {
+                    "http://www.w3.org/ns/formats/JSON-LD" => "JSON-LD",
+                    "http://www.w3.org/ns/formats/N3" => "N3",
+                    "http://www.w3.org/ns/formats/N-Quads" => "N-Quads",
+                    "http://www.w3.org/ns/formats/LD_Patch" => "LD Patch",
+                    "http://www.w3.org/ns/formats/microdata" => "Microdata",
+                    "http://www.w3.org/ns/formats/OWL_XML" => "OWL XML Serialization",
+                    "http://www.w3.org/ns/formats/OWL_Functional" => "OWL Functional Syntax",
+                    "http://www.w3.org/ns/formats/OWL_Manchester" => "OWL Manchester Syntax",
+                    "http://www.w3.org/ns/formats/POWDER" => "POWDER",
+                    "http://www.w3.org/ns/formats/POWDER-S" => "POWDER-S",
+                    "http://www.w3.org/ns/formats/PROV-N" => "PROV-N",
+                    "http://www.w3.org/ns/formats/PROV-XML" => "PROV-XML",
+                    "http://www.w3.org/ns/formats/RDFa" => "RDFa",
+                    "http://www.w3.org/ns/formats/RDF_JSON" => "RDF/JSON",
+                    "http://www.w3.org/ns/formats/RDF_XML" => "RDF/XML",
+                    "http://www.w3.org/ns/formats/RIF_XML" => "RIF XML Syntax",
+                    "http://www.w3.org/ns/formats/Turtle" => "Turtle",
+                    "http://www.w3.org/ns/formats/TriG" => "TriG",
+                    "http://purl.obolibrary.org/obo/oboformat/spec.html" => "OBO"
+                }
+
+
 
       attribute :isOfType, namespace: :omv, enforce: [:selectOther], extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"],
-                helpText: "The nature of the content of the ontology.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;http://wiki.dublincore.org/index.php/NKOS_Vocabularies#KOS_Types_Vocabulary&quot;&gt;DCMI KOS type vocabularies&lt;/a&gt;"
+                helpText: "The nature of the content of the ontology.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;http://wiki.dublincore.org/index.php/NKOS_Vocabularies#KOS_Types_Vocabulary&quot;&gt;DCMI KOS type vocabularies&lt;/a&gt;",
+                enforcedValues: {
+                    "http://omv.ontoware.org/2005/05/ontology#ApplicationOntology" => "Application Ontology",
+                    "http://omv.ontoware.org/2005/05/ontology#CoreOntology" => "Core Ontology",
+                    "http://omv.ontoware.org/2005/05/ontology#DomainOntology" => "Domain Ontology",
+                    "http://omv.ontoware.org/2005/05/ontology#TaskOntology" => "Task Ontology",
+                    "http://omv.ontoware.org/2005/05/ontology#UpperLevelOntology" => "Upper Level Ontology"
+                }
 
       attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
                 metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "methodology",
@@ -180,7 +242,21 @@ module LinkedData
 
       attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true, enforce: [:selectOther],
                 metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"],
-                helpText: "Information about the tool used to create the ontology"
+                helpText: "Information about the tool used to create the ontology", enforcedValues: {
+                    "NeOn-Toolkit" => "NeOn-Toolkit",
+                    "Protégé" => "Protégé",
+                    "SWOOP" => "SWOOP",
+                    "OntoStudio" => "OntoStudio",
+                    "Altova" => "Altova",
+                    "SemanticWorks" => "SemanticWorks",
+                    "OilEd" => "OilEd",
+                    "IsaViz" => "IsaViz",
+                    "WebODE" => "WebODE",
+                    "OntoBuilder" => "OntoBuilder",
+                    "WSMO Studio" => "WSMO Studio",
+                    "VocBench" => "VocBench",
+                    "TopBraid" => "TopBraid"
+                }
 
       attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
                 metadataMappings: ["owl:imports", "door:imports", "void:vocabulary", "voaf:extends", "dct:requires", "oboInOwl:import"],
