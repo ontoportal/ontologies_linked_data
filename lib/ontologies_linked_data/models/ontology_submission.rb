@@ -891,11 +891,12 @@ module LinkedData
       def extract_ontology_metadata(logger, user_params)
         ontology_uri = extract_ontology_uri()
         logger.info("Extraction metadata from ontology #{ontology_uri}")
+        #logger.info("User params: #{user_params}")
 
         # go through all OntologySubmission attributes. Returns symbols
         LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
-          # for attribute with the :extractedMetadata setting on and that have not been defined by the user
-          if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:extractedMetadata]) && !(user_params.has_key?(attr) && !user_params[attr].nil?)
+          # for attribute with the :extractedMetadata setting on, and that have not been defined by the user
+          if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:extractedMetadata]) && !(user_params.has_key?(attr) && !user_params[attr].nil? && !user_params[attr].empty?)
             # a boolean to check if a value that should be single have already been extracted
             single_extracted = false
 
