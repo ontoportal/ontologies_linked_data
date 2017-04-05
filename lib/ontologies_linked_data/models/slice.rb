@@ -21,27 +21,6 @@ module LinkedData::Models
       return [:acronym_value_validator, nil]
     end
 
-    # CAREFUL, not working when run with ncbo_cron (generate uri with slice instead of slices) 
-    # Check to make sure each group has a corresponding slice (and ontologies match)
-    def self.synchronize_groups_to_slices
-      groups = LinkedData::Models::Group.where.include(LinkedData::Models::Group.attributes(:all)).all
-      groups.each do |g|
-        slice = self.find(g.acronym.downcase.gsub(" ", "_")).include(LinkedData::Models::Slice.attributes(:all)).first
-        if slice
-          slice.ontologies = g.ontologies
-          slice.save if slice.valid?
-        else
-          slice = self.new({
-            acronym: g.acronym.downcase.gsub(" ", "_"),
-            name: g.name,
-            description: g.description,
-            ontologies: g.ontologies
-          })
-          slice.save rescue return "create: " + slice.errors.to_s
-        end
-      end
-    end
-
     def ontology_id_set
       @ontology_set ||= Set.new(self.ontologies.map {|o| o.id.to_s})
     end
