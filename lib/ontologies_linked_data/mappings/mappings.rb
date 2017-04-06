@@ -640,15 +640,14 @@ FILTER(?urn2 = <#{class_urns[1]}>)
     params[:classes].each do |class_id,ontology_id|
       interportal_prefix = ontology_id.split(":")[0]
       if ontology_id.start_with? "ext:"
-        #TODO: check if the ontology is a well formed URI
         # Just keep the source and the class URI if the mapping is external or interportal and change the mapping process name
         raise ArgumentError, "Impossible to map 2 classes outside of BioPortal" if mapping_process_name != "REST Mapping"
         mapping_process_name = "External Mapping"
         ontology_uri = ontology_id.sub("ext:", "")
-        if !uri?(ontology_uri)
+        if !(ontology_uri  =~ URI::regexp)
           raise ArgumentError, "Ontology URI '#{ontology_uri.to_s}' is not valid"
         end
-        if !uri?(class_id)
+        if !(ontology_uri  =~ URI::regexp)
           raise ArgumentError, "Class URI '#{class_id.to_s}' is not valid"
         end
         ontology_uri = CGI.escape(ontology_uri)
