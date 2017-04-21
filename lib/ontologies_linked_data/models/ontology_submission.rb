@@ -245,7 +245,8 @@ module LinkedData
                     "http://omv.ontoware.org/2005/05/ontology#CoreOntology" => "Core Ontology",
                     "http://omv.ontoware.org/2005/05/ontology#DomainOntology" => "Domain Ontology",
                     "http://omv.ontoware.org/2005/05/ontology#TaskOntology" => "Task Ontology",
-                    "http://omv.ontoware.org/2005/05/ontology#UpperLevelOntology" => "Upper Level Ontology"
+                    "http://omv.ontoware.org/2005/05/ontology#UpperLevelOntology" => "Upper Level Ontology",
+                    "http://omv.ontoware.org/2005/05/ontology#Vocabulary" => "Vocabulary"
                 }
 
       attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
