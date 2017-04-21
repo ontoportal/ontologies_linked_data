@@ -351,7 +351,7 @@ module LinkedData
                 helpText: "An alternative title for the ontology"
 
       #attribute :hasPart, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"]
-      attribute :hasPart, namespace: :dct, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["schema:hasPart"], display: "relations",
+      attribute :hasPart, namespace: :dct, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["schema:hasPart", "oboInOwl:hasSubset"], display: "relations",
                 helpText: "A related ontology that is included either physically or logically in the described ontology."
 
       #attribute :isFormatOf, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true
