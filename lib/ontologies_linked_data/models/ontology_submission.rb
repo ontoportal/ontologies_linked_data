@@ -1108,8 +1108,9 @@ eos
           logger.info("Removed ontology terms index (#{Time.now - t0}s)"); logger.flush
 
           paging = LinkedData::Models::Class.in(self).include(:unmapped).page(page, size)
-          # a hacky fix for NLMVS, see https://github.com/ncbo/ontologies_api/issues/20)
-          cls_count = (self.ontology.acronym === "NLMVS") ? -1 : class_count(logger)
+          # a fix for SKOS ontologies, see https://github.com/ncbo/ontologies_api/issues/20)
+          self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
+          cls_count = self.hasOntologyLanguage.skos? ? -1 : class_count(logger)
           paging.page_count_set(cls_count) unless cls_count < 0
 
           # TODO: this needs to us its own parameter and moved into a callback
