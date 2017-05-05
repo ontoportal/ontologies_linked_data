@@ -577,7 +577,7 @@ eos
       if c.instance_of?LinkedData::Models::Class
         acronym = c.submission.id.to_s.split("/")[-3]
         class_urns << RDF::URI.new(LinkedData::Models::Class.urn_id(acronym,c.id.to_s))
-      elsif !c[:source].nil?
+      elsif !c.is_a?(Hash)
         # Generate classes urns using the source (e.g.: ncbo or ext), the ontology acronym and the class id
         class_urns << RDF::URI.new("#{c[:source]}:#{c[:ontology]}:#{c[:id]}")
       else
@@ -636,17 +636,7 @@ FILTER(?urn2 = <#{class_urns[1]}>)
     #second add the mapping id to current submission graphs
     rest_predicate = mapping_predicates()["REST"][0]
     classes.each do |c|
-      if c.instance_of?LinkedData::Models::Class
-        sub = c.submission
-        unless sub.id.to_s["latest"].nil?
-          #the submission in the class might point to latest
-          sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
-                    .first
-                    .latest_submission
-        end
-        c_id = c.id
-        graph_id = sub.id
-      else
+      if c.is_a?(Hash)
         if LinkedData.settings.interportal_hash.has_key?(c[:source])
           # If it is a mapping from another Bioportal
           c_id = RDF::URI.new(c[:id])
@@ -656,6 +646,14 @@ FILTER(?urn2 = <#{class_urns[1]}>)
           c_id = RDF::URI.new(c[:id])
           graph_id = LinkedData::Models::ExternalClass.graph_uri
         end
+      else
+        sub = c.submission
+        unless sub.id.to_s["latest"].nil?
+          #the submission in the class might point to latest
+          sub = LinkedData::Models::Ontology.find(c.submission.ontology.id).first.latest_submission
+        end
+        c_id = c.id
+        graph_id = sub.id
       end
       graph_insert = RDF::Graph.new
       graph_insert << [c_id, RDF::URI.new(rest_predicate), backup_mapping.id]
