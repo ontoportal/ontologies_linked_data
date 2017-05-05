@@ -179,7 +179,7 @@ module LinkedData
           end
 
           writable = reference_object.writable?(user)
-          raise LinkedData::Security::WriteAccessDeniedError, "Write access denied" unless writable
+          raise LinkedData::Security::WriteAccessDeniedError, "Write access denied: #{reference_object.id}" unless writable
         end
       end
 

@@ -16,7 +16,8 @@
      xmlns:owl="http://www.w3.org/2002/07/owl#"
      xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-     xmlns:msotes="http://bioportal.bioontology.org/ontologies/msotes#">
+     xmlns:msotes="http://bioportal.bioontology.org/ontologies/msotes#"
+     xmlns:ncicp="http://ncicb.nci.nih.gov/xml/owl/EVS/ComplexProperties.xsd#">
     <owl:Ontology rdf:about="http://bioportal.bioontology.org/ontologies/msotes"/>
     
 
@@ -137,7 +138,7 @@
 
     <owl:Class rdf:about="&msotes;class6">
         <rdfs:label>rdfs label value</rdfs:label>
-        <rdfs:comment rdf:datatype="&rdf;XMLLiteral">&lt;ncicp:ComplexDefinition&gt;&lt;ncicp:def-definition&gt;A form of cancer that begins in melanocytes (cells that make the pigment melanin). It may begin in a mole (skin melanoma), but can also begin in other pigmented tissues, such as in the eye or in the intestines.&lt;/ncicp:def-definition&gt;&lt;ncicp:def-source&gt;NCI-GLOSS&lt;/ncicp:def-source&gt;&lt;/ncicp:ComplexDefinition&gt;</rdfs:comment>
+        <rdfs:comment rdf:datatype="&rdf;XMLLiteral"><ncicp:ComplexDefinition><ncicp:def-definition>A form of cancer that begins in melanocytes (cells that make the pigment melanin). It may begin in a mole (skin melanoma), but can also begin in other pigmented tissues, such as in the eye or in the intestines.</ncicp:def-definition><ncicp:def-source>NCI-GLOSS</ncicp:def-source></ncicp:ComplexDefinition></rdfs:comment>
         <mySynonymLabel>syn for class 6</mySynonymLabel>
     </owl:Class>
     

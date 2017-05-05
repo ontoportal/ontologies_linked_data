@@ -110,7 +110,7 @@ module LinkedData
               
               begin
                 ss.process_submission(tmp_log,
-                                    process_rdf: true, index_search: true,
+                                    process_rdf: true, index_search: true, index_properties: true,
                                     run_metrics: true, reasoning: true)
               rescue Exception => e
                 puts "Error processing submission: #{ss.id.to_s}"

@@ -97,7 +97,13 @@ class Object
       next if modified
 
       # Look at the Hypermedia DSL to determine if we should embed this attribute
-      hash, modified = embed_goo_objects_just_values(hash, k, v, options, &block)
+      begin
+        hash, modified = embed_goo_objects_just_values(hash, k, v, options, &block)
+      rescue Exception => e
+        puts "Bad data found in submission: #{hash}"
+        raise e
+      end
+
       next if modified
 
       new_value = convert_nonstandard_types(v, options, &block)
@@ -200,6 +206,7 @@ class Object
     page = {
       page: self.page_number,
       pageCount: self.total_pages,
+      totalCount: self.aggregate,
       prevPage: self.prev_page,
       nextPage: self.next_page,
       links: generate_page_links(options, self.page_number, self.total_pages),
