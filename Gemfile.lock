@@ -23,7 +23,7 @@ GIT
 
 GIT
   remote: git://github.com/sifrproject/goo.git
-  revision: 0d042a1eb4bba24c873dd87afa0a672df653c9af
+  revision: 5fafc98b2f4d174a68d295ecd3b27b6aad5fba04
   branch: lirmm
   specs:
     goo (0.0.2)
@@ -175,4 +175,4 @@ DEPENDENCIES
   thin
 
 BUNDLED WITH
-   1.13.7
+   1.14.6
