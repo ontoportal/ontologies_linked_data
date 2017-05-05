@@ -578,7 +578,7 @@ eos
       if c.instance_of?LinkedData::Models::Class
         acronym = c.submission.id.to_s.split("/")[-3]
         class_urns << RDF::URI.new(LinkedData::Models::Class.urn_id(acronym,c.id.to_s))
-      elsif !c.is_a?(Hash)
+      elsif c.is_a?(Hash)
         # Generate classes urns using the source (e.g.: ncbo or ext), the ontology acronym and the class id
         class_urns << RDF::URI.new("#{c[:source]}:#{c[:ontology]}:#{c[:id]}")
       else
