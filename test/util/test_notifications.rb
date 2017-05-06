@@ -117,7 +117,7 @@ class TestNotifications < LinkedData::TestCase
       assert sub.valid?, sub.errors
       LinkedData::Utils::Notifications.remote_ontology_pull(sub)
 
-      assert last_email_sent.subject.include? "[BioPortal] Load from URL failure for #{ont.name}"
+      assert last_email_sent.subject.include? "Load from URL failure for #{ont.name}"
       recipients = []
       ont_admins.each do |user|
         recipients << user.email
