@@ -74,7 +74,7 @@ module LinkedData
     @settings.smtp_domain                   ||= "localhost.localhost"
     @settings.enable_starttls_auto          ||= false # set to true for use with gmail
     # email of the instance administrator to get mail notifications when new user
-    @settings.admin_emails                  ||= ["admin@example.org"]
+    @settings.admin_emails                  ||= []
 
     @settings.interportal_hash              ||= {}
 
