@@ -421,7 +421,7 @@ eos
                      "./test/data/ontology_files/BRO_v3.5.owl", 1,
                      process_rdf: true, reasoning: false, index_properties: true)
     res = LinkedData::Models::Class.search("*:*", {:fq => "submissionAcronym:\"BRO\"", :start => 0, :rows => 80}, :property)
-    assert_equal 80, res["response"]["numFound"]
+    assert_equal 81, res["response"]["numFound"]
     found = 0
 
     res["response"]["docs"].each do |doc|
