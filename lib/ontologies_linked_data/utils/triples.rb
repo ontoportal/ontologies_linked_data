@@ -20,23 +20,26 @@ module LinkedData
         triples << triple(Goo.vocabulary(:rdfs)[:comment], subPropertyOf, Goo.vocabulary(:skos)[:definition])
 
 
+        # Add subPropertyOf triples for custom properties
         unless ont_sub.prefLabelProperty.nil?
-          unless ont_sub.prefLabelProperty == Goo.vocabulary(:rdfs)[:label]
-            triples << triple(ont_sub.prefLabelProperty, subPropertyOf, Goo.vocabulary(:metadata_def)[:prefLabel])
+          unless ont_sub.prefLabelProperty == Goo.vocabulary(:rdfs)[:label] || ont_sub.prefLabelProperty == Goo.vocabulary(:metadata_def)[:prefLabel]
+              triples << triple(ont_sub.prefLabelProperty, subPropertyOf, Goo.vocabulary(:metadata_def)[:prefLabel])
           end
         end
         unless ont_sub.definitionProperty.nil?
-          unless ont_sub.definitionProperty == Goo.vocabulary(:rdfs)[:label]
-            triples << triple(ont_sub.definitionProperty, subPropertyOf, Goo.vocabulary(:skos)[:definition])
+          unless ont_sub.definitionProperty == Goo.vocabulary(:rdfs)[:label] || ont_sub.definitionProperty == Goo.vocabulary(:skos)[:definition]
+              triples << triple(ont_sub.definitionProperty, subPropertyOf, Goo.vocabulary(:skos)[:definition])
           end
         end
         unless ont_sub.synonymProperty.nil?
-          unless ont_sub.synonymProperty == Goo.vocabulary(:rdfs)[:label]
+          unless ont_sub.synonymProperty == Goo.vocabulary(:rdfs)[:label] || ont_sub.synonymProperty == Goo.vocabulary(:skos)[:altLabel]
             triples << triple(ont_sub.synonymProperty, subPropertyOf, Goo.vocabulary(:skos)[:altLabel])
           end
         end
         unless ont_sub.authorProperty.nil?
-          triples << triple(ont_sub.authorProperty, subPropertyOf, Goo.vocabulary(:dc)[:creator])
+          unless ont_sub.authorProperty == Goo.vocabulary(:dc)[:creator]
+            triples << triple(ont_sub.authorProperty, subPropertyOf, Goo.vocabulary(:dc)[:creator])
+          end
         end
 
         if ont_sub.hasOntologyLanguage.obo? || ont_sub.hasOntologyLanguage.owl?
@@ -72,6 +75,15 @@ module LinkedData
         return triple(class_id,property,RDF::Literal.new(label, :datatype => RDF::XSD.string))
       end
 
+      def self.generated_label(class_id, existing_label)
+        existing_label ||= []
+        last_frag = last_iri_fragment(class_id.to_s)
+        last_frag_words = last_frag.titleize
+        generated_label = [last_frag, last_frag_words].uniq { |l| l.downcase }.map(&:downcase) - existing_label.map(&:downcase)
+        existing_label_words = existing_label.map { |l| l.titleize.downcase }
+        (generated_label + existing_label_words).uniq - existing_label.map(&:downcase)
+      end
+
       def self.obselete_class_triple(class_id)
         return triple(RDF::URI.new(class_id.to_s),
                       RDF::URI.new("http://www.w3.org/2002/07/owl#deprecated"),
@@ -90,6 +102,7 @@ module LinkedData
       def self.uri_mapping_triple(class_id,property,uri_class)
         return triple(class_id,property,uri_class)
       end
+
       def self.obo_definition_standard
         return RDF::URI.new("http://purl.obolibrary.org/obo/IAO_0000115")
       end

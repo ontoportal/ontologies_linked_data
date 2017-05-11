@@ -251,18 +251,18 @@ eos
     end
 
     if classId.nil?
-      union_template = union_template.sub("classId", "?s1")
+      union_template = union_template.gsub("classId", "?s1")
     else
-      union_template = union_template.sub("classId", "<#{classId.to_s}>")
+      union_template = union_template.gsub("classId", "<#{classId.to_s}>")
     end
 
     mapping_predicates().each do |_source,mapping_predicate|
       union_block = union_template.gsub("predicate", mapping_predicate[0])
-      union_block = union_block.sub("bind","BIND ('#{_source}' AS ?source)")
+      union_block = union_block.gsub("bind","BIND ('#{_source}' AS ?source)")
       if sub2.nil?
-        union_block = union_block.sub("graph","?g")
+        union_block = union_block.gsub("graph","?g")
       else
-        union_block = union_block.sub("graph","<#{sub2.to_s}>")
+        union_block = union_block.gsub("graph","<#{sub2.to_s}>")
       end
       blocks << union_block
     end
@@ -275,12 +275,12 @@ unions
 filter
 } page_group
 eos
-    query = mappings_in_ontology.sub( "unions", unions)
+    query = mappings_in_ontology.gsub( "unions", unions)
     variables = "?s2 graph ?source ?o"
     if classId.nil?
       variables = "?s1 " + variables
     end
-    query = query.sub("variables", variables)
+    query = query.gsub("variables", variables)
     filter = ""
     if classId.nil?
       filter = "FILTER ((?s1 != ?s2) || (?source = 'SAME_URI'))"
@@ -288,24 +288,24 @@ eos
       filter = ""
     end
     if sub2.nil?
-      query = query.sub("graph","?g")
+      query = query.gsub("graph","?g")
       ont_id = sub1.to_s.split("/")[0..-3].join("/")
       #STRSTARTS is used to not count older graphs
       #no need since now we delete older graphs
       filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}'))"
-      query = query.sub("filter",filter)
+      query = query.gsub("filter",filter)
     else
-      query = query.sub("graph","")
-      query = query.sub("filter",filter)
+      query = query.gsub("graph","")
+      query = query.gsub("filter",filter)
     end
     if size > 0
       pagination = "OFFSET offset LIMIT limit"
-      query = query.sub("page_group",pagination)
+      query = query.gsub("page_group",pagination)
       limit = size
       offset = (page-1) * size
-      query = query.sub("limit", "#{limit}").sub("offset", "#{offset}")
+      query = query.gsub("limit", "#{limit}").gsub("offset", "#{offset}")
     else
-      query = query.sub("page_group","")
+      query = query.gsub("page_group","")
     end
     epr = Goo.sparql_query_client(:main)
     graphs = [sub1]
@@ -571,16 +571,18 @@ eos
     return mapping
   end
 
+  # Generate URNs for class mapping (urn:ONT_ACRO:CLASS_URI)
   def self.generate_class_urns(classes)
     class_urns = []
     classes.each do |c|
       if c.instance_of?LinkedData::Models::Class
         acronym = c.submission.id.to_s.split("/")[-3]
-        class_urns << RDF::URI.new(
-            LinkedData::Models::Class.urn_id(acronym,c.id.to_s))
-      else
+        class_urns << RDF::URI.new(LinkedData::Models::Class.urn_id(acronym,c.id.to_s))
+      elsif c.is_a?(Hash)
         # Generate classes urns using the source (e.g.: ncbo or ext), the ontology acronym and the class id
         class_urns << RDF::URI.new("#{c[:source]}:#{c[:ontology]}:#{c[:id]}")
+      else
+        class_urns << RDF::URI.new(c.urn_id())
       end
     end
     return class_urns
@@ -745,17 +747,7 @@ FILTER(?urn2 = <#{class_urns[1]}>)
     rest_predicate = mapping_predicates()["REST"][0]
     begin
       classes.each do |c|
-        if c.instance_of?LinkedData::Models::Class
-          sub = c.submission
-          unless sub.id.to_s["latest"].nil?
-            #the submission in the class might point to latest
-            sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
-                      .first
-                      .latest_submission
-          end
-          c_id = c.id
-          graph_id = sub.id
-        else
+        if c.is_a?(Hash)
           if LinkedData.settings.interportal_hash.has_key?(c[:source])
             # If it is a mapping from another Bioportal
             c_id = RDF::URI.new(c[:id])
@@ -765,6 +757,14 @@ FILTER(?urn2 = <#{class_urns[1]}>)
             c_id = RDF::URI.new(c[:id])
             graph_id = LinkedData::Models::ExternalClass.graph_uri
           end
+        else
+          sub = c.submission
+          unless sub.id.to_s["latest"].nil?
+            #the submission in the class might point to latest
+            sub = LinkedData::Models::Ontology.find(c.submission.ontology.id).first.latest_submission
+          end
+          c_id = c.id
+          graph_id = sub.id
         end
         graph_insert = RDF::Graph.new
         graph_insert << [c_id, RDF::URI.new(rest_predicate), backup_mapping.id]

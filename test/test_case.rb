@@ -177,9 +177,15 @@ module LinkedData
       # The default value is auto-generated (during save), it should be OK.
       assert_instance_of(DateTime, m.created, "The 'created' attribute is not a DateTime instance.")
       assert_equal(true, m.errors[:created].nil?, "#{m.errors}")
-      m.created = "this string should fail"
-      assert (not m.valid?)
-      assert_equal(false, m.errors[:created].nil?, "#{m.errors}")
+
+      begin
+        m.created = "this string should fail"
+      rescue Exception => e
+        # in ruby 2.3+, this generates a runtime exception, so we need to handle it
+        assert_equal ArgumentError, e.class
+        assert_equal "invalid date", e.message
+      end
+
       # The value should be an XSD date time.
       m.created = DateTime.now
       assert m.valid?

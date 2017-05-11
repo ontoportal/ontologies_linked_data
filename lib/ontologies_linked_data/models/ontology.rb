@@ -111,12 +111,12 @@ module LinkedData
       def latest_submission(options = {})
         self.bring(:acronym) if self.bring?(:acronym)
         submission_id = highest_submission_id(options)
-        return nil if submission_id.nil?
+        return nil if submission_id.nil? || submission_id == 0
 
         self.submissions.each do |s|
           return s if s.submissionId == submission_id
         end
-        return nil
+        nil
       end
 
       def submission(submission_id)
@@ -149,9 +149,39 @@ module LinkedData
                     .include(submissions: [:submissionId, :submissionStatus])
                     .to_a
 
-        return 0 if self.submissions.nil? || self.submissions.empty?
+        # TODO: this code was added to deal with intermittent issues with 4store, where
+        # self.submissions was being reported as not loaded for no apparent reason
+        subs = nil
 
-        self.submissions.each do |s|
+        begin
+          subs = self.submissions
+        rescue Exception => e
+          i = 0
+          num_calls = 3
+          subs = nil
+
+          while subs.nil? && i < num_calls do
+            i += 1
+            puts "Exception while getting submissions for #{self.id.to_s}. Retrying #{i} times..."
+            sleep(1)
+
+            begin
+              self.bring(:submissions)
+              subs = self.submissions
+              puts "Success getting submissions for #{self.id.to_s} after retrying #{i} times..."
+            rescue Exception => e1
+              subs = nil
+
+              if i == num_calls
+                puts "Exception while getting submissions for #{self.id.to_s} after retrying #{i} times: #{e1.class}: #{e1.message}\n#{e1.backtrace.join("\n")}"
+              end
+            end
+          end
+        end
+
+        return 0 if subs.nil? || subs.empty?
+
+        subs.each do |s|
           if !s.loaded_attributes.include?(:submissionId)
             s.bring(:submissionId)
           end
@@ -163,37 +193,78 @@ module LinkedData
         # Try to get a new one based on the old
         submission_ids = []
 
-        self.submissions.each do |s|
+        subs.each do |s|
           next if !s.ready?({status: status})
           submission_ids << s.submissionId.to_i
         end
 
-        return submission_ids.max
+        submission_ids.max
       end
 
-      def properties
-        latest = latest_submission(status: [:rdf])
+      def properties(sub=nil)
+        sub ||= latest_submission(status: [:rdf])
         self.bring(:acronym) if self.bring?(:acronym)
-        raise ParsedSubmissionError, "The properties of ontology #{self.acronym} cannot be retrieved because it has not been successfully parsed" unless latest
+        raise ParsedSubmissionError, "The properties of ontology #{self.acronym} cannot be retrieved because it has not been successfully parsed" unless sub
+        prop_classes = [LinkedData::Models::ObjectProperty, LinkedData::Models::DatatypeProperty, LinkedData::Models::AnnotationProperty]
+        all_props = []
 
-        # datatype props
-        datatype_props = LinkedData::Models::DatatypeProperty.in(latest).include(:label, :definition, :parents).all()
-        parents = []
-        datatype_props.each {|prop| prop.parents.each {|parent| parents << parent}}
-        LinkedData::Models::DatatypeProperty.in(latest).models(parents).include(:label, :definition).all()
+        prop_classes.each do |c|
+          props = c.in(sub).include(:label, :definition, :parents).all()
+          parents = []
+          props.each { |p| p.load_has_children; p.parents.each {|parent| parents << parent} }
+          c.in(sub).models(parents).include(:label, :definition).all()
+          all_props.concat(props)
+        end
 
-        # object props
-        object_props = LinkedData::Models::ObjectProperty.in(latest).include(:label, :definition, :parents).all()
-        parents = []
-        object_props.each {|prop| prop.parents.each {|parent| parents << parent}}
-        LinkedData::Models::ObjectProperty.in(latest).models(parents).include(:label, :definition).all()
+        LinkedData::Models::OntologyProperty.sort_properties(all_props)
+      end
 
-        # annotation props
-        annotation_props = LinkedData::Models::AnnotationProperty.in(latest).include(:label, :definition, :parents).all()
-        parents = []
-        annotation_props.each {|prop| prop.parents.each {|parent| parents << parent}}
-        LinkedData::Models::AnnotationProperty.in(latest).models(parents).include(:label, :definition).all()
-        datatype_props + object_props + annotation_props
+      def property_roots(sub=nil, extra_include=[])
+        sub ||= latest_submission(status: [:rdf])
+        threshold = 99
+        incl = [:label, :definition, :parents]
+        incl.each { |x| extra_include.delete x }
+        all_roots = []
+        prop_classes = [LinkedData::Models::ObjectProperty, LinkedData::Models::DatatypeProperty, LinkedData::Models::AnnotationProperty]
+
+        prop_classes.each do |c|
+          where = c.in(sub).include(incl)
+          where.include(extra_include) unless extra_include.empty?
+          roots = where.all
+
+          roots.select! { |prop|
+            prop.load_has_children if extra_include.include?(:hasChildren)
+            is_root = !prop.respond_to?(:parents) || prop.parents.nil? || prop.parents.empty?
+            prop.loaded_attributes.delete?(:parents)
+            is_root
+          }
+
+          c.partially_load_children(roots, threshold, sub) if extra_include.include?(:children)
+          all_roots.concat(roots)
+        end
+
+        LinkedData::Models::OntologyProperty.sort_properties(all_roots)
+      end
+
+      def property(prop_id, sub=nil)
+        p = nil
+        sub ||= latest_submission(status: [:rdf])
+        self.bring(:acronym) if self.bring?(:acronym)
+        raise ParsedSubmissionError, "The properties of ontology #{self.acronym} cannot be retrieved because it has not been successfully parsed" unless sub
+        prop_classes = [LinkedData::Models::ObjectProperty, LinkedData::Models::DatatypeProperty, LinkedData::Models::AnnotationProperty]
+
+        prop_classes.each do |c|
+          p = c.find(prop_id).in(sub).include(:label, :definition, :parents).first
+
+          unless p.nil?
+            p.load_has_children
+            parents = p.parents.nil? ? [] : p.parents.dup
+            c.in(sub).models(parents).include(:label, :definition).all()
+            break
+          end
+        end
+
+        p
       end
 
       # retrieve Analytics for this ontology
@@ -318,6 +389,7 @@ module LinkedData
 
         # remove index entries
         unindex(index_commit)
+        unindex_properties(index_commit)
 
         # delete all files
         ontology_dir = File.join(LinkedData.settings.repository_folder, self.acronym.to_s)
@@ -336,14 +408,22 @@ module LinkedData
           purl_client = LinkedData::Purl::Client.new
           purl_client.create_purl(acronym)
         end
-        return self
+        self
       end
 
       def unindex(commit=true)
+        unindex_by_acronym(commit)
+      end
+
+      def unindex_properties(commit=true)
+        unindex_by_acronym(commit, :property)
+      end
+
+      def unindex_by_acronym(commit=true, connection_name=:main)
         self.bring(:acronym) if self.bring?(:acronym)
         query = "submissionAcronym:#{acronym}"
-        Ontology.unindexByQuery(query)
-        Ontology.indexCommit() if commit
+        Ontology.unindexByQuery(query, connection_name)
+        Ontology.indexCommit(nil, connection_name) if commit
       end
 
       def restricted?
@@ -359,7 +439,7 @@ module LinkedData
         else
           return true if self.acl.map {|u| u.id.to_s}.include?(user.id.to_s) || self.administeredBy.map {|u| u.id.to_s}.include?(user.id.to_s)
         end
-        return false
+        false
       end
     end
   end

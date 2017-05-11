@@ -7,6 +7,7 @@ module LinkedData
         "RDF_LABELS", "ERROR_RDF_LABELS",
         "OBSOLETE", "ERROR_OBSOLETE",
         "INDEXED", "ERROR_INDEXED",
+        "INDEXED_PROPERTIES", "ERROR_INDEXED_PROPERTIES",
         "METRICS",  "ERROR_METRICS",
         "ANNOTATOR", "ERROR_ANNOTATOR",
         "ARCHIVED", "ERROR_ARCHIVED",
@@ -14,16 +15,18 @@ module LinkedData
       ]
 
       USER_READABLE = {
-        "RDF"             => "Parsed successfully",
-        "RDF_ERROR"       => "Error parsing",
-        "INDEXED"         => "Indexed for search",
-        "ERROR_INDEXED"   => "Error indexing for search",
-        "METRICS"         => "Class metrics calculated",
-        "ERROR_METRICS"   => "Error calculating class metrics",
-        "ANNOTATOR"       => "Processed for use in Annotator",
-        "ERROR_ANNOTATOR" => "Error processing for use in Annotator",
-        "DIFF"            => "Created submission version diff successfully",
-        "ERROR_DIFF"      => "Error creating submission version diff"
+        "RDF"                      => "Parsed successfully",
+        "RDF_ERROR"                => "Error parsing",
+        "INDEXED"                  => "Indexed terms for search",
+        "ERROR_INDEXED"            => "Error indexing terms for search",
+        "INDEXED_PROPERTIES"       => "Indexed properties for search",
+        "ERROR_INDEXED_PROPERTIES" => "Error indexing properties for search",
+        "METRICS"                  => "Class metrics calculated",
+        "ERROR_METRICS"            => "Error calculating class metrics",
+        "ANNOTATOR"                => "Processed for use in Annotator",
+        "ERROR_ANNOTATOR"          => "Error processing for use in Annotator",
+        "DIFF"                     => "Created submission version diff successfully",
+        "ERROR_DIFF"               => "Error creating submission version diff"
       }
 
       USER_IGNORE = [
@@ -39,35 +42,63 @@ module LinkedData
 
       def error?
         code = get_code_from_id()
-        return code.start_with?("ERROR_")
+        code.start_with?("ERROR_")
       end
 
       def get_error_status
         return self if error?
         code = get_code_from_id()
-        return SubmissionStatus.find("ERROR_#{code}").include(:code).first
+        SubmissionStatus.find("ERROR_#{code}").include(:code).first
       end
 
       def get_non_error_status
         return self unless error?
         code = get_code_from_id()
         code.sub!("ERROR_", "")
-        return SubmissionStatus.find(code).include(:code).first
+        SubmissionStatus.find(code).include(:code).first
       end
 
       def archived?
-        return self.id.to_s["ARCHIVED"] && !self.id.to_s["ERROR_ARCHIVED"]
+        self.id.to_s["ARCHIVED"] && !self.id.to_s["ERROR_ARCHIVED"]
       end
 
       def get_code_from_id
-        return self.id.to_s.split("/")[-1]
+        self.id.to_s.split("/")[-1]
       end
 
       def self.readable_statuses(statuses)
-        statuses = where.models(statuses).include(:code).to_a.map {|s| s.code}
-        statuses = statuses - USER_IGNORE
-        statuses.sort! {|a,b| VALUES.index(a) <=> VALUES.index(b)}
-        statuses.map {|s| USER_READABLE[s] || s.capitalize}
+        statuses_raw = where.models(statuses).include(:code).to_a
+        readable_stats = nil
+
+        # TODO: this code was added to deal with intermittent issues with 4store, where the error:
+        # Attribute `code` is not loaded for http://data.bioontology.org/submission_statuses/RDF
+        # was thrown for no apparent reason!!!
+        begin
+          readable_stats = statuses_raw.map { |s| s.code }
+        rescue
+          i = 0
+          num_calls = 3
+          readable_stats = nil
+
+          while readable_stats.nil? && i < num_calls do
+            i += 1
+            sleep(1)
+
+            begin
+              readable_stats = statuses_raw.map { |s| s.bring(:code); s.code }
+            rescue Exception => e
+              readable_stats = nil
+
+              if i == num_calls
+                raise $!, "#{$!} after retrying #{i} times...", $!.backtrace
+              end
+            end
+          end
+        end
+
+        readable_stats = readable_stats - USER_IGNORE
+        readable_stats.sort! {|a,b| VALUES.index(a) <=> VALUES.index(b)}
+        readable_stats.map {|s| USER_READABLE[s] || s.capitalize}
       end
 
       def self.status_ready?(status)
@@ -105,7 +136,7 @@ module LinkedData
           return false unless that.is_a?(LinkedData::Models::SubmissionStatus)
           that_code = that.get_code_from_id
         end
-        return this_code == that_code
+        this_code == that_code
       end
 
     end

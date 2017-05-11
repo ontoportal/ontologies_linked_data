@@ -128,6 +128,7 @@ class TestMapping < LinkedData::TestOntologyCommon
       mappings += page
       page_no += 1
     end
+    assert mappings.length > 0
     cui = 0
     same_uri = 0
     loom = 0
