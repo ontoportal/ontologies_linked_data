@@ -17,22 +17,28 @@
 -->
 
 <!--
-   This is an example of a simple "solr.xml" file for configuring one or 
-   more Solr Cores, as well as allowing Cores to be added, removed, and 
+   This is an example of a simple "solr.xml" file for configuring one or
+   more Solr Cores, as well as allowing Cores to be added, removed, and
    reloaded via HTTP requests.
 
-   More information about options available in this configuration file, 
+   More information about options available in this configuration file,
    and Solr Core administration can be found online:
    http://wiki.apache.org/solr/CoreAdmin
 -->
 
-<solr persistent="true" sharedLib="lib">
-  <cores adminPath="/admin/cores" host="${host:}" hostPort="${jetty.port:8983}" hostContext="${hostContext:solr}">
-    <core name="NCBO1" config="solrconfig.xml" instanceDir="core1" schema="schema.xml" dataDir="data"/>
-    <core name="NCBO2" config="solrconfig.xml" instanceDir="core2" schema="schema.xml" dataDir="data"/>
-    <shardHandlerFactory name="shardHandlerFactory" class="HttpShardHandlerFactory">
-      <str name="urlScheme">${urlScheme:}</str>
-      <int name="socketTimeout">${socketTimeout:0}</int>
-      <int name="connTimeout">${connTimeout:0}</int>
-    </shardHandlerFactory></cores>
+<solr>
+
+  <solrcloud>
+    <str name="host">${host:}</str>
+    <int name="hostPort">${jetty.port:8983}</int>
+    <str name="hostContext">${hostContext:solr}</str>
+    <int name="zkClientTimeout">${zkClientTimeout:30000}</int>
+    <bool name="genericCoreNodeNames">${genericCoreNodeNames:true}</bool>
+  </solrcloud>
+
+  <shardHandlerFactory name="shardHandlerFactory" class="HttpShardHandlerFactory">
+    <int name="socketTimeout">${socketTimeout:0}</int>
+    <int name="connTimeout">${connTimeout:0}</int>
+  </shardHandlerFactory>
+
 </solr>

@@ -5,6 +5,7 @@ require 'open-uri'
 require 'cgi'
 require 'benchmark'
 require 'csv'
+require 'fileutils'
 
 module LinkedData
   module Models
@@ -245,7 +246,8 @@ module LinkedData
                     "http://omv.ontoware.org/2005/05/ontology#CoreOntology" => "Core Ontology",
                     "http://omv.ontoware.org/2005/05/ontology#DomainOntology" => "Domain Ontology",
                     "http://omv.ontoware.org/2005/05/ontology#TaskOntology" => "Task Ontology",
-                    "http://omv.ontoware.org/2005/05/ontology#UpperLevelOntology" => "Upper Level Ontology"
+                    "http://omv.ontoware.org/2005/05/ontology#UpperLevelOntology" => "Upper Level Ontology",
+                    "http://omv.ontoware.org/2005/05/ontology#Vocabulary" => "Vocabulary"
                 }
 
       attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
@@ -350,7 +352,7 @@ module LinkedData
                 helpText: "An alternative title for the ontology"
 
       #attribute :hasPart, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["schema:hasPart"]
-      attribute :hasPart, namespace: :dct, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["schema:hasPart"], display: "relations",
+      attribute :hasPart, namespace: :dct, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["schema:hasPart", "oboInOwl:hasSubset"], display: "relations",
                 helpText: "A related ontology that is included either physically or logically in the described ontology."
 
       #attribute :isFormatOf, namespace: :dct, enforce: [:list, :uri], extractedMetadata: true
@@ -593,13 +595,44 @@ module LinkedData
         self.bring(:masterFileName) if self.bring?(:masterFileName)
         self.bring(:submissionStatus) if self.bring?(:submissionStatus)
 
-        if (self.submissionStatus)
+        if self.submissionStatus
           self.submissionStatus.each do |st|
             st.bring(:code) if st.bring?(:code)
           end
         end
 
-        if self.ontology.summaryOnly || self.archived?
+        # TODO: this code was added to deal with intermittent issues with 4store, where the error:
+        # Attribute `summaryOnly` is not loaded for http://data.bioontology.org/ontologies/GPI
+        # was thrown for no apparent reason!!!
+        sum_only = nil
+
+        begin
+          sum_only = self.ontology.summaryOnly
+        rescue Exception => e
+          i = 0
+          num_calls = 3
+          sum_only = nil
+
+          while sum_only.nil? && i < num_calls do
+            i += 1
+            puts "Exception while getting summaryOnly for #{self.id.to_s}. Retrying #{i} times..."
+            sleep(1)
+
+            begin
+              self.ontology.bring(:summaryOnly)
+              sum_only = self.ontology.summaryOnly
+              puts "Success getting summaryOnly for #{self.id.to_s} after retrying #{i} times..."
+            rescue Exception => e1
+              sum_only = nil
+
+              if i == num_calls
+                raise $!, "#{$!} after retrying #{i} times...", $!.backtrace
+              end
+            end
+          end
+        end
+
+        if sum_only == true || self.archived?
           return true
         elsif self.uploadFilePath.nil? && self.pullLocation.nil?
           self.errors[:uploadFilePath] = ["In non-summary only submissions a data file or url must be provided."]
@@ -614,6 +647,7 @@ module LinkedData
 
         zip = LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
         files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
+
         if not zip and self.masterFileName.nil?
           return true
         elsif zip and files.length == 1
@@ -1322,7 +1356,9 @@ eos
         Goo.sparql_data_client.append_triples(self.id, property_triples, mime_type="application/x-turtle")
         fsave = File.open(artifacts[:save_in_file], "w")
         fsave.write(property_triples)
+        fsave_mappings = File.open(artifacts[:save_in_file_mappings], "w")
         artifacts[:fsave] = fsave
+        artifacts[:fsave_mappings] = fsave_mappings
       end
 
       def generate_missing_labels_pre_page(artifacts={}, logger, paging, page_classes, page)
@@ -1394,13 +1430,12 @@ eos
         end
 
         if artifacts[:mapping_triples].length > 0
-          fsave_mappings = File.open(artifacts[:save_in_file_mappings], "w")
           logger.info("Asserting #{artifacts[:mapping_triples].length} mappings in " +
                           "#{self.id.to_ntriples}")
           logger.flush
           artifacts[:mapping_triples] = artifacts[:mapping_triples].join("\n")
-          fsave_mappings.write(artifacts[:mapping_triples])
-          fsave_mappings.close()
+          artifacts[:fsave_mappings].write(artifacts[:mapping_triples])
+
           t0 = Time.now
           Goo.sparql_data_client.append_triples(self.id, artifacts[:mapping_triples], mime_type="application/x-turtle")
           t1 = Time.now
@@ -1413,6 +1448,7 @@ eos
         logger.info("end generate_missing_labels traversed #{artifacts[:count_classes]} classes")
         logger.info("Saved generated labels in #{artifacts[:save_in_file]}")
         artifacts[:fsave].close()
+        artifacts[:fsave_mappings].close()
         logger.flush
       end
 
@@ -1430,7 +1466,7 @@ FROM #{self.id.to_ntriples}
 WHERE { ?class_id #{predicate_obsolete.to_ntriples} ?deprecated . }
 eos
           Goo.sparql_query_client.query(query_obsolete_predicate).each_solution do |sol|
-            unless sol[:deprecated].to_s == "false"
+            unless ["0", "false"].include? sol[:deprecated].to_s
               classes_deprecated << sol[:class_id].to_s
             end
           end
@@ -1555,26 +1591,61 @@ eos
         return ready?(status: [:archived])
       end
 
-      ########################################
+      ################################################################
       # Possible options with their defaults:
-      #   process_rdf       = true
-      #   index_search      = true
-      #   index_commit      = true
-      #   run_metrics       = true
-      #   reasoning         = true
-      #   diff              = true
+      #   process_rdf       = false
+      #   index_search      = false
+      #   index_properties  = false
+      #   index_commit      = false
+      #   run_metrics       = false
+      #   reasoning         = false
+      #   diff              = false
       #   archive           = false
-      #######################################
+      #   if no options passed, ALL actions, except for archive = true
+      ################################################################
       def process_submission(logger, options={})
         # Wrap the whole process so we can email results
         begin
-          process_rdf = options[:process_rdf] == false ? false : true
-          index_search = options[:index_search] == false ? false : true
-          index_commit = options[:index_commit] == false ? false : true
-          run_metrics = options[:run_metrics] == false ? false : true
-          reasoning = options[:reasoning] == false ? false : true
-          diff = options[:diff] == false ? false : true
-          archive = options[:archive] == true ? true : false
+          process_rdf = false
+          index_search = false
+          index_properties = false
+          index_commit = false
+          run_metrics = false
+          reasoning = false
+          diff = false
+          archive = false
+
+          if options.empty?
+            process_rdf = true
+            index_search = true
+            index_properties = true
+            index_commit = true
+            run_metrics = true
+            reasoning = true
+            diff = true
+            archive = false
+          else
+            process_rdf = options[:process_rdf] == true ? true : false
+            index_search = options[:index_search] == true ? true : false
+            index_properties = options[:index_properties] == true ? true : false
+            index_commit = options[:index_commit] == true ? true : false
+            run_metrics = options[:run_metrics] == true ? true : false
+
+            if !process_rdf || options[:reasoning] == false
+              reasoning = false
+            else
+              reasoning = true
+            end
+
+            if (!index_search && !index_properties) || options[:index_commit] == false
+              index_commit = false
+            else
+              index_commit = true
+            end
+
+            diff = options[:diff] == true ? true : false
+            archive = options[:archive] == true ? true : false
+          end
 
           self.bring_remaining
           self.ontology.bring_remaining
@@ -1681,8 +1752,23 @@ eos
                 logger.flush
                 add_submission_status(status.get_error_status)
                 if File.file?(self.csv_path)
-                  FileUtils.delete(self.csv_path)
+                  FileUtils.rm(self.csv_path)
                 end
+              ensure
+                self.save
+              end
+            end
+
+            if index_properties
+              raise Exception, "The properties for the submission #{self.ontology.acronym}/submissions/#{self.submissionId} cannot be indexed because it has not been successfully parsed" unless parsed
+              status = LinkedData::Models::SubmissionStatus.find("INDEXED_PROPERTIES").first
+              begin
+                index_properties(logger, index_commit, false)
+                add_submission_status(status)
+              rescue Exception => e
+                logger.error("#{e.class}: #{e.message}\n#{e.backtrace.join("\n\t")}")
+                logger.flush
+                add_submission_status(status.get_error_status)
               ensure
                 self.save
               end
@@ -1752,7 +1838,7 @@ eos
           begin
             LinkedData::Utils::Notifications.submission_processed(self)
           rescue Exception => e
-            logger.info("Email sending failed: #{e.message}\n#{e.backtrace.join("\n\t")}"); logger.flush
+            logger.error("Email sending failed: #{e.message}\n#{e.backtrace.join("\n\t")}"); logger.flush
           end
         end
         self
@@ -1826,48 +1912,110 @@ eos
       # end
       def index(logger, commit = true, optimize = true)
         page = 1
-        size = 500
+        size = 1000
 
         count_classes = 0
         time = Benchmark.realtime do
           self.bring(:ontology) if self.bring?(:ontology)
+          self.ontology.bring(:acronym) if self.ontology.bring?(:acronym)
           self.ontology.bring(:provisionalClasses) if self.ontology.bring?(:provisionalClasses)
-          logger.info("Indexing ontology: #{self.ontology.acronym}...")
+          logger.info("Indexing ontology terms: #{self.ontology.acronym}...")
           t0 = Time.now
-          self.ontology.unindex(commit)
-          logger.info("Removing ontology index (#{Time.now - t0}s)"); logger.flush
+          self.ontology.unindex(false)
+          logger.info("Removed ontology terms index (#{Time.now - t0}s)"); logger.flush
 
           paging = LinkedData::Models::Class.in(self).include(:unmapped).page(page, size)
-          cls_count = class_count(logger)
+          # a fix for SKOS ontologies, see https://github.com/ncbo/ontologies_api/issues/20)
+          self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
+          cls_count = self.hasOntologyLanguage.skos? ? -1 : class_count(logger)
           paging.page_count_set(cls_count) unless cls_count < 0
 
           # TODO: this needs to us its own parameter and moved into a callback
           csv_writer = LinkedData::Utils::OntologyCSVWriter.new
           csv_writer.open(self.ontology, self.csv_path)
+          page_len = -1
+          prev_page_len = -1
 
           begin #per page
             t0 = Time.now
             page_classes = paging.page(page, size).all
-            logger.info("Page #{page} of #{page_classes.total_pages} classes retrieved in #{Time.now - t0} sec.")
-            t0 = Time.now
+            total_pages = page_classes.total_pages
+            page_len = page_classes.length
 
+            # nothing retrieved even though we're expecting more records
+            if total_pages > 0 && page_classes.empty? && (prev_page_len == -1 || prev_page_len == size)
+              j = 0
+              num_calls = 3
+
+              while page_classes.empty? && j < num_calls do
+                j += 1
+                logger.error("Empty page encountered. Retrying #{j} times...")
+                sleep(2)
+                page_classes = paging.page(page, size).all
+                logger.info("Success retrieving a page of #{page_classes.length} classes after retrying #{j} times...") unless page_classes.empty?
+              end
+
+              if page_classes.empty?
+                msg = "Empty page #{page} of #{total_pages} persisted after retrying #{j} times. Indexing of #{self.id.to_s} aborted..."
+                logger.error(msg)
+                raise msg
+              end
+            end
+
+            if page_classes.empty?
+              if total_pages > 0
+                logger.info("The number of pages reported for #{self.id.to_s} - #{total_pages} is higher than expected #{page - 1}. Completing indexing...")
+              else
+                logger.info("Ontology #{self.id.to_s} contains #{total_pages} pages...")
+              end
+
+              break
+            end
+
+            prev_page_len = page_len
+            logger.info("Page #{page} of #{total_pages} - #{page_len} ontology terms retrieved in #{Time.now - t0} sec.")
+            t0 = Time.now
 
             # TODO: CSV writing needs to be moved to its own callback
             page_classes.each do |c|
-              # this cal is needed for indexing of properties
-              LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
+              begin
+                # this cal is needed for indexing of properties
+                LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
+              rescue Exception => e
+                i = 0
+                num_calls = 3
+                success = nil
+
+                while success.nil? && i < num_calls do
+                  i += 1
+                  logger.error("Exception while mapping attributes for #{c.id.to_s}. Retrying #{i} times...")
+                  sleep(2)
+
+                  begin
+                    LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
+                    logger.info("Success mapping attributes for #{c.id.to_s} after retrying #{i} times...")
+                    success = true
+                  rescue Exception => e1
+                    success = nil
+
+                    if i == num_calls
+                      logger.error("Error mapping attributes for #{c.id.to_s}:")
+                      logger.error("#{e1.class}: #{e1.message} after retrying #{i} times...\n#{e1.backtrace.join("\n\t")}")
+                      logger.flush
+                    end
+                  end
+                end
+              end
               csv_writer.write_class(c)
             end
 
-            logger.info("Page #{page} of #{page_classes.total_pages} attributes mapped in #{Time.now - t0} sec.")
+            logger.info("Page #{page} of #{total_pages} attributes mapped in #{Time.now - t0} sec.")
             count_classes += page_classes.length
             t0 = Time.now
 
             LinkedData::Models::Class.indexBatch(page_classes)
-            logger.info("Page #{page} of #{page_classes.total_pages} indexed solr in #{Time.now - t0} sec.")
-            logger.info("Page #{page} of #{page_classes.total_pages} completed")
+            logger.info("Page #{page} of #{total_pages} ontology terms indexed in #{Time.now - t0} sec.")
             logger.flush
-
             page = page_classes.next? ? page + 1 : nil
           end while !page.nil?
 
@@ -1883,21 +2031,64 @@ eos
             logger.flush
           end
 
-          if (commit)
+          if commit
             t0 = Time.now
             LinkedData::Models::Class.indexCommit()
-            logger.info("Solr index commit in #{Time.now - t0} sec.")
+            logger.info("Ontology terms index commit in #{Time.now - t0} sec.")
           end
         end
-        logger.info("Completed indexing ontology: #{self.ontology.acronym} in #{time} sec. #{count_classes} classes.")
+        logger.info("Completed indexing ontology terms: #{self.ontology.acronym} in #{time} sec. #{count_classes} classes.")
         logger.flush
 
         if optimize
-          logger.info("Optimizing index...")
+          logger.info("Optimizing ontology terms index...")
           time = Benchmark.realtime do
             LinkedData::Models::Class.indexOptimize()
           end
-          logger.info("Completed optimizing index in #{time} sec.")
+          logger.info("Completed optimizing ontology terms index in #{time} sec.")
+        end
+      end
+
+      def index_properties(logger, commit = true, optimize = true)
+        page = 1
+        size = 2500
+        count_props = 0
+
+        time = Benchmark.realtime do
+          self.bring(:ontology) if self.bring?(:ontology)
+          self.ontology.bring(:acronym) if self.ontology.bring?(:acronym)
+          logger.info("Indexing ontology properties: #{self.ontology.acronym}...")
+          t0 = Time.now
+          self.ontology.unindex_properties(commit)
+          logger.info("Removed ontology properties index in #{Time.now - t0} seconds."); logger.flush
+
+          props = self.ontology.properties
+          count_props = props.length
+          total_pages = (count_props/size.to_f).ceil
+          logger.info("Indexing a total of #{total_pages} pages of #{size} properties each.")
+
+          props.each_slice(size) do |prop_batch|
+            t = Time.now
+            LinkedData::Models::Class.indexBatch(prop_batch, :property)
+            logger.info("Page #{page} of ontology properties indexed in #{Time.now - t} seconds."); logger.flush
+            page += 1
+          end
+
+          if commit
+            t0 = Time.now
+            LinkedData::Models::Class.indexCommit(nil, :property)
+            logger.info("Ontology properties index commit in #{Time.now - t0} seconds.")
+          end
+        end
+        logger.info("Completed indexing ontology properties of #{self.ontology.acronym} in #{time} sec. Total of #{count_props} properties indexed.")
+        logger.flush
+
+        if optimize
+          logger.info("Optimizing ontology properties index...")
+          time = Benchmark.realtime do
+            LinkedData::Models::Class.indexOptimize(nil, :property)
+          end
+          logger.info("Completed optimizing ontology properties index in #{time} seconds.")
         end
       end
 
@@ -1911,6 +2102,7 @@ eos
 
         super(*args)
         self.ontology.unindex(index_commit)
+        self.ontology.unindex_properties(index_commit)
 
         self.bring(:metrics) if self.bring?(:metrics)
         self.metrics.delete if self.metrics
@@ -1923,6 +2115,7 @@ eos
 
             if prev_sub
               prev_sub.index(LinkedData::Parser.logger || Logger.new($stderr))
+              prev_sub.index_properties(LinkedData::Parser.logger || Logger.new($stderr))
             end
           end
         end
@@ -1939,6 +2132,7 @@ eos
         end
 
         classes = []
+
         if !isSkos
           owlThing = Goo.vocabulary(:owl)["Thing"]
           classes = LinkedData::Models::Class.where(parents: owlThing).in(self)
@@ -1960,6 +2154,8 @@ eos
             classes << LinkedData::Models::Class.find(id).in(self).disable_rules.first
           end
         end
+
+
         roots = []
         where = LinkedData::Models::Class.in(self)
                      .models(classes)
@@ -1996,7 +2192,7 @@ eos
           end
           roots << c if (c.obsolete.nil?) || (c.obsolete == false)
         end
-        return roots
+        roots
       end
 
       def download_and_store_ontology_file

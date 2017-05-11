@@ -81,7 +81,14 @@ module LinkedData
       if masterFileName
         ont_submission.masterFileName = masterFileName
       end
-      assert (ont_submission.valid?)
+
+      if ont_submission.valid?
+        assert true
+      else
+        puts ont_submission.errors
+        assert false
+      end
+
       ont_submission.save
 
       assert_equal true, ont_submission.exist?(reload=true)
