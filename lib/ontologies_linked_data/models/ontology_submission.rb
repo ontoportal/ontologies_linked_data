@@ -26,6 +26,7 @@ module LinkedData
       attribute :obsoleteProperty, enforce: [:uri]
       attribute :obsoleteParent, enforce: [:uri]
       attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
+      # metadataMappings: mod:ontologyLanguage, schema:fileFormat
 
       # enforce: [:concatenate] is for attribute that will be a single string but where we extract and concatenate the value of multiple properties
       # be careful, it can't be combined with enforce :uri !
@@ -101,7 +102,7 @@ module LinkedData
 
       # Complementary omv metadata
       attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true,
-                metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn"], helpText: "Date of the last modification made to the ontology"
+                metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn", "mod:updated"], helpText: "Date of the last modification made to the ontology"
 
       attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, label: "Number of entities", display: "metrics",
                 helpText: "Number of entities in this ontology."
@@ -162,7 +163,7 @@ module LinkedData
                 helpText: "People who invalidated the ontology."
 
       attribute :curatedBy, namespace: :pav, enforce: [:concatenate], extractedMetadata: true, display: "people",
-                helpText: "People who curated the ontology."
+                metadataMappings: ["mod:evaluatedBy"], helpText: "People who curated the ontology."
 
       attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"],
                 helpText: "The parties that have expressed support or approval to this ontology", display: "people"
@@ -180,7 +181,7 @@ module LinkedData
                 helpText: "Typically, the domain can refer to established topic hierarchies such as the general purpose topic hierarchy DMOZ or the domain specific topic hierarchy ACM for the computer science domain",
                 metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "usage"
 
-      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
+      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:ontologyFormalityLevel"],
                 helpText: "Level of formality of the ontology.", enforcedValues: {
               "http://w3id.org/nkos/nkostype#classification_schema" => "Classification scheme",
               "http://w3id.org/nkos/nkostype#dictionary" => "Dictionary",
