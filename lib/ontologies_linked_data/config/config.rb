@@ -174,6 +174,7 @@ module LinkedData
       conf.add_namespace(:sd, RDF::Vocabulary.new("http://www.w3.org/ns/sparql-service-description#"))
 
       conf.add_namespace(:cclicense, RDF::Vocabulary.new("http://creativecommons.org/licenses/"))
+      conf.add_namespace(:nkos, RDF::Vocabulary.new("http://w3id.org/nkos#"))
 
 
       conf.id_prefix = "http://data.bioontology.org/"
