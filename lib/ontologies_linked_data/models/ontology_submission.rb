@@ -309,7 +309,7 @@ module LinkedData
       attribute :similarTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "relations",
                 helpText: "Vocabularies that are similar in scope and objectives, independently of the fact that they otherwise refer to each other."
 
-      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith"],
+      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith", "nkos:alignedWith"],
                 helpText: "Ontologies that have an alignment which covers a substantial part of the described ontology"
 
       #attribute :explanationEvolution, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"]
@@ -341,7 +341,7 @@ module LinkedData
 
       #attribute :source, namespace: :dct, enforce: [:list], extractedMetadata: true,
       attribute :source, namespace: :dct, enforce: [:concatenate], extractedMetadata: true, display: "links",
-                metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn"],
+                metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn", "nkos:basedOn", "mod:sourceOntology"],
                 helpText: "A related resource from which the described resource is derived."
 
       attribute :abstract, namespace: :dct, extractedMetadata: true, enforce: [:textarea], helpText: "A summary of the ontology"
@@ -371,7 +371,7 @@ module LinkedData
 
       attribute :accrualMethod, namespace: :dct, extractedMetadata: true, display: "methodology",
                 helpText: "The method by which items are added to the ontology."
-      attribute :accrualPeriodicity, namespace: :dct, extractedMetadata: true, display: "methodology",
+      attribute :accrualPeriodicity, namespace: :dct, extractedMetadata: true, display: "methodology", metadataMappings: ["nkos:updateFrequency"],
                 helpText: "The frequency with which items are added to the ontology."
       attribute :accrualPolicy, namespace: :dct, extractedMetadata: true, display: "methodology",
                 helpText: "The policy governing the addition of items to the ontology."
@@ -414,7 +414,7 @@ module LinkedData
 
       # New metadata from VOAF
       attribute :usedBy, namespace: :voaf, enforce: [:list, :uri, :isOntology], extractedMetadata: true, display: "relations",  # Range : Ontology
-                helpText: "Ontologies that use the described ontology."
+                metadataMappings: ["nkos:usedBy"], helpText: "Ontologies that use the described ontology."
 
       attribute :metadataVoc, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "content", label: "Metadata vocabulary used",
                 metadataMappings: ["mod:vocabularyUsed", "adms:supportedSchema", "schema:schemaVersion"],
