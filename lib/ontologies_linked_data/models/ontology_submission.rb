@@ -36,7 +36,6 @@ module LinkedData
 
       attribute :homepage, namespace: :foaf, extractedMetadata: true, metadataMappings: ["cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"],
                 helpText: "The URL of the homepage for the ontology."
-      # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
 
       #attribute :publication, enforce: [:list], extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
       attribute :publication, extractedMetadata: true, helpText: "The URL of bibliographic reference for the ontology.",
