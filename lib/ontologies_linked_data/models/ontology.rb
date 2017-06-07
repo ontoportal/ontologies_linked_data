@@ -36,10 +36,10 @@ module LinkedData
                   inverse: { on: :provisional_class, attribute: :ontology }
       attribute :subscriptions,
                   inverse: { on: :subscription, attribute: :ontology}
-      attribute :administeredBy, enforce: [:existence, :user, :list]
+      attribute :administeredBy, enforce: [:existence, :user, :list], metadataMappings: ["oboInOwl:savedBy", "oboInOwl:saved-by"]
       attribute :group, enforce: [:list, :group]
 
-      attribute :viewingRestriction, :default => lambda {|x| "public"}
+      attribute :viewingRestriction, :default => lambda {|x| "public"}, metadataMappings: ["mod:accessibility"]
       attribute :doNotUpdate, enforce: [:boolean]
       attribute :flat, enforce: [:boolean]
       attribute :hasDomain, namespace: :omv, enforce: [:list, :category]
