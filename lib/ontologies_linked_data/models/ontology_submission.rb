@@ -255,8 +255,9 @@ module LinkedData
       attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"],
                 helpText: "Information about the tool used to create the ontology", enforcedValues: {
-                    "NeOn-Toolkit" => "NeOn-Toolkit",
                     "Protégé" => "Protégé",
+                    "OWL API" => "OWL API",
+                    "http://oboedit.org/" => "OBO-Edit",
                     "SWOOP" => "SWOOP",
                     "OntoStudio" => "OntoStudio",
                     "Altova" => "Altova",
@@ -267,7 +268,8 @@ module LinkedData
                     "OntoBuilder" => "OntoBuilder",
                     "WSMO Studio" => "WSMO Studio",
                     "VocBench" => "VocBench",
-                    "TopBraid" => "TopBraid"
+                    "TopBraid" => "TopBraid",
+                    "NeOn-Toolkit" => "NeOn-Toolkit"
                 }
 
       attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
