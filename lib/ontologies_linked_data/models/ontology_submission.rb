@@ -25,8 +25,7 @@ module LinkedData
       attribute :hierarchyProperty, enforce: [:uri]
       attribute :obsoleteProperty, enforce: [:uri]
       attribute :obsoleteParent, enforce: [:uri]
-      attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
-      # metadataMappings: mod:ontologyLanguage, schema:fileFormat
+      attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format], metadataMappings: ["mod:ontologyLanguage", "schema:fileFormat"]
 
       # enforce: [:concatenate] is for attribute that will be a single string but where we extract and concatenate the value of multiple properties
       # be careful, it can't be combined with enforce :uri !
