@@ -255,7 +255,7 @@ module LinkedData
       attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"],
                 helpText: "Information about the tool used to create the ontology", enforcedValues: {
-                    "Protégé" => "Protégé",
+                    "http://protege.stanford.edu" => "Protégé",
                     "OWL API" => "OWL API",
                     "http://oboedit.org/" => "OBO-Edit",
                     "SWOOP" => "SWOOP",
