@@ -399,11 +399,16 @@
     <rdfs:label xml:lang="fr">entité matérielle detaillée</rdfs:label>
     <skos:prefLabel xml:lang="en">skos prefLabel en</skos:prefLabel>
     <skos:prefLabel xml:lang="fr">skos prefLabel fr</skos:prefLabel>
+    <skos:prefLabel>skos prefLabel rien</skos:prefLabel>
     <skos:altLabel xml:lang="en">entity eng</skos:altLabel>
     <skos:altLabel xml:lang="fr">entité fra</skos:altLabel>
     <skos:altLabel xml:lang="es">entita esp</skos:altLabel>
+    <skos:altLabel>entite rien</skos:altLabel>
     <dcterms:description xml:lang="en">Some entities are material and detailed.</dcterms:description>
     <rdfs:comment xml:lang="en">Some entities are material and detailed.</rdfs:comment>
+    <rdfs:comment xml:lang="fr">comment fr</rdfs:comment>
+    <rdfs:comment xml:lang="es">comment es.</rdfs:comment>
+    <rdfs:comment>comment rien</rdfs:comment>
     <dcterms:identifier>AGROOE_c_03</dcterms:identifier>
     <rdfs:isDefinedBy rdf:resource="http://lirmm.fr/2015/ontology/agroportal_ontology_example.owl"/>
 </rdf:Description>
