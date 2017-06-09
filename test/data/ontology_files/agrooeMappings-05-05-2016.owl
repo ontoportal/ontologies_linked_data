@@ -397,6 +397,8 @@
     <rdfs:subClassOf rdf:resource="http://lirmm.fr/2015/resource/AGROOE_c_02"/>
     <rdfs:label xml:lang="en">material detailed entity</rdfs:label>
     <rdfs:label xml:lang="fr">entité matérielle detaillée</rdfs:label>
+    <skos:prefLabel xml:lang="en">skos prefLabel en</skos:prefLabel>
+    <skos:prefLabel xml:lang="fr">skos prefLabel fr</skos:prefLabel>
     <skos:altLabel xml:lang="en">entity eng</skos:altLabel>
     <skos:altLabel xml:lang="fr">entité fra</skos:altLabel>
     <skos:altLabel xml:lang="es">entita esp</skos:altLabel>
