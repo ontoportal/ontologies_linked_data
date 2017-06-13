@@ -23,7 +23,7 @@ GIT
 
 GIT
   remote: git://github.com/sifrproject/goo.git
-  revision: 172f7867aa9775866eda2ef43f9015f8611971f9
+  revision: 5447337613a4320da4bc3d9a70255c3e83089021
   branch: agroportal
   specs:
     goo (0.0.2)
