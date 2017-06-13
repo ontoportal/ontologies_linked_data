@@ -1314,6 +1314,7 @@ eos
 
         begin
           t0 = Time.now
+          # TODO: we want this call to get labels from lang that are not in main_lang if nothing else. But where does it takes it data from?
           page_classes = paging.page(page, size).all
           t1 = Time.now
           logger.info("#{page_classes.length} in page #{page} classes for " +
@@ -1325,6 +1326,8 @@ eos
               |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page) }
 
           page_classes.each { |c|
+            # For real this is calling "generate_missing_labels_each". Is it that hard to be clear in your code?
+            # It is unreadable, not stable and not powerful. What did you want to do?
             process_callbacks(logger, callbacks, :caller_on_each) {
                 |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page, c) }
           } if iterate_classes
@@ -1366,30 +1369,37 @@ eos
         artifacts[:mapping_triples] = []
       end
 
+      # Generate labels when no label found in the prefLabel attribute (it checks rdfs:label and take label from the URI if nothing else found)
       def generate_missing_labels_each(artifacts={}, logger, paging, page_classes, page, c)
         prefLabel = nil
-
         if c.prefLabel.nil?
-          rdfs_labels = c.label
+          begin
+            # in case there is no skos:prefLabel or rdfs:label from our main_lang
+            rdfs_labels = c.label
 
-          if rdfs_labels && rdfs_labels.length > 1 && c.synonym.length > 0
-            rdfs_labels = (Set.new(c.label) -  Set.new(c.synonym)).to_a.first
+            if rdfs_labels && rdfs_labels.length > 1 && c.synonym.length > 0
+              rdfs_labels = (Set.new(c.label) -  Set.new(c.synonym)).to_a.first
 
-            if rdfs_labels.nil? || rdfs_labels.length == 0
-              rdfs_labels = c.label
+              if rdfs_labels.nil? || rdfs_labels.length == 0
+                rdfs_labels = c.label
+              end
             end
-          end
 
-          if rdfs_labels and not (rdfs_labels.instance_of? Array)
-            rdfs_labels = [rdfs_labels]
-          end
-          label = nil
+            if rdfs_labels and not (rdfs_labels.instance_of? Array)
+              rdfs_labels = [rdfs_labels]
+            end
+            label = nil
 
-          if rdfs_labels && rdfs_labels.length > 0
-            label = rdfs_labels[0]
-          else
+            if rdfs_labels && rdfs_labels.length > 0
+              label = rdfs_labels[0]
+            else
+              # If no label found, we take the last fragment of the URI
+              label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
+            end
+          rescue Goo::Base::AttributeNotLoaded => e
             label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
           end
+
           artifacts[:label_triples] << LinkedData::Utils::Triples.label_for_class_triple(
               c.id, Goo.vocabulary(:metadata_def)[:prefLabel], label)
           prefLabel = label
@@ -1925,7 +1935,7 @@ eos
           logger.info("Removed ontology terms index (#{Time.now - t0}s)"); logger.flush
 
           paging = LinkedData::Models::Class.in(self).include(:unmapped).page(page, size)
-          # a fix for SKOS ontologies, see https://github.com/ncbo/ontologies_api/issues/20)
+          # a fix for SKOS ontologies, see https://github.com/ncbo/ontologies_api/issues/20
           self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
           cls_count = self.hasOntologyLanguage.skos? ? -1 : class_count(logger)
           paging.page_count_set(cls_count) unless cls_count < 0
