@@ -26,7 +26,7 @@ module LinkedData
       attribute :hierarchyProperty, enforce: [:uri]
       attribute :obsoleteProperty, enforce: [:uri]
       attribute :obsoleteParent, enforce: [:uri]
-      attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
+      attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format], metadataMappings: ["mod:ontologyLanguage", "schema:fileFormat"]
 
       # enforce: [:concatenate] is for attribute that will be a single string but where we extract and concatenate the value of multiple properties
       # be careful, it can't be combined with enforce :uri !
@@ -37,7 +37,6 @@ module LinkedData
 
       attribute :homepage, namespace: :foaf, extractedMetadata: true, metadataMappings: ["cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"],
                 helpText: "The URL of the homepage for the ontology."
-      # TODO: change default attribute name ATTENTION NAMESPACE PAS VRAIMENT BON
 
       #attribute :publication, enforce: [:list], extractedMetadata: true, metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
       attribute :publication, extractedMetadata: true, helpText: "The URL of bibliographic reference for the ontology.",
@@ -102,7 +101,7 @@ module LinkedData
 
       # Complementary omv metadata
       attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true,
-                metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn"], helpText: "Date of the last modification made to the ontology"
+                metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn", "mod:updated"], helpText: "Date of the last modification made to the ontology"
 
       attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, label: "Number of entities", display: "metrics",
                 helpText: "Number of entities in this ontology."
@@ -163,7 +162,7 @@ module LinkedData
                 helpText: "People who invalidated the ontology."
 
       attribute :curatedBy, namespace: :pav, enforce: [:concatenate], extractedMetadata: true, display: "people",
-                helpText: "People who curated the ontology."
+                metadataMappings: ["mod:evaluatedBy"], helpText: "People who curated the ontology."
 
       attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"],
                 helpText: "The parties that have expressed support or approval to this ontology", display: "people"
@@ -181,7 +180,7 @@ module LinkedData
                 helpText: "Typically, the domain can refer to established topic hierarchies such as the general purpose topic hierarchy DMOZ or the domain specific topic hierarchy ACM for the computer science domain",
                 metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "usage"
 
-      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:formalityLevel"],
+      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:ontologyFormalityLevel"],
                 helpText: "Level of formality of the ontology.", enforcedValues: {
               "http://w3id.org/nkos/nkostype#classification_schema" => "Classification scheme",
               "http://w3id.org/nkos/nkostype#dictionary" => "Dictionary",
@@ -257,8 +256,9 @@ module LinkedData
       attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
                 metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"],
                 helpText: "Information about the tool used to create the ontology", enforcedValues: {
-                    "NeOn-Toolkit" => "NeOn-Toolkit",
-                    "Protégé" => "Protégé",
+                    "http://protege.stanford.edu" => "Protégé",
+                    "OWL API" => "OWL API",
+                    "http://oboedit.org/" => "OBO-Edit",
                     "SWOOP" => "SWOOP",
                     "OntoStudio" => "OntoStudio",
                     "Altova" => "Altova",
@@ -269,7 +269,8 @@ module LinkedData
                     "OntoBuilder" => "OntoBuilder",
                     "WSMO Studio" => "WSMO Studio",
                     "VocBench" => "VocBench",
-                    "TopBraid" => "TopBraid"
+                    "TopBraid" => "TopBraid",
+                    "NeOn-Toolkit" => "NeOn-Toolkit"
                 }
 
       attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
@@ -310,7 +311,7 @@ module LinkedData
       attribute :similarTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "relations",
                 helpText: "Vocabularies that are similar in scope and objectives, independently of the fact that they otherwise refer to each other."
 
-      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith"],
+      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith", "nkos:alignedWith"],
                 helpText: "Ontologies that have an alignment which covers a substantial part of the described ontology"
 
       #attribute :explanationEvolution, namespace: :door, enforce: [:list, :uri], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"]
@@ -342,7 +343,7 @@ module LinkedData
 
       #attribute :source, namespace: :dct, enforce: [:list], extractedMetadata: true,
       attribute :source, namespace: :dct, enforce: [:concatenate], extractedMetadata: true, display: "links",
-                metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn"],
+                metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn", "nkos:basedOn", "mod:sourceOntology"],
                 helpText: "A related resource from which the described resource is derived."
 
       attribute :abstract, namespace: :dct, extractedMetadata: true, enforce: [:textarea], helpText: "A summary of the ontology"
@@ -372,7 +373,7 @@ module LinkedData
 
       attribute :accrualMethod, namespace: :dct, extractedMetadata: true, display: "methodology",
                 helpText: "The method by which items are added to the ontology."
-      attribute :accrualPeriodicity, namespace: :dct, extractedMetadata: true, display: "methodology",
+      attribute :accrualPeriodicity, namespace: :dct, extractedMetadata: true, display: "methodology", metadataMappings: ["nkos:updateFrequency"],
                 helpText: "The frequency with which items are added to the ontology."
       attribute :accrualPolicy, namespace: :dct, extractedMetadata: true, display: "methodology",
                 helpText: "The policy governing the addition of items to the ontology."
@@ -415,7 +416,7 @@ module LinkedData
 
       # New metadata from VOAF
       attribute :usedBy, namespace: :voaf, enforce: [:list, :uri, :isOntology], extractedMetadata: true, display: "relations",  # Range : Ontology
-                helpText: "Ontologies that use the described ontology."
+                metadataMappings: ["nkos:usedBy"], helpText: "Ontologies that use the described ontology."
 
       attribute :metadataVoc, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "content", label: "Metadata vocabulary used",
                 metadataMappings: ["mod:vocabularyUsed", "adms:supportedSchema", "schema:schemaVersion"],
