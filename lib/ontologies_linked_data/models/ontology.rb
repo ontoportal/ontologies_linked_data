@@ -24,8 +24,8 @@ module LinkedData
       attribute :acronym, namespace: :omv,
         enforce: [:unique, :existence, lambda { |inst,attr| validate_acronym(inst,attr) } ]
       attribute :name, :namespace => :omv, enforce: [:unique, :existence]
-      attribute :submissions,
-                  inverse: { on: :ontology_submission, attribute: :ontology }
+      attribute :submissions, inverse: { on: :ontology_submission, attribute: :ontology },
+                metadataMappings: ["dct:hasVersion", "pav:hasCurrentVersion", "pav:hasVersion", "prov:generalizationOf", "adms:next"]
       attribute :projects,
                   inverse: { on: :project, attribute: :ontologyUsed }
       attribute :notes,
