@@ -170,7 +170,7 @@ module LinkedData
       attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "people",
                 helpText: "The organization funding the ontology development."
 
-      attribute :translator, namespace: :schema, extractedMetadata: true, display: "people",
+      attribute :translator, namespace: :schema, extractedMetadata: true, metadataMappings: ["doap:translator"], display: "people",
                 helpText: "Organization or person who adapted the ontology to different languages, regional differences and technical requirements"
 
 
