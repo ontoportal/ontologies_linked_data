@@ -130,6 +130,7 @@ module LinkedData
         return @obsolete || false
       end
 
+      # Method called to get the properties we are going to index in solr (it queries the 4store to get all value to index)
       def get_index_doc
         child_count = 0
 
@@ -167,6 +168,7 @@ module LinkedData
             cur_val = cur_val.uniq
             cur_val.map { |val| doc[att] << (val.kind_of?(Goo::Base::Resource) ? val.id.to_s : val.to_s.strip) }
           else
+            #binding.pry
             doc[att] = cur_val.to_s.strip
           end
         end
