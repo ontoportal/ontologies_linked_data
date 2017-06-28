@@ -268,11 +268,11 @@ module LinkedData
                 metadataMappings: ["owl:priorVersion", "dct:isVersionOf", "door:priorVersion", "prov:wasRevisionOf", "adms:prev", "pav:previousVersion", "pav:hasEarlierVersion"],
                 helpText: "An URI to the prior version of the ontology"
 
-      attribute :isBackwardCompatibleWith, namespace: :omv, enforce: [:uri, :isOntology], extractedMetadata: true,
+      attribute :isBackwardCompatibleWith, namespace: :omv, enforce: [:list, :uri, :isOntology], extractedMetadata: true,
                 metadataMappings: ["owl:backwardCompatibleWith", "door:backwardCompatibleWith"], display: "relations",
                 helpText: "URI of an ontology that has its prior version compatible with the described ontology"
 
-      attribute :isIncompatibleWith, namespace: :omv, enforce: [:uri, :isOntology], extractedMetadata: true,
+      attribute :isIncompatibleWith, namespace: :omv, enforce: [:list, :uri, :isOntology], extractedMetadata: true,
                 metadataMappings: ["owl:incompatibleWith", "door:owlIncompatibleWith"], display: "relations",
                 helpText: "URI of an ontology that is a prior version of this ontology, but not compatible"
 
