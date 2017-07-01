@@ -193,7 +193,7 @@ module LinkedData
                     "https://creativecommons.org/publicdomain/zero/1.0/" => "CC Public Domain Dedication",
                     "http://www.gnu.org/licenses/gpl-3.0" => "GNU General Public License 3.0",
                     "http://www.gnu.org/licenses/gpl-2.0" => "GNU General Public License 2.0",
-                    "https://opensource.org/licenses/Artistic-2.0" => "Open Source Artictic license 2.0",
+                    "https://opensource.org/licenses/Artistic-2.0" => "Open Source Artistic license 2.0",
                     "https://opensource.org/licenses/MIT" => "MIT License",
                     "https://opensource.org/licenses/BSD-3-Clause" => "BSD 3-Clause License",
                     "http://www.apache.org/licenses/LICENSE-2.0" => "Apache License 2.0"
