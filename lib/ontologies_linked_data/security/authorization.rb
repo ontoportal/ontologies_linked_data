@@ -26,7 +26,11 @@ module LinkedData
           response = {
             status: status,
             error: "You must provide an API Key either using the query-string parameter `apikey` or the `Authorization` header: `Authorization: apikey token=my_apikey`. " + \
+<<<<<<< HEAD
               "Your API Key can be obtained by logging in at http://agroportal.lirmm.fr/account"
+=======
+              "Your API Key can be obtained by logging in at http://bioportal.lirmm.fr/account"
+>>>>>>> sifr
           }
         end
 
@@ -35,7 +39,11 @@ module LinkedData
           response = {
             status: status,
             error: "You must provide a valid API Key. " + \
+<<<<<<< HEAD
               "Your API Key can be obtained by logging in at http://agroportal.lirmm.fr/account"
+=======
+              "Your API Key can be obtained by logging in at http://bioportal.lirmm.fr/account"
+>>>>>>> sifr
           }
         end
 
