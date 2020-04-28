@@ -150,18 +150,51 @@ module LinkedData::Utils
     end
 
     def self.reset_password(user, token)
-      subject = "[#{LinkedData.settings.ui_host}] User #{user.username} password reset"
-      password_url = "http://#{LinkedData.settings.ui_host}/reset_password?tk=#{token}&em=#{CGI.escape(user.email)}&un=#{CGI.escape(user.username)}"
-      body = <<-EOS
-Someone has requested a password reset for user #{user.username}. If this was you, please click on the link below to reset your password. Otherwise, please ignore this email.<br/><br/>
-<a href="#{password_url}">#{password_url}</a><br/><br/>
-Thanks,<br/>
-AgroPortal Team
-      EOS
+      subject = "[AgroPortal] User #{user.username} password reset"
+      password_url = "https://#{LinkedData.settings.ui_host}/reset_password?tk=#{token}&em=#{CGI.escape(user.email)}&un=#{CGI.escape(user.username)}"
+      body = <<~HTML
+        Someone has requested a password reset for user #{user.username}. If this was 
+        you, please click on the link below to reset your password. Otherwise, please 
+        ignore this email.<br/><br/>
+
+        <a href="#{password_url}">#{password_url}</a><br/><br/>
+
+        Thanks,<br/>
+        AgroPortal Team
+      HTML
       options = {
         subject: subject,
         body: body,
         recipients: user.email
+      }
+      notify(options)
+    end
+
+    def self.obofoundry_sync(missing_onts, obsolete_onts)
+      body = ""
+
+      if missing_onts.size > 0
+        body << "<strong>The following OBO Library ontologies are missing from BioPortal:</strong><br/><br/>"
+        missing_onts.each do |ont|
+          body << "<a href='#{ont['homepage']}'>#{ont['id']}</a> (#{ont['title']})<br/><br/>"
+        end
+      end
+
+      if obsolete_onts.size > 0
+        body << "<strong>The following OBO Library ontologies have been deprecated:</strong><br/><br/>"
+        obsolete_onts.each do |ont|
+          body << "<a href='#{ont['homepage']}'>#{ont['id']}</a> (#{ont['title']})<br/><br/>"
+        end
+      end
+
+      if body.empty?
+        body << "BioPortal and the OBO Foundry are in sync.<br/><br/>"
+      end
+
+      options = {
+        subject: "[BioPortal] OBOFoundry synchronization report",
+        body: body,
+        recipients: LinkedData.settings.email_sender
       }
       notify(options)
     end

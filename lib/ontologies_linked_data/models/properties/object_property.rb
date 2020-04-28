@@ -21,9 +21,6 @@ module LinkedData
       # attribute :domain
       # attribute :range
 
-      search_options :index_id => lambda { |t| "#{t.id.to_s}_#{t.submission.ontology.acronym}_#{t.submission.submissionId}" },
-                     :document => lambda { |t| t.get_index_doc }
-
       serialize_default :label, :labelGenerated, :definition, :matchType, :ontologyType, :propertyType, :parents, :children, :hasChildren # some of these attributes are used in Search (not shown out of context)
       aggregates childrenCount: [:count, :children]
       # this command allows the children to be serialized in the output

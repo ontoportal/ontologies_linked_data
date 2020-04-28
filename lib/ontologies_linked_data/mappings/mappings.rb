@@ -230,21 +230,26 @@ eos
     mappings = []
     persistent_count = 0
     if classId.nil?
-      pcount = LinkedData::Models::MappingCount.where(
-          ontologies: acr1
-      )
+      acr2 = nil
+
+      if not sub2.nil?
+        acr2 = sub2.id.to_s.split("/")[-3]
+      end
+      pcount = LinkedData::Models::MappingCount.where(ontologies: acr1)
       if not acr2 == nil
         pcount = pcount.and(ontologies: acr2)
       end
       f = Goo::Filter.new(:pair_count) == (not acr2.nil?)
       pcount = pcount.filter(f)
       pcount = pcount.include(:count)
-      pcount = pcount.all
-      if pcount.length == 0
+      pcount_arr = pcount.all
+
+      if pcount_arr.length == 0
         persistent_count = 0
       else
-        persistent_count = pcount.first.count
+        persistent_count = pcount_arr.first.count
       end
+
       if persistent_count == 0
         return LinkedData::Mappings.empty_page(page,size)
       end
@@ -312,8 +317,7 @@ eos
     unless sub2.nil?
       graphs << sub2
     end
-    solutions = epr.query(query,
-                          graphs: graphs, reload_cache: reload_cache)
+    solutions = epr.query(query, graphs: graphs, reload_cache: reload_cache)
     s1 = nil
     unless classId.nil?
       s1 = RDF::URI.new(classId.to_s)

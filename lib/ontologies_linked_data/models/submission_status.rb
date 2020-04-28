@@ -77,7 +77,7 @@ module LinkedData
           readable_stats = statuses_raw.map { |s| s.code }
         rescue
           i = 0
-          num_calls = 3
+          num_calls = LinkedData.settings.num_retries_4store
           readable_stats = nil
 
           while readable_stats.nil? && i < num_calls do

@@ -15,7 +15,7 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
 
     # Create a test ontology submission.
     self.new('self').submission_parse(@@acronym, 'CSV TEST BRO', 
-      './test/data/ontology_files/BRO_for_csv.owl', sub_id, 
+      './test/data/ontology_files/BRO_for_csv.owl', sub_id,
       process_rdf: true, index_search: false, run_metrics: false, reasoning: true)
     sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: @@acronym], submissionId: sub_id)
             .include(:version, :submissionId, :ontology).first
@@ -32,16 +32,15 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
     size = 2500
     @@num_classes = 0
     paging = LinkedData::Models::Class.in(sub).include(:unmapped).page(page, size)
-
     while !page.nil?
       page_classes = paging.page(page, size).all
       props_to_include = LinkedData::Models::Class.goo_attrs_to_load() << :parents
       LinkedData::Models::Class.in(sub).include(props_to_include).models(page_classes).all
-      
+
       page_classes.each do |c|
         writer.write_class(c)
       end
-      
+
       @@num_classes += page_classes.length
       page = page_classes.next? ? page + 1 : nil
     end
@@ -66,7 +65,7 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
   def test_csv_writer_column_count
     csv = CSV.parse(get_csv_string, headers:true)
     # We currently have 8 "standard BioPortal properties".
-    assert_equal @@ontology.properties.size + 8, csv.headers.size 
+    assert_equal @@ontology.properties.size + 8, csv.headers.size
   end
 
   def test_csv_writer_content_id
@@ -83,7 +82,7 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
     end
 
     assert class_exists, %Q<Class not found: "#{preferred_label}">
-  end  
+  end
 
   def test_csv_writer_content_preferred_label
     class_exists = false
@@ -169,7 +168,7 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
     class_exists = false
     preferred_label = 'Software Development'
     cui = 'C0150959'
-    
+
     classes = CSV.parse(get_csv_string, headers:true)
     classes.select do |row|
       if row[LinkedData::Utils::OntologyCSVWriter::PREF_LABEL] == preferred_label
@@ -201,7 +200,7 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
     class_exists = false
     preferred_label = 'Social Networking'
     semantic_type = 'http://bioontology.org/ontologies/Activity.owl#Activity'
-    
+
     classes = CSV.parse(get_csv_string, headers:true)
     classes.select do |row|
       if row[LinkedData::Utils::OntologyCSVWriter::PREF_LABEL] == preferred_label
@@ -216,7 +215,7 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
   def test_csv_writer_content_semantic_type_multiple
     class_exists = false
     preferred_label = 'Genomics'
-    semantic_types = ['http://bioontology.org/ontologies/Activity.owl#Activity', 
+    semantic_types = ['http://bioontology.org/ontologies/Activity.owl#Activity',
                       'http://bioontology.org/ontologies/Activity.owl#Gene_Therapy',
                       'http://bioontology.org/ontologies/ResearchArea.owl#Area_of_Research']
 
@@ -234,7 +233,7 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
   def test_csv_writer_content_obsolete
     class_exists = false
     preferred_label = 'High Dimensional Data'
-    
+
     classes = CSV.parse(get_csv_string, headers:true)
     classes.select do |row|
       if row[LinkedData::Utils::OntologyCSVWriter::PREF_LABEL] == preferred_label
@@ -244,12 +243,12 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
     end
 
     assert class_exists, %Q<Class not found: "#{preferred_label}">
-  end  
+  end
 
   def test_csv_writer_content_non_obsolete
     class_exists = false
     preferred_label = 'Area of Research'
-    
+
     classes = CSV.parse(get_csv_string, headers:true)
     classes.select do |row|
       if row[LinkedData::Utils::OntologyCSVWriter::PREF_LABEL] == preferred_label
@@ -265,7 +264,7 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
     class_exists = false
     preferred_label = 'Deep Parsing'
     parent_id = 'http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Parsing'
-    
+
     classes = CSV.parse(get_csv_string, headers:true)
     classes.select do |row|
       if row[LinkedData::Utils::OntologyCSVWriter::PREF_LABEL] == preferred_label
@@ -280,7 +279,7 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
   def test_csv_writer_content_parent_multiple
     class_exists = false
     preferred_label = 'Technical Support'
-    parent_ids = ['http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#People_Resource', 
+    parent_ids = ['http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#People_Resource',
                   'http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Service_Resource']
 
     classes = CSV.parse(get_csv_string, headers:true)
@@ -299,7 +298,7 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
     preferred_label = 'Modular Component'
     prop_id = 'http://bioontology.org/ontologies/biositemap.owl#replacedBy'
     prop_val = 'http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Data_Resource'
-    
+
     classes = CSV.parse(get_csv_string, headers:true)
     classes.select do |row|
       if row[LinkedData::Utils::OntologyCSVWriter::PREF_LABEL] == preferred_label
@@ -308,6 +307,6 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
       end
     end
 
-    assert class_exists, %Q<Class not found: "#{preferred_label}">  
+    assert class_exists, %Q<Class not found: "#{preferred_label}">
   end
 end
