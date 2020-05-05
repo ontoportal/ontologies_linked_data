@@ -24,7 +24,7 @@ GIT
 GIT
   remote: https://github.com/sifrproject/goo.git
   revision: 7ac908e827a9fbbfe22d407dcec750714f04d013
-  branch: agroportal
+  branch: virtual-appliance-3.0-merge
   specs:
     goo (0.0.2)
       addressable (= 2.3.5)
