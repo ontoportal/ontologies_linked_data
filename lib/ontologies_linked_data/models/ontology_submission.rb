@@ -13,6 +13,7 @@ module LinkedData
     class OntologySubmission < LinkedData::Models::Base
 
       FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
+      FLAT_ROOTS_LIMIT = 1000
 
       model :ontology_submission, name_with: lambda { |s| submission_id_generator(s) }
       attribute :submissionId, enforce: [:integer, :existence]
@@ -65,8 +66,8 @@ module LinkedData
 
       # Links
       links_load :submissionId, ontology: [:acronym]
-      link_to LinkedData::Hypermedia::Link.new("metrics", lambda {|s| "ontologies/#{s.ontology.acronym}/submissions/#{s.submissionId}/metrics"}, self.type_uri)
-              LinkedData::Hypermedia::Link.new("download", lambda {|s| "ontologies/#{s.ontology.acronym}/submissions/#{s.submissionId}/download"}, self.type_uri)
+      link_to LinkedData::Hypermedia::Link.new("metrics", lambda {|s| "#{self.ontology_link(s)}/submissions/#{s.submissionId}/metrics"}, self.type_uri)
+              LinkedData::Hypermedia::Link.new("download", lambda {|s| "#{self.ontology_link(s)}/submissions/#{s.submissionId}/download"}, self.type_uri)
 
       # HTTP Cache settings
       cache_timeout 3600
@@ -77,6 +78,31 @@ module LinkedData
       # Access control
       read_restriction_based_on lambda {|sub| sub.ontology}
       access_control_load ontology: [:administeredBy, :acl, :viewingRestriction]
+
+      def initialize(*args)
+        super(*args)
+        @mutex = Mutex.new
+      end
+
+      def synchronize(&block)
+        @mutex.synchronize(&block)
+      end
+
+      def self.ontology_link(m)
+        ontology_link = ""
+
+        if m.class == self
+          m.bring(:ontology) if m.bring?(:ontology)
+
+          begin
+            m.ontology.bring(:acronym) if m.ontology.bring?(:acronym)
+            ontology_link = "ontologies/#{m.ontology.acronym}"
+          rescue Exception => e
+            ontology_link = ""
+          end
+        end
+        ontology_link
+      end
 
       def self.segment_instance(sub)
         sub.bring(:ontology) unless sub.loaded_attributes.include?(:ontology)
@@ -92,7 +118,7 @@ module LinkedData
           raise ArgumentError, "Submission cannot be saved if ontology does not have acronym"
         end
         return RDF::URI.new(
-          "#{(Goo.id_prefix)}ontologies/#{CGI.escape(ss.ontology.acronym.to_s)}/submissions/#{ss.submissionId.to_s}"
+            "#{(Goo.id_prefix)}ontologies/#{CGI.escape(ss.ontology.acronym.to_s)}/submissions/#{ss.submissionId.to_s}"
         )
       end
 
@@ -144,7 +170,7 @@ module LinkedData
           sum_only = self.ontology.summaryOnly
         rescue Exception => e
           i = 0
-          num_calls = 3
+          num_calls = LinkedData.settings.num_retries_4store
           sum_only = nil
 
           while sum_only.nil? && i < num_calls do
@@ -201,13 +227,13 @@ module LinkedData
           if repeated_names.length > 0
             names = repeated_names.keys.to_s
             self.errors[:uploadFilePath] <<
-            "Zip file contains file names (#{names}) in more than one folder."
+                "Zip file contains file names (#{names}) in more than one folder."
             return false
           end
 
           #error message with options to choose from.
           self.errors[:uploadFilePath] << {
-            :message => "Zip file detected, choose the master file.", :options => files }
+              :message => "Zip file detected, choose the master file.", :options => files }
           return false
 
         elsif zip and not self.masterFileName.nil?
@@ -217,9 +243,9 @@ module LinkedData
             if self.errors[:uploadFilePath].nil?
               self.errors[:uploadFilePath] = []
               self.errors[:uploadFilePath] << {
-                :message =>
-              "The selected file `#{self.masterFileName}` is not included in the zip file",
-                :options => files }
+                  :message =>
+                      "The selected file `#{self.masterFileName}` is not included in the zip file",
+                  :options => files }
             end
           end
         end
@@ -336,15 +362,26 @@ module LinkedData
           mx = nil
         end
 
+        self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
+
         if mx
           mx.bring(:classes) if mx.bring?(:classes)
           count = mx.classes
+
+          if self.hasOntologyLanguage.skos?
+            mx.bring(:individuals) if mx.bring?(:individuals)
+            count += mx.individuals
+          end
           count_set = true
         else
           mx = metrics_from_file(logger)
 
           unless mx.empty?
             count = mx[1][0].to_i
+
+            if self.hasOntologyLanguage.skos?
+              count += mx[1][1].to_i
+            end
             count_set = true
           end
         end
@@ -484,56 +521,100 @@ eos
         end
       end
 
-      def loop_classes(logger, callbacks)
+      def loop_classes(logger, raw_paging, callbacks)
         page = 1
         size = 2500
-        paging = LinkedData::Models::Class.in(self).include(:prefLabel, :synonym, :label, :unmapped).page(page, size)
-        cls_count_set = false
-        cls_count = class_count(logger)
+        count_classes = 0
+        acr = self.id.to_s.split("/")[-1]
+        operations = callbacks.values.map { |v| v[:op_name] }.join(", ")
 
-        if cls_count > -1
-          # prevent a COUNT SPARQL query if possible
-          paging.page_count_set(cls_count)
-          cls_count_set = true
-        else
-          cls_count = 0
+        time = Benchmark.realtime do
+          paging = raw_paging.page(page, size)
+          cls_count_set = false
+          cls_count = class_count(logger)
+
+          if cls_count > -1
+            # prevent a COUNT SPARQL query if possible
+            paging.page_count_set(cls_count)
+            cls_count_set = true
+          else
+            cls_count = 0
+          end
+
+          iterate_classes = false
+          # 1. init artifacts hash if not explicitly passed in the callback
+          # 2. determine if class-level iteration is required
+          callbacks.each { |_, callback| callback[:artifacts] ||= {}; iterate_classes = true if callback[:caller_on_each] }
+
+          process_callbacks(logger, callbacks, :caller_on_pre) {
+              |callable, callback| callable.call(callback[:artifacts], logger, paging) }
+
+          page_len = -1
+          prev_page_len = -1
+
+          begin
+            t0 = Time.now
+            page_classes = paging.page(page, size).all
+            total_pages = page_classes.total_pages
+            page_len = page_classes.length
+
+            # nothing retrieved even though we're expecting more records
+            if total_pages > 0 && page_classes.empty? && (prev_page_len == -1 || prev_page_len == size)
+              j = 0
+              num_calls = LinkedData.settings.num_retries_4store
+
+              while page_classes.empty? && j < num_calls do
+                j += 1
+                logger.error("Empty page encountered. Retrying #{j} times...")
+                sleep(2)
+                page_classes = paging.page(page, size).all
+                logger.info("Success retrieving a page of #{page_classes.length} classes after retrying #{j} times...") unless page_classes.empty?
+              end
+
+              if page_classes.empty?
+                msg = "Empty page #{page} of #{total_pages} persisted after retrying #{j} times. #{operations} of #{acr} aborted..."
+                logger.error(msg)
+                raise msg
+              end
+            end
+
+            if page_classes.empty?
+              if total_pages > 0
+                logger.info("The number of pages reported for #{acr} - #{total_pages} is higher than expected #{page - 1}. Completing #{operations}...")
+              else
+                logger.info("Ontology #{acr} contains #{total_pages} pages...")
+              end
+              break
+            end
+
+            prev_page_len = page_len
+            logger.info("#{acr}: page #{page} of #{total_pages} - #{page_len} ontology terms retrieved in #{Time.now - t0} sec.")
+            logger.flush
+            count_classes += page_classes.length
+
+            process_callbacks(logger, callbacks, :caller_on_pre_page) {
+                |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page) }
+
+            page_classes.each { |c|
+              process_callbacks(logger, callbacks, :caller_on_each) {
+                  |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page, c) }
+            } if iterate_classes
+
+            process_callbacks(logger, callbacks, :caller_on_post_page) {
+                |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page) }
+            cls_count += page_classes.length unless cls_count_set
+
+            page = page_classes.next? ? page + 1 : nil
+          end while !page.nil?
+
+          callbacks.each { |_, callback| callback[:artifacts][:count_classes] = cls_count }
+          process_callbacks(logger, callbacks, :caller_on_post) {
+              |callable, callback| callable.call(callback[:artifacts], logger, paging) }
         end
 
-        iterate_classes = false
-        # 1. init artifacts hash if not explicitly passed in the callback
-        # 2. determine if class-level iteration is required
-        callbacks.each { |_, callback| callback[:artifacts] ||= {}; iterate_classes = true if callback[:caller_on_each] }
+        logger.info("Completed #{operations}: #{acr} in #{time} sec. #{count_classes} classes.")
+        logger.flush
 
-        process_callbacks(logger, callbacks, :caller_on_pre) {
-            |callable, callback| callable.call(callback[:artifacts], logger, paging) }
-
-        begin
-          t0 = Time.now
-          page_classes = paging.page(page, size).all
-          t1 = Time.now
-          logger.info("#{page_classes.length} in page #{page} classes for " +
-                  "#{self.id.to_ntriples} (#{t1 - t0} sec)." +
-                  " Total pages #{page_classes.total_pages}.")
-          logger.flush
-
-          process_callbacks(logger, callbacks, :caller_on_pre_page) {
-              |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page) }
-
-          page_classes.each { |c|
-            process_callbacks(logger, callbacks, :caller_on_each) {
-                |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page, c) }
-          } if iterate_classes
-
-          process_callbacks(logger, callbacks, :caller_on_post_page) {
-              |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page) }
-          cls_count += page_classes.length unless cls_count_set
-
-          page = page_classes.next? ? page + 1 : nil
-        end while !page.nil?
-
-        callbacks.each { |_, callback| callback[:artifacts][:count_classes] = cls_count }
-        process_callbacks(logger, callbacks, :caller_on_post) {
-            |callable, callback| callable.call(callback[:artifacts], logger, paging) }
         # set the status on actions that have completed successfully
         callbacks.each do |_, callback|
           if callback[:status]
@@ -652,7 +733,7 @@ eos
         self.bring(:obsoleteParent) if self.bring?(:obsoleteParent)
         classes_deprecated = []
         if self.obsoleteProperty &&
-          self.obsoleteProperty.to_s != "http://www.w3.org/2002/07/owl#deprecated"
+           self.obsoleteProperty.to_s != "http://www.w3.org/2002/07/owl#deprecated"
 
           predicate_obsolete = RDF::URI.new(self.obsoleteProperty.to_s)
           query_obsolete_predicate = <<eos
@@ -670,16 +751,16 @@ eos
         if self.obsoleteParent.nil?
           #try to find oboInOWL obsolete.
           obo_in_owl_obsolete_class = LinkedData::Models::Class
-                                  .find(LinkedData::Utils::Triples.obo_in_owl_obsolete_uri)
-                                  .in(self).first
+                                          .find(LinkedData::Utils::Triples.obo_in_owl_obsolete_uri)
+                                          .in(self).first
           if obo_in_owl_obsolete_class
             self.obsoleteParent = LinkedData::Utils::Triples.obo_in_owl_obsolete_uri
           end
         end
         if self.obsoleteParent
           class_obsolete_parent = LinkedData::Models::Class
-                                  .find(self.obsoleteParent)
-                                  .in(self).first
+                                      .find(self.obsoleteParent)
+                                      .in(self).first
           if class_obsolete_parent
             descendents_obsolete = class_obsolete_parent.descendants
             logger.info("Found #{descendents_obsolete.length} descendents of obsolete root #{self.obsoleteParent.to_s}")
@@ -700,9 +781,9 @@ eos
           end
           fsave.close()
           result = Goo.sparql_data_client.append_triples_from_file(
-                          self.id,
-                          save_in_file,
-                          mime_type="application/x-turtle")
+              self.id,
+              save_in_file,
+              mime_type="application/x-turtle")
         end
       end
 
@@ -903,6 +984,7 @@ eos
 
               callbacks = {
                   missing_labels: {
+                      op_name: "Missing Labels Generation",
                       required: true,
                       status: LinkedData::Models::SubmissionStatus.find("RDF_LABELS").first,
                       artifacts: {
@@ -916,7 +998,8 @@ eos
                   }
               }
 
-              loop_classes(logger, callbacks)
+              raw_paging = LinkedData::Models::Class.in(self).include(:prefLabel, :synonym, :label)
+              loop_classes(logger, raw_paging, callbacks)
 
               status = LinkedData::Models::SubmissionStatus.find("OBSOLETE").first
               begin
@@ -1048,56 +1131,11 @@ eos
         self
       end
 
-      # callbacks = {
-      #     index: {
-      #         required: false,
-      #         status: LinkedData::Models::SubmissionStatus.find("INDEXED").first,
-      #         artifacts: {
-      #             commit: index_commit,
-      #             optimize: false
-      #         },
-      #         caller_on_pre: :index_pre,
-      #         caller_on_pre_page: :index_pre_page,
-      #         caller_on_each: :index_each,
-      #         caller_on_post_page: :index_post_page,
-      #         caller_on_post: :index_post
-      #     }
-      # }
-      #
-      #
-      #
-      # def index_pre(artifacts={}, logger, paging)
-      #   self.bring(:ontology) if self.bring?(:ontology)
-      #   self.ontology.bring(:provisionalClasses) if self.ontology.bring?(:provisionalClasses)
-      #   logger.info("Indexing ontology: #{self.ontology.acronym}...")
-      #   t0 = Time.now
-      #   self.ontology.unindex(artifacts[:commit])
-      #   logger.info("Removing ontology index (#{Time.now - t0}s)"); logger.flush
-      # end
-      #
-      #
-      #
-      # def index_pre_page(artifacts={}, logger, paging, page_classes, page)
-      #
-      # end
-      #
-      # def index_each(artifacts={}, logger, paging, page_classes, page, c)
-      #
-      # end
-      #
-      # def index_post_page(artifacts={}, logger, paging, page_classes, page)
-      #
-      # end
-      #
-      # def index_post(artifacts={}, logger, paging)
-      #
-      # end
-
       def index(logger, commit = true, optimize = true)
-        page = 1
+        page = 0
         size = 1000
-
         count_classes = 0
+
         time = Benchmark.realtime do
           self.bring(:ontology) if self.bring?(:ontology)
           self.ontology.bring(:acronym) if self.ontology.bring?(:acronym)
@@ -1107,102 +1145,123 @@ eos
           self.ontology.unindex(false)
           logger.info("Removed ontology terms index (#{Time.now - t0}s)"); logger.flush
 
-          paging = LinkedData::Models::Class.in(self).include(:unmapped).page(page, size)
-          # a fix for SKOS ontologies, see https://github.com/ncbo/ontologies_api/issues/20)
-          self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
-          cls_count = self.hasOntologyLanguage.skos? ? -1 : class_count(logger)
+          paging = LinkedData::Models::Class.in(self).include(:unmapped).aggregate(:count, :children).page(page, size)
+          cls_count = class_count(logger)
           paging.page_count_set(cls_count) unless cls_count < 0
 
-          # TODO: this needs to us its own parameter and moved into a callback
           csv_writer = LinkedData::Utils::OntologyCSVWriter.new
           csv_writer.open(self.ontology, self.csv_path)
-          page_len = -1
-          prev_page_len = -1
+          total_pages = paging.page(1, size).all.total_pages
+          num_threads = [total_pages, LinkedData.settings.indexing_num_threads].min
+          threads = []
+          page_classes = nil
 
-          begin #per page
-            t0 = Time.now
-            page_classes = paging.page(page, size).all
-            total_pages = page_classes.total_pages
-            page_len = page_classes.length
+          num_threads.times do |num|
+            threads[num] = Thread.new {
+              Thread.current["done"] = false
+              Thread.current["page_len"] = -1
+              Thread.current["prev_page_len"] = -1
 
-            # nothing retrieved even though we're expecting more records
-            if total_pages > 0 && page_classes.empty? && (prev_page_len == -1 || prev_page_len == size)
-              j = 0
-              num_calls = 3
+              while !Thread.current["done"]
+                synchronize do
+                  page = (page == 0 || page_classes.next?) ? page + 1 : nil
 
-              while page_classes.empty? && j < num_calls do
-                j += 1
-                logger.error("Empty page encountered. Retrying #{j} times...")
-                sleep(2)
-                page_classes = paging.page(page, size).all
-                logger.info("Success retrieving a page of #{page_classes.length} classes after retrying #{j} times...") unless page_classes.empty?
-              end
+                  if page.nil?
+                    Thread.current["done"] = true
+                  else
+                    Thread.current["page"] = page || "nil"
+                    page_classes = paging.page(page, size).all
+                    count_classes += page_classes.length
+                    Thread.current["page_classes"] = page_classes
+                    Thread.current["page_len"] = page_classes.length
+                    Thread.current["t0"] = Time.now
 
-              if page_classes.empty?
-                msg = "Empty page #{page} of #{total_pages} persisted after retrying #{j} times. Indexing of #{self.id.to_s} aborted..."
-                logger.error(msg)
-                raise msg
-              end
-            end
+                    # nothing retrieved even though we're expecting more records
+                    if total_pages > 0 && page_classes.empty? && (Thread.current["prev_page_len"] == -1 || Thread.current["prev_page_len"] == size)
+                      j = 0
+                      num_calls = LinkedData.settings.num_retries_4store
 
-            if page_classes.empty?
-              if total_pages > 0
-                logger.info("The number of pages reported for #{self.id.to_s} - #{total_pages} is higher than expected #{page - 1}. Completing indexing...")
-              else
-                logger.info("Ontology #{self.id.to_s} contains #{total_pages} pages...")
-              end
+                      while page_classes.empty? && j < num_calls do
+                        j += 1
+                        logger.error("Thread #{num + 1}: Empty page encountered. Retrying #{j} times...")
+                        sleep(2)
+                        page_classes = paging.page(page, size).all
+                        logger.info("Thread #{num + 1}: Success retrieving a page of #{page_classes.length} classes after retrying #{j} times...") unless page_classes.empty?
+                      end
 
-              break
-            end
-
-            prev_page_len = page_len
-            logger.info("Page #{page} of #{total_pages} - #{page_len} ontology terms retrieved in #{Time.now - t0} sec.")
-            t0 = Time.now
-
-            # TODO: CSV writing needs to be moved to its own callback
-            page_classes.each do |c|
-              begin
-                # this cal is needed for indexing of properties
-                LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
-              rescue Exception => e
-                i = 0
-                num_calls = 3
-                success = nil
-
-                while success.nil? && i < num_calls do
-                  i += 1
-                  logger.error("Exception while mapping attributes for #{c.id.to_s}. Retrying #{i} times...")
-                  sleep(2)
-
-                  begin
-                    LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
-                    logger.info("Success mapping attributes for #{c.id.to_s} after retrying #{i} times...")
-                    success = true
-                  rescue Exception => e1
-                    success = nil
-
-                    if i == num_calls
-                      logger.error("Error mapping attributes for #{c.id.to_s}:")
-                      logger.error("#{e1.class}: #{e1.message} after retrying #{i} times...\n#{e1.backtrace.join("\n\t")}")
-                      logger.flush
+                      if page_classes.empty?
+                        msg = "Thread #{num + 1}: Empty page #{Thread.current["page"]} of #{total_pages} persisted after retrying #{j} times. Indexing of #{self.id.to_s} aborted..."
+                        logger.error(msg)
+                        raise msg
+                      else
+                        Thread.current["page_classes"] = page_classes
+                      end
                     end
+
+                    if page_classes.empty?
+                      if total_pages > 0
+                        logger.info("Thread #{num + 1}: The number of pages reported for #{self.id.to_s} - #{total_pages} is higher than expected #{page - 1}. Completing indexing...")
+                      else
+                        logger.info("Thread #{num + 1}: Ontology #{self.id.to_s} contains #{total_pages} pages...")
+                      end
+
+                      break
+                    end
+
+                    Thread.current["prev_page_len"] = Thread.current["page_len"]
                   end
                 end
+
+                break if Thread.current["done"]
+
+                logger.info("Thread #{num + 1}: Page #{Thread.current["page"]} of #{total_pages} - #{Thread.current["page_len"]} ontology terms retrieved in #{Time.now - Thread.current["t0"]} sec.")
+                Thread.current["t0"] = Time.now
+
+                Thread.current["page_classes"].each do |c|
+                  begin
+                    # this cal is needed for indexing of properties
+                    LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
+                  rescue Exception => e
+                    i = 0
+                    num_calls = LinkedData.settings.num_retries_4store
+                    success = nil
+
+                    while success.nil? && i < num_calls do
+                      i += 1
+                      logger.error("Thread #{num + 1}: Exception while mapping attributes for #{c.id.to_s}. Retrying #{i} times...")
+                      sleep(2)
+
+                      begin
+                        LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
+                        logger.info("Thread #{num + 1}: Success mapping attributes for #{c.id.to_s} after retrying #{i} times...")
+                        success = true
+                      rescue Exception => e1
+                        success = nil
+
+                        if i == num_calls
+                          logger.error("Thread #{num + 1}: Error mapping attributes for #{c.id.to_s}:")
+                          logger.error("Thread #{num + 1}: #{e1.class}: #{e1.message} after retrying #{i} times...\n#{e1.backtrace.join("\n\t")}")
+                          logger.flush
+                        end
+                      end
+                    end
+                  end
+
+                  synchronize do
+                    csv_writer.write_class(c)
+                  end
+                end
+                logger.info("Thread #{num + 1}: Page #{Thread.current["page"]} of #{total_pages} attributes mapped in #{Time.now - Thread.current["t0"]} sec.")
+
+                Thread.current["t0"] = Time.now
+                LinkedData::Models::Class.indexBatch(Thread.current["page_classes"])
+                logger.info("Thread #{num + 1}: Page #{Thread.current["page"]} of #{total_pages} - #{Thread.current["page_len"]} ontology terms indexed in #{Time.now - Thread.current["t0"]} sec.")
+                logger.flush
               end
-              csv_writer.write_class(c)
-            end
+            }
+          end
 
-            logger.info("Page #{page} of #{total_pages} attributes mapped in #{Time.now - t0} sec.")
-            count_classes += page_classes.length
-            t0 = Time.now
-
-            LinkedData::Models::Class.indexBatch(page_classes)
-            logger.info("Page #{page} of #{total_pages} ontology terms indexed in #{Time.now - t0} sec.")
-            logger.flush
-            page = page_classes.next? ? page + 1 : nil
-          end while !page.nil?
-
-          # TODO: move this into its own callback
+          threads.map { |t| t.join }
           csv_writer.close
 
           begin
@@ -1293,6 +1352,7 @@ eos
         if remove_index
           # need to re-index the previous submission (if exists)
           self.ontology.bring(:submissions)
+
           if self.ontology.submissions.length > 0
             prev_sub = self.ontology.latest_submission()
 
@@ -1304,78 +1364,132 @@ eos
         end
       end
 
-      def roots(extra_include=nil)
+      def roots(extra_include=nil, page=nil, pagesize=nil)
+        self.bring(:ontology) unless self.loaded_attributes.include?(:ontology)
+        self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
+        paged = false
+        fake_paged = false
 
-        unless self.loaded_attributes.include?(:hasOntologyLanguage)
-          self.bring(:hasOntologyLanguage)
-        end
-        isSkos = false
-        if self.hasOntologyLanguage
-          isSkos = self.hasOntologyLanguage.skos?
+        if page || pagesize
+          page ||= 1
+          pagesize ||= 50
+          paged = true
         end
 
+        skos = self.hasOntologyLanguage&.skos?
         classes = []
 
-        if !isSkos
-          owlThing = Goo.vocabulary(:owl)["Thing"]
-          classes = LinkedData::Models::Class.where(parents: owlThing).in(self)
-                                             .disable_rules
-                                             .all
-        else
+        if skos
           root_skos = <<eos
 SELECT DISTINCT ?root WHERE {
 GRAPH #{self.id.to_ntriples} {
   ?x #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
 }}
 eos
+          count = 0
+
+          if paged
+            query = <<eos
+SELECT (COUNT(?x) as ?count) WHERE {
+GRAPH #{self.id.to_ntriples} {
+  ?x #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
+}}
+eos
+            rs = Goo.sparql_query_client.query(query)
+            rs.each do |sol|
+              count = sol[:count].object
+            end
+
+            offset = (page - 1) * pagesize
+            root_skos = "#{root_skos} LIMIT #{pagesize} OFFSET #{offset}"
+          end
+
           #needs to get cached
           class_ids = []
+
           Goo.sparql_query_client.query(root_skos, { :graphs => [self.id] }).each_solution do |s|
             class_ids << s[:root]
           end
+
           class_ids.each do |id|
             classes << LinkedData::Models::Class.find(id).in(self).disable_rules.first
           end
+
+          classes = Goo::Base::Page.new(page, pagesize, count, classes) if paged
+        else
+          self.ontology.bring(:flat)
+          data_query = nil
+
+          if self.ontology.flat
+            data_query = LinkedData::Models::Class.in(self)
+
+            unless paged
+              page = 1
+              pagesize = FLAT_ROOTS_LIMIT
+              paged = true
+              fake_paged = true
+            end
+          else
+            owl_thing = Goo.vocabulary(:owl)["Thing"]
+            data_query = LinkedData::Models::Class.where(parents: owl_thing).in(self)
+          end
+
+          if paged
+            page_data_query = data_query.page(page, pagesize)
+            classes = page_data_query.page(page, pagesize).disable_rules.all
+            # simulate unpaged query for flat ontologies
+            # we use paging just to cap the return size
+            classes = classes.to_a if fake_paged
+          else
+            classes = data_query.disable_rules.all
+          end
         end
 
+        where = LinkedData::Models::Class.in(self).models(classes).include(:prefLabel, :definition, :synonym, :obsolete)
 
-        roots = []
-        where = LinkedData::Models::Class.in(self)
-                     .models(classes)
-                     .include(:prefLabel, :definition, :synonym, :obsolete)
         if extra_include
           [:prefLabel, :definition, :synonym, :obsolete, :childrenCount].each do |x|
             extra_include.delete x
           end
         end
+
         load_children = []
+
         if extra_include
           load_children = extra_include.delete :children
+
           if load_children.nil?
-            load_children = extra_include.select {
-              |x| x.instance_of?(Hash) && x.include?(:children) }
+            load_children = extra_include.select { |x| x.instance_of?(Hash) && x.include?(:children) }
+
             if load_children.length > 0
-              extra_include = extra_include.select {
-                |x| !(x.instance_of?(Hash) && x.include?(:children)) }
+              extra_include = extra_include.select { |x| !(x.instance_of?(Hash) && x.include?(:children)) }
             end
           else
             load_children = [:children]
           end
+
           if extra_include.length > 0
             where.include(extra_include)
           end
         end
         where.all
+
         if load_children.length > 0
-          LinkedData::Models::Class.partially_load_children(roots,99,self)
+          LinkedData::Models::Class.partially_load_children(classes, 99, self)
         end
-        classes.each do |c|
-          if !extra_include.nil? and extra_include.include?(:hasChildren)
-            c.load_has_children
-          end
-          roots << c if (c.obsolete.nil?) || (c.obsolete == false)
-        end
-        roots
+
+        classes.delete_if { |c|
+          obs = !c.obsolete.nil? && c.obsolete == true
+          c.load_has_children if extra_include&.include?(:hasChildren) && !obs
+          obs
+        }
+
+        classes
+      end
+
+      def roots_sorted(extra_include=nil)
+        classes = roots(extra_include)
+        LinkedData::Models::Class.sort_classes(classes)
       end
 
       def download_and_store_ontology_file

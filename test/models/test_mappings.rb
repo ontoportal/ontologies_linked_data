@@ -174,7 +174,8 @@ class TestMapping < LinkedData::TestOntologyCommon
 
   def test_mappings_two_ontologies
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
-    assert LinkedData::Models::MappingCount.where.all.length > 2
+    map_ct = LinkedData::Models::MappingCount.where.all.length
+    assert map_ct > 2, "Mapping count should exceed the value of 2"
     #bro
     ont1 = LinkedData::Models::Ontology.where({ :acronym => ONT_ACR1 }).to_a[0]
     #fake ont
@@ -218,10 +219,10 @@ class TestMapping < LinkedData::TestOntologyCommon
     count = LinkedData::Mappings.mapping_ontologies_count(latest_sub1,
                                                           latest_sub2)
 
-    assert_equal(mappings.length, count)
-    assert_equal(same_uri,5)
-    assert_equal(cui, 1)
-    assert_equal(loom,2)
+    assert_equal(count, mappings.length)
+    assert_equal(5, same_uri)
+    assert_equal(1, cui)
+    assert_equal(2, loom)
   end
 
   def test_mappings_rest
@@ -232,9 +233,6 @@ class TestMapping < LinkedData::TestOntologyCommon
 "http://data.bioontology.org/ontologies/MAPPING_TEST1/submissions/latest",
 "http://data.bioontology.org/ontologies/MAPPING_TEST1/submissions/latest",
 "http://data.bioontology.org/ontologies/MAPPING_TEST1/submissions/latest" ]
-
-
-
     mapping_term_b = ["http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl#cno_0000202",
       "http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl#cno_0000203",
       "http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl#cno_0000205" ]
@@ -242,12 +240,13 @@ class TestMapping < LinkedData::TestOntologyCommon
 "http://data.bioontology.org/ontologies/MAPPING_TEST2/submissions/latest",
 "http://data.bioontology.org/ontologies/MAPPING_TEST2/submissions/latest",
 "http://data.bioontology.org/ontologies/MAPPING_TEST2/submissions/latest" ]
-
     relations = [ "http://www.w3.org/2004/02/skos/core#exactMatch",
                   "http://www.w3.org/2004/02/skos/core#closeMatch",
                   "http://www.w3.org/2004/02/skos/core#relatedMatch" ]
     user = LinkedData::Models::User.where.include(:username).all[0]
     assert user != nil
+    mappings_created = []
+
     3.times do |i|
       process = LinkedData::Models::MappingProcess.new
       process.name = "proc#{i}"
@@ -259,17 +258,16 @@ class TestMapping < LinkedData::TestOntologyCommon
                     mapping_term_a[i], submissions_a[i])
       classes << LinkedData::Mappings.read_only_class(
                     mapping_term_b[i], submissions_b[i])
-      LinkedData::Mappings.create_rest_mapping(classes,process)
+      mappings_created << LinkedData::Mappings.create_rest_mapping(classes, process)
     end
     ont_id = submissions_a.first.split("/")[0..-3].join("/")
-    latest_sub = LinkedData::Models::Ontology
-                    .find(RDF::URI.new(ont_id))
-                    .first
-                    .latest_submission
+    latest_sub = LinkedData::Models::Ontology.find(RDF::URI.new(ont_id)).first.latest_submission
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
-    assert LinkedData::Models::MappingCount.where.all.length > 2
-    mappings = LinkedData::Mappings.mappings_ontology(latest_sub,1,1000)
+    ct = LinkedData::Models::MappingCount.where.all.length
+    assert ct > 2
+    mappings = LinkedData::Mappings.mappings_ontology(latest_sub, 1, 1000)
     rest_mapping_count = 0
+
     mappings.each do |m|
       if m.source == "REST"
         rest_mapping_count += 1
@@ -291,27 +289,23 @@ class TestMapping < LinkedData::TestOntologyCommon
     #some other test is leaving mappings persisted
     assert rest_mapping_count > 1 || rest_mapping_count < 4
     #in a new submission we should have moved the rest mappings
-
     helper = LinkedData::TestOntologyCommon.new(self)
     helper.submission_parse(ONT_ACR1,
                      "MappingOntTest1",
                      "./test/data/ontology_files/BRO_v3.3.owl", 12,
                      process_rdf: true, index_search: false,
                      run_metrics: false, reasoning: true)
-    latest_sub = LinkedData::Models::Ontology
-                    .find(RDF::URI.new(ont_id))
-                    .first
-                    .latest_submission
+    latest_sub1 = LinkedData::Models::Ontology.find(RDF::URI.new(ont_id)).first.latest_submission
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
-    assert LinkedData::Models::MappingCount.where.all.length > 2
-    mappings = LinkedData::Mappings.mappings_ontology(latest_sub,1,1000)
+    ct1 = LinkedData::Models::MappingCount.where.all.length
+    assert ct1 > 2
+    mappings = LinkedData::Mappings.mappings_ontology(latest_sub1, 1, 1000)
     rest_mapping_count = 0
     mappings.each do |m|
       if m.source == "REST"
         rest_mapping_count += 1
       end
     end
-    assert rest_mapping_count == 3
+    assert_equal 3, rest_mapping_count
   end
-
 end

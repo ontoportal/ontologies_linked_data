@@ -15,10 +15,14 @@ module LinkedData
     overide_connect_goo = false
 
     # Set defaults
+    @settings.goo_backend_name              ||= "4store"
     @settings.goo_port                      ||= 9000
     @settings.goo_host                      ||= "localhost"
-    @settings.search_server_url             ||= "http://localhost:8983/solr/core1"
-    @settings.property_search_server_url    ||= "http://localhost:8983/solr/prop_core1"
+    @settings.goo_path_query                ||= "/sparql/"
+    @settings.goo_path_data                 ||= "/data/"
+    @settings.goo_path_update               ||= "/update/"
+    @settings.search_server_url             ||= "http://localhost:8983/solr/term_search_core1"
+    @settings.property_search_server_url    ||= "http://localhost:8983/solr/prop_search_core1"
     @settings.repository_folder             ||= "./test/data/ontology_files/repo"
     @settings.rest_url_prefix               ||= "http://data.bioontology.org/"
     @settings.enable_security               ||= false
@@ -74,6 +78,12 @@ module LinkedData
     @settings.smtp_domain                   ||= "localhost.localhost"
     @settings.enable_starttls_auto          ||= false # set to true for use with gmail
 
+    # number of times to retry a query when empty records are returned
+    @settings.num_retries_4store            ||= 10
+
+    # number of threads to use when indexing a single ontology for search
+    @settings.indexing_num_threads          ||= 1
+
     # Override defaults
     yield @settings, overide_connect_goo if block_given?
 
@@ -100,15 +110,21 @@ module LinkedData
   ##
   # Connect to goo by configuring the store and search server
   def connect_goo
+    backend_name      ||= @settings.goo_backend_name
     port              ||= @settings.goo_port
     host              ||= @settings.goo_host
+    path_query        ||= @settings.goo_path_query
+    path_data         ||= @settings.goo_path_data
+    path_update       ||= @settings.goo_path_update
 
     begin
       Goo.configure do |conf|
         conf.queries_debug(@settings.queries_debug)
-        conf.add_sparql_backend(:main, query: "http://#{host}:#{port}/sparql/",
-                                data: "http://#{host}:#{port}/data/",
-                                update: "http://#{host}:#{port}/update/",
+        conf.add_sparql_backend(:main,
+                                backend_name: backend_name,
+                                query: "http://#{host}:#{port}#{path_query}",
+                                data: "http://#{host}:#{port}#{path_data}",
+                                update: "http://#{host}:#{port}#{path_update}",
                                 options: { rules: :NONE })
         conf.add_search_backend(:main, service: @settings.search_server_url)
         conf.add_search_backend(:property, service: @settings.property_search_server_url)

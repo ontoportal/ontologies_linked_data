@@ -7,7 +7,7 @@ class Object
   CONVERT_TO_STRING = Set.new([RDF::IRI, RDF::URI, RDF::Literal].map {|c| [c.descendants, c]}.flatten)
 
   def to_flex_hash(options = {}, &block)
-    return self if is_a?(String) || is_a?(Fixnum) || is_a?(Float) || is_a?(TrueClass) || is_a?(FalseClass) || is_a?(NilClass)
+    return self if is_a?(String) || is_a?(Integer) || is_a?(Float) || is_a?(TrueClass) || is_a?(FalseClass) || is_a?(NilClass)
 
     # Make sure special include_for_class params are separated out
     options[:include_for_class] = options[:params]["include_for_class"] if options[:params]

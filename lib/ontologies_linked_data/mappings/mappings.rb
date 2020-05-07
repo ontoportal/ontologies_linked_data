@@ -174,24 +174,25 @@ eos
     acr1 = sub1.id.to_s.split("/")[-3]
     if classId.nil?
       acr2 = nil
+
       if not sub2.nil?
         acr2 = sub2.id.to_s.split("/")[-3]
       end
-      pcount = LinkedData::Models::MappingCount.where(
-          ontologies: acr1
-      )
+      pcount = LinkedData::Models::MappingCount.where(ontologies: acr1)
       if not acr2 == nil
         pcount = pcount.and(ontologies: acr2)
       end
       f = Goo::Filter.new(:pair_count) == (not acr2.nil?)
       pcount = pcount.filter(f)
       pcount = pcount.include(:count)
-      pcount = pcount.all
-      if pcount.length == 0
+      pcount_arr = pcount.all
+
+      if pcount_arr.length == 0
         persistent_count = 0
       else
-        persistent_count = pcount.first.count
+        persistent_count = pcount_arr.first.count
       end
+
       if persistent_count == 0
         return LinkedData::Mappings.empty_page(page,size)
       end
@@ -259,8 +260,7 @@ eos
     unless sub2.nil?
       graphs << sub2.id
     end
-    solutions = epr.query(query,
-                          graphs: graphs, reload_cache: reload_cache)
+    solutions = epr.query(query, graphs: graphs, reload_cache: reload_cache)
     s1 = nil
     unless classId.nil?
       s1 = RDF::URI.new(classId.to_s)
@@ -452,9 +452,7 @@ eos
       sub = c.submission
       unless sub.id.to_s["latest"].nil?
         #the submission in the class might point to latest
-        sub = LinkedData::Models::Ontology.find(c.submission.ontology.id)
-                .first
-                .latest_submission
+        sub = LinkedData::Models::Ontology.find(c.submission.ontology.id).first.latest_submission
       end
       graph_insert = RDF::Graph.new
       graph_insert << [c.id, RDF::URI.new(rest_predicate), backup_mapping.id]
