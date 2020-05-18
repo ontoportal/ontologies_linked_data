@@ -30,17 +30,436 @@ module LinkedData
 
       # Ontology metadata
       attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
-      attribute :homepage
-      attribute :publication
-      attribute :uri, namespace: :omv
-      attribute :naturalLanguage, namespace: :omv
-      attribute :documentation, namespace: :omv
-      attribute :version, namespace: :omv
-      attribute :creationDate, namespace: :omv, enforce: [:date_time], default: lambda { |record| DateTime.now }
-      attribute :description, namespace: :omv
-      attribute :status, namespace: :omv
-      attribute :contact, enforce: [:existence, :contact, :list]
-      attribute :released, enforce: [:date_time, :existence]
+      #attribute :homepage
+      #attribute :publication
+      #attribute :uri, namespace: :omv
+      #attribute :naturalLanguage, namespace: :omv
+      #attribute :documentation, namespace: :omv
+      #attribute :version, namespace: :omv
+      #attribute :creationDate, namespace: :omv, enforce: [:date_time], default: lambda { |record| DateTime.now }
+      #attribute :description, namespace: :omv
+      #attribute :status, namespace: :omv
+      #attribute :contact, enforce: [:existence, :contact, :list]
+      #attribute :released, enforce: [:date_time, :existence]
+
+      attribute :homepage, namespace: :foaf, extractedMetadata: true, metadataMappings: ["cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"],
+                helpText: "The URL of the homepage for the ontology."
+
+      # TODO: change default attribute name
+      attribute :publication, extractedMetadata: true, helpText: "The URL of bibliographic reference for the ontology.",
+                metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
+
+      # attention, attribute particulier. Je le récupère proprement via OWLAPI
+      # TODO: careful in bioportal_web_ui (submissions_helper.rb) @submission.send("URI") causes a bug! Didn't get why
+      attribute :URI, namespace: :omv, extractedMetadata: true, label: "URI", helpText: "The URI of the ontology which is described by this metadata."
+
+      attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true,
+                metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"],
+                helpText: "The language of the content of the ontology.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://www.lexvo.org/&quot;&gt;Lexvo URI&lt;/a&gt; with ISO639-3 code.&lt;br&gt;e.g.: http://lexvo.org/id/iso639-3/eng",
+                enforcedValues: {
+                    "http://lexvo.org/id/iso639-3/eng" => "English",
+                    "http://lexvo.org/id/iso639-3/fra" => "French",
+                    "http://lexvo.org/id/iso639-3/spa" => "Spanish",
+                    "http://lexvo.org/id/iso639-3/por" => "Portuguese",
+                    "http://lexvo.org/id/iso639-3/ita" => "Italian",
+                    "http://lexvo.org/id/iso639-3/deu" => "German"
+                }
+
+      attribute :documentation, namespace: :omv, extractedMetadata: true,
+                metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"],
+                helpText: "URL for further documentation."
+
+      attribute :version, namespace: :omv, extractedMetadata: true, helpText: "The version of the released ontology",
+                metadataMappings: ["owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version", "adms:last"]
+
+      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, helpText: "Free text description of the ontology.",
+                metadataMappings: ["dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
+
+      attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status", "idot:state"],
+                helpText: "Information about the ontology status (alpha, beta, production, retired)."
+      # Pas de limitation ici, mais seulement 4 possibilité dans l'UI (alpha, beta, production, retired)
+
+      attribute :contact, enforce: [:existence, :contact, :list],  # Careful its special
+                helpText: "The people to contact when questions about the ontology. Composed of the contacts name and email."
+
+      attribute :creationDate, namespace: :omv, enforce: [:date_time], metadataMappings: ["dct:dateSubmitted", "schema:datePublished"],
+                default: lambda { |record| DateTime.now } # Attention c'est généré automatiquement, quand la submission est créée
+      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true, label: "Release date", helpText: "Date of the ontology release.",
+                metadataMappings: ["omv:creationDate", "dc:date", "dct:date", "dct:issued", "mod:creationDate", "doap:created", "schema:dateCreated",
+                                   "prov:generatedAtTime", "pav:createdOn", "pav:authoredOn", "pav:contributedOn", "oboInOwl:date", "oboInOwl:hasDate"]
+                # date de release de l'ontologie par ses développeurs
+
+      # Metrics metadata
+      # LES metrics sont auto calculés par BioPortal (utilisant OWLAPI)
+      attribute :numberOfClasses, namespace: :omv, enforce: [:integer], metadataMappings: ["void:classes", "voaf:classNumber" ,"mod:noOfClasses"], display: "metrics",
+                helpText: "Number of classes in this ontology. Automatically computed by OWLAPI."
+      attribute :numberOfIndividuals, namespace: :omv, enforce: [:integer], metadataMappings: ["mod:noOfIndividuals"], display: "metrics",
+                helpText: "Number of individuals in this ontology. Automatically computed by OWLAPI."
+      attribute :numberOfProperties, namespace: :omv, enforce: [:integer], metadataMappings: ["void:properties", "voaf:propertyNumber", "mod:noOfProperties"], display: "metrics",
+                helpText: "Number of properties in this ontology. Automatically computed by OWLAPI."
+      attribute :maxDepth, enforce: [:integer]
+      attribute :maxChildCount, enforce: [:integer]
+      attribute :averageChildCount, enforce: [:integer]
+      attribute :classesWithOneChild, enforce: [:integer]
+      attribute :classesWithMoreThan25Children, enforce: [:integer]
+      attribute :classesWithNoDefinition, enforce: [:integer]
+
+
+      # Complementary omv metadata
+      attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true,
+                metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn", "mod:updated"], helpText: "Date of the last modification made to the ontology"
+
+      attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, label: "Number of entities", display: "metrics",
+                helpText: "Number of entities in this ontology."
+
+      attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true, metadataMappings: ["mod:noOfAxioms", "void:triples"],
+                display: "metrics", helpText: "Number of axioms in this ontology."
+
+      attribute :keyClasses, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "content",
+                metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"], helptext: "Representative classes in the ontology."
+
+      attribute :keywords, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, helpText: "List of keywords related to the ontology.",
+                metadataMappings: ["mod:keyword", "dcat:keyword", "schema:keywords"] # Attention particulier, ça peut être un simple string avec des virgules
+
+      attribute :knownUsage, namespace: :omv, enforce: [:concatenate, :textarea], extractedMetadata: true, display: "usage",
+                helpText: "The applications where the ontology is being used."
+
+      attribute :notes, namespace: :omv, enforce: [:concatenate, :textarea], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"],
+                helpText: "Additional information about the ontology that is not included somewhere else (e.g. information that you do not want to include in the documentation)."
+
+      attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true,
+                metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"], display: "methodology",
+                helptext: "A representation formalism that is followed to describe knowledge in an ontology. Example includes description logics, first order logic, etc."
+
+      attribute :hasContributor, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Contributors",
+                metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy"],
+                helpText: "Contributors to the creation of the ontology."
+
+      attribute :hasCreator, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Creators",
+                metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"],
+                helpText: "Main responsible for the creation of the ontology."
+
+      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "usage",
+                helpText: "The purpose for which the ontology was originally designed.", enforcedValues: {
+                    "http://omv.ontoware.org/2005/05/ontology#AnnotationTask" => "Annotation Task",
+                    "http://omv.ontoware.org/2005/05/ontology#ConfigurationTask" => "Configuration Task",
+                    "http://omv.ontoware.org/2005/05/ontology#FilteringTask" => "Filtering Task",
+                    "http://omv.ontoware.org/2005/05/ontology#IndexingTask" => "Indexing Task",
+                    "http://omv.ontoware.org/2005/05/ontology#IntegrationTask" => "Integration Task",
+                    "http://omv.ontoware.org/2005/05/ontology#MatchingTask" => "Matching Task",
+                    "http://omv.ontoware.org/2005/05/ontology#MediationTask" => "Mediation Task",
+                    "http://omv.ontoware.org/2005/05/ontology#PersonalizationTask" => "Personalization Task",
+                    "http://omv.ontoware.org/2005/05/ontology#QueryFormulationTask" => "Query Formulation Task",
+                    "http://omv.ontoware.org/2005/05/ontology#QueryRewritingTask" => "Query Rewriting Task",
+                    "http://omv.ontoware.org/2005/05/ontology#SearchTask" => "Search Task"
+                }
+
+      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "people",
+                helpText: "People who generated the ontology."
+
+      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "people",
+                helpText: "People who invalidated the ontology."
+
+      attribute :curatedBy, namespace: :pav, enforce: [:concatenate], extractedMetadata: true, display: "people",
+                metadataMappings: ["mod:evaluatedBy"], helpText: "People who curated the ontology."
+
+      attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"],
+                helpText: "The parties that have expressed support or approval to this ontology", display: "people"
+
+      attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "people",
+                helpText: "The organization funding the ontology development."
+
+      attribute :translator, namespace: :schema, extractedMetadata: true, metadataMappings: ["doap:translator"], display: "people",
+                helpText: "Organization or person who adapted the ontology to different languages, regional differences and technical requirements"
+
+      attribute :hasDomain, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
+                helpText: "Typically, the domain can refer to established topic hierarchies such as the general purpose topic hierarchy DMOZ or the domain specific topic hierarchy ACM for the computer science domain",
+                metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "usage"
+
+      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:ontologyFormalityLevel"],
+                helpText: "Level of formality of the ontology.", enforcedValues: {
+              "http://w3id.org/nkos/nkostype#classification_schema" => "Classification scheme",
+              "http://w3id.org/nkos/nkostype#dictionary" => "Dictionary",
+              "http://w3id.org/nkos/nkostype#gazetteer" => "Gazetteer",
+              "http://w3id.org/nkos/nkostype#glossary" => "Glossary",
+              "http://w3id.org/nkos/nkostype#list" => "List",
+              "http://w3id.org/nkos/nkostype#name_authority_list" => "Name authority list",
+              "http://w3id.org/nkos/nkostype#ontology" => "Ontology",
+              "http://w3id.org/nkos/nkostype#semantic_network" => "Semantic network",
+              "http://w3id.org/nkos/nkostype#subject_heading_scheme" => "Subject heading scheme",
+              "http://w3id.org/nkos/nkostype#synonym_ring" => "Synonym ring",
+              "http://w3id.org/nkos/nkostype#taxonomy" => "Taxonomy",
+              "http://w3id.org/nkos/nkostype#terminology" => "Terminology",
+              "http://w3id.org/nkos/nkostype#thesaurus" => "Thesaurus"
+          }
+
+      attribute :hasLicense, namespace: :omv, extractedMetadata: true,
+                metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"],
+                helpText: "Underlying license model.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://rdflicense.appspot.com/&quot;&gt;URI to describe your License&lt;/a&gt;&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://licentia.inria.fr/&quot;&gt;INRIA licentia&lt;/a&gt; to choose your license",
+                enforcedValues: {
+                    "https://creativecommons.org/licenses/by/4.0/" => "CC Attribution 4.0 International",
+                    "https://creativecommons.org/licenses/by/3.0/" => "CC Attribution 3.0",
+                    "https://creativecommons.org/publicdomain/zero/1.0/" => "CC Public Domain Dedication",
+                    "http://www.gnu.org/licenses/gpl-3.0" => "GNU General Public License 3.0",
+                    "http://www.gnu.org/licenses/gpl-2.0" => "GNU General Public License 2.0",
+                    "https://opensource.org/licenses/Artistic-2.0" => "Open Source Artistic license 2.0",
+                    "https://opensource.org/licenses/MIT" => "MIT License",
+                    "https://opensource.org/licenses/BSD-3-Clause" => "BSD 3-Clause License",
+                    "http://www.apache.org/licenses/LICENSE-2.0" => "Apache License 2.0"
+                }
+
+      attribute :hasOntologySyntax, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"], label: "Ontology Syntax",
+                helpText: "The presentation syntax for the ontology langage.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt;",
+                enforcedValues: {
+                    "http://www.w3.org/ns/formats/JSON-LD" => "JSON-LD",
+                    "http://www.w3.org/ns/formats/N3" => "N3",
+                    "http://www.w3.org/ns/formats/N-Quads" => "N-Quads",
+                    "http://www.w3.org/ns/formats/LD_Patch" => "LD Patch",
+                    "http://www.w3.org/ns/formats/microdata" => "Microdata",
+                    "http://www.w3.org/ns/formats/OWL_XML" => "OWL XML Serialization",
+                    "http://www.w3.org/ns/formats/OWL_Functional" => "OWL Functional Syntax",
+                    "http://www.w3.org/ns/formats/OWL_Manchester" => "OWL Manchester Syntax",
+                    "http://www.w3.org/ns/formats/POWDER" => "POWDER",
+                    "http://www.w3.org/ns/formats/POWDER-S" => "POWDER-S",
+                    "http://www.w3.org/ns/formats/PROV-N" => "PROV-N",
+                    "http://www.w3.org/ns/formats/PROV-XML" => "PROV-XML",
+                    "http://www.w3.org/ns/formats/RDFa" => "RDFa",
+                    "http://www.w3.org/ns/formats/RDF_JSON" => "RDF/JSON",
+                    "http://www.w3.org/ns/formats/RDF_XML" => "RDF/XML",
+                    "http://www.w3.org/ns/formats/RIF_XML" => "RIF XML Syntax",
+                    "http://www.w3.org/ns/formats/Turtle" => "Turtle",
+                    "http://www.w3.org/ns/formats/TriG" => "TriG",
+                    "http://purl.obolibrary.org/obo/oboformat/spec.html" => "OBO"
+                }
+
+
+
+      attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"],
+                helpText: "The nature of the content of the ontology.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;http://wiki.dublincore.org/index.php/NKOS_Vocabularies#KOS_Types_Vocabulary&quot;&gt;DCMI KOS type vocabularies&lt;/a&gt;",
+                enforcedValues: {
+                    "http://omv.ontoware.org/2005/05/ontology#ApplicationOntology" => "Application Ontology",
+                    "http://omv.ontoware.org/2005/05/ontology#CoreOntology" => "Core Ontology",
+                    "http://omv.ontoware.org/2005/05/ontology#DomainOntology" => "Domain Ontology",
+                    "http://omv.ontoware.org/2005/05/ontology#TaskOntology" => "Task Ontology",
+                    "http://omv.ontoware.org/2005/05/ontology#UpperLevelOntology" => "Upper Level Ontology",
+                    "http://omv.ontoware.org/2005/05/ontology#Vocabulary" => "Vocabulary"
+                }
+
+      attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
+                metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "methodology",
+                helpText: "Information about the method model used to create the ontology"
+
+      attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
+                metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"],
+                helpText: "Information about the tool used to create the ontology", enforcedValues: {
+                    "http://protege.stanford.edu" => "Protégé",
+                    "OWL API" => "OWL API",
+                    "http://oboedit.org/" => "OBO-Edit",
+                    "SWOOP" => "SWOOP",
+                    "OntoStudio" => "OntoStudio",
+                    "Altova" => "Altova",
+                    "SemanticWorks" => "SemanticWorks",
+                    "OilEd" => "OilEd",
+                    "IsaViz" => "IsaViz",
+                    "WebODE" => "WebODE",
+                    "OntoBuilder" => "OntoBuilder",
+                    "WSMO Studio" => "WSMO Studio",
+                    "VocBench" => "VocBench",
+                    "TopBraid" => "TopBraid",
+                    "NeOn-Toolkit" => "NeOn-Toolkit"
+                }
+
+      attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
+                metadataMappings: ["owl:imports", "door:imports", "void:vocabulary", "voaf:extends", "dct:requires", "oboInOwl:import"],
+                helpText: "References another ontology metadata instance that describes an ontology containing definitions, whose meaning is considered to be part of the meaning of the ontology described by this ontology metadata instance"
+
+      attribute :hasPriorVersion, namespace: :omv, enforce: [:uri], extractedMetadata: true,
+                metadataMappings: ["owl:priorVersion", "dct:isVersionOf", "door:priorVersion", "prov:wasRevisionOf", "adms:prev", "pav:previousVersion", "pav:hasEarlierVersion"],
+                helpText: "An URI to the prior version of the ontology"
+
+      attribute :isBackwardCompatibleWith, namespace: :omv, enforce: [:list, :uri, :isOntology], extractedMetadata: true,
+                metadataMappings: ["owl:backwardCompatibleWith", "door:backwardCompatibleWith"], display: "relations",
+                helpText: "URI of an ontology that has its prior version compatible with the described ontology"
+
+      attribute :isIncompatibleWith, namespace: :omv, enforce: [:list, :uri, :isOntology], extractedMetadata: true,
+                metadataMappings: ["owl:incompatibleWith", "door:owlIncompatibleWith"], display: "relations",
+                helpText: "URI of an ontology that is a prior version of this ontology, but not compatible"
+
+      # New metadata to BioPortal
+      attribute :deprecated, namespace: :owl, enforce: [:boolean], extractedMetadata: true, metadataMappings: ["idot:obsolete"],
+                helpText: "To specify if the ontology IRI is deprecated"
+
+      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "links", label: "Version IRI",
+                helpText: "Identifies the version IRI of an ontology."
+
+      # New metadata from DOOR
+      attribute :ontologyRelatedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true,
+                metadataMappings: ["dc:relation", "dct:relation", "voaf:reliesOn"],
+                helpText: "An ontology that uses or extends some class or property of the described ontology"
+
+      attribute :comesFromTheSameDomain, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, display: "relations",
+                helpText: "Ontologies that come from the same domain", label: "From the same domain than"
+
+      attribute :similarTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "relations",
+                helpText: "Vocabularies that are similar in scope and objectives, independently of the fact that they otherwise refer to each other."
+
+      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith", "nkos:alignedWith"],
+                helpText: "Ontologies that have an alignment which covers a substantial part of the described ontology"
+
+      attribute :explanationEvolution, namespace: :door, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"],
+                display: "relations", label: "Specialization of", helpText: "If the ontology is a latter version that is semantically equivalent to another ontology."
+
+      attribute :generalizes, namespace: :voaf, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations", label: "Generalization of",
+                helpText: "Vocabulary that is generalized by some superclasses or superproperties by the described ontology"
+
+      attribute :hasDisparateModelling, namespace: :door, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations", label: "Disparate modelling with",
+                helpText: "URI of an ontology that is considered to have a different model, because they represent corresponding entities in different ways.&lt;br&gt;e.g. an instance in one case and a class in the other for the same concept"
+
+      # New metadata from SKOS
+      attribute :hiddenLabel, namespace: :skos, extractedMetadata: true,
+                helpText: "The hidden labels are useful when a user is interacting with a knowledge organization system via a text-based search function. The user may, for example, enter mis-spelled words when trying to find a relevant concept. If the mis-spelled query can be matched against a hidden label, the user will be able to find the relevant concept, but the hidden label won't otherwise be visible to the user"
+
+      # New metadata from DC terms
+      attribute :coverage, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:coverage", "schema:spatial"], display: "usage",
+                helpText: "The spatial or temporal topic of the ontology, the spatial applicability of the ontology, or the jurisdiction under which the ontology is relevant."
+
+      attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "schema:publisher"], display: "license",
+                helpText: "An entity responsible for making the ontology available."
+
+      attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"],
+                helpText: "An unambiguous reference to the ontology. Use the ontology URI if not provided in the ontology metadata."
+
+      attribute :source, namespace: :dct, enforce: [:concatenate], extractedMetadata: true, display: "links",
+                metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn", "nkos:basedOn", "mod:sourceOntology"],
+                helpText: "A related resource from which the described resource is derived."
+
+      attribute :abstract, namespace: :dct, extractedMetadata: true, enforce: [:textarea], helpText: "A summary of the ontology"
+
+      attribute :alternative, namespace: :dct, extractedMetadata: true, label: "Alternative name",
+                metadataMappings: ["skos:altLabel", "idot:alternatePrefix", "schema:alternativeHeadline", "schema:alternateName"],
+                helpText: "An alternative title for the ontology"
+
+      attribute :hasPart, namespace: :dct, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["schema:hasPart", "oboInOwl:hasSubset", "adms:includedAsset"], display: "relations",
+                helpText: "A related ontology that is included either physically or logically in the described ontology."
+
+      attribute :isFormatOf, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "links",
+                helpText: "URL to the original document that describe this ontology in a not ontological format (i.e.: the OBO original file)"
+
+      attribute :hasFormat, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "links",
+                helpText: "URL to a document that describe this ontology in a not ontological format (i.e.: the OBO original file) generated from this ontology."
+
+      attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience", "schema:audience"], display: "community",
+                helpText: "Description of the target user base of the ontology."
+
+      attribute :valid, namespace: :dct, enforce: [:date_time], extractedMetadata: true, label: "Valid until",
+                metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"], display: "dates",
+                helpText: "Date (often a range) of validity of the ontology."
+
+      attribute :accrualMethod, namespace: :dct, extractedMetadata: true, display: "methodology",
+                helpText: "The method by which items are added to the ontology."
+      attribute :accrualPeriodicity, namespace: :dct, extractedMetadata: true, display: "methodology", metadataMappings: ["nkos:updateFrequency"],
+                helpText: "The frequency with which items are added to the ontology."
+      attribute :accrualPolicy, namespace: :dct, extractedMetadata: true, display: "methodology",
+                helpText: "The policy governing the addition of items to the ontology."
+
+      # New metadata from sd
+      attribute :endpoint, namespace: :sd, enforce: [:uri], extractedMetadata: true, metadataMappings: ["void:sparqlEndpoint"], display: "content"
+
+      # New metadata from VOID
+      attribute :dataDump, namespace: :void, enforce: [:uri], extractedMetadata: true,
+                metadataMappings: ["doap:download-mirror", "schema:distribution"], display: "content"
+
+      attribute :csvDump, enforce: [:uri], display: "content", label: "CSV dump"
+
+      attribute :openSearchDescription, namespace: :void, enforce: [:uri], extractedMetadata: true,
+                metadataMappings: ["doap:service-endpoint"], display: "content"
+
+      attribute :uriLookupEndpoint, namespace: :void, enforce: [:uri], extractedMetadata: true, display: "content", label: "URI Lookup Endpoint",
+                helpText: "A protocol endpoint for simple URI lookups for the ontology."
+
+      attribute :uriRegexPattern, namespace: :void, enforce: [:uri], extractedMetadata: true,
+                metadataMappings: ["idot:identifierPattern"], display: "content", label: "URI Regex Pattern",
+                helpText: "A regular expression that matches the URIs of the ontology entities."
+
+      # New metadata from foaf
+      attribute :depiction, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"], display: "images",
+                helpText: "The URL of an image representing the ontology."
+
+      attribute :logo, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:logo"], display: "images",
+                helpText: "The URL of the ontology logo."
+
+
+      # New metadata from MOD
+      attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, enforce: [:textarea], display: "methodology",
+                helpText: "A set of questions made to build an ontology at the design time."
+
+      # New metadata from VOAF
+      attribute :usedBy, namespace: :voaf, enforce: [:list, :uri, :isOntology], extractedMetadata: true, display: "relations",  # Range : Ontology
+                metadataMappings: ["nkos:usedBy"], helpText: "Ontologies that use the described ontology."
+
+      attribute :metadataVoc, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "content", label: "Metadata vocabulary used",
+                metadataMappings: ["mod:vocabularyUsed", "adms:supportedSchema", "schema:schemaVersion"],
+                helpText: "Vocabularies that are used and/or referred to create the described ontology."
+
+      attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:uri, :isOntology], extractedMetadata: true,
+                helpText: "Ontology that declares some disjunct classes with the described ontology."
+
+      attribute :toDoList, namespace: :voaf, enforce: [:concatenate, :textarea], extractedMetadata: true, display: "community",
+                helpText: "Describes future tasks planned by a resource curator."
+
+      # New metadata from VANN
+      attribute :example, namespace: :vann, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:workExample"], display: "usage",
+                helpText: "A reference to a resource that provides an example of how this ontology can be used.", label: "Example of use"
+
+      attribute :preferredNamespaceUri, namespace: :vann, extractedMetadata: true, metadataMappings: ["void:uriSpace"],
+                helpText: "The preferred namespace URI to use when using terms from this ontology."
+
+      attribute :preferredNamespacePrefix, namespace: :vann, extractedMetadata: true,
+                metadataMappings: ["idot:preferredPrefix", "oboInOwl:default-namespace", "oboInOwl:hasDefaultNamespace"],
+                helpText: "The preferred namespace prefix to use when using terms from this ontology."
+
+      # New metadata from CC
+      attribute :morePermissions, namespace: :cc, extractedMetadata: true, display: "license",
+                helpText: "A related resource which describes additional permissions or alternative licenses."
+
+      attribute :useGuidelines, namespace: :cc, extractedMetadata: true, enforce: [:textarea], display: "community",
+                helpText: "A related resource which defines how the ontology should be used. "
+
+      attribute :curatedOn, namespace: :pav, enforce: [:date_time], extractedMetadata: true, display: "dates",
+                helpText: "The date the ontology was curated."
+
+      # New metadata from ADMS and DOAP
+      attribute :repository, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community",
+                helpText: "Link to the source code repository."
+
+      # Should be bug-database and mailing-list but NameError - `@bug-database' is not allowed as an instance variable name
+      attribute :bugDatabase, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community",
+                helpText: "Link to the bug tracker of the ontology (i.e.: GitHub issues)."
+
+      attribute :mailingList, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community",
+                helpText: "Mailing list home page or email address."
+
+      # New metadata from Schema and IDOT
+      attribute :exampleIdentifier, namespace: :idot, enforce: [:uri], extractedMetadata: true, display: "content",
+                helpText: "An example identifier used by one item (or record) from a dataset."
+
+      attribute :award, namespace: :schema, extractedMetadata: true, display: "community",
+                helpText: "An award won by this ontology."
+
+      attribute :copyrightHolder, namespace: :schema, extractedMetadata: true, display: "license",
+                helpText: "The party holding the legal copyright to the CreativeWork."
+
+      attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "images",
+                helpText: "A media object that encodes this ontology. This property is a synonym for encoding."
+
+      attribute :workTranslation, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations",
+                helpText: "A ontology that is a translation of the content of this ontology.", label: "Translated from"
+
+      attribute :translationOfWork, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["adms:translation"],
+                helpText: "The ontology that this ontology has been translated from.", label: "Translation of", display: "relations"
+
+      attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "links",
+                helpText: "A data catalog which contains this ontology (i.e.: OBOfoundry, aber-owl, EBI, VEST registry...)."
 
       # Internal values for parsing - not definitive
       attribute :uploadFilePath
@@ -104,6 +523,24 @@ module LinkedData
         ontology_link
       end
 
+      # Override the bring_remaining method from Goo::Base::Resource : https://github.com/ncbo/goo/blob/master/lib/goo/base/resource.rb#L383
+      # Because the old way to query the 4store was not working when lots of attributes
+      # Now it is querying attributes 5 by 5 (way faster than 1 by 1)
+      def bring_remaining
+        to_bring = []
+        i = 0
+        self.class.attributes.each do |attr|
+          to_bring << attr if self.bring?(attr)
+          if i == 5
+            self.bring(*to_bring)
+            to_bring = []
+            i = 0
+          end
+          i = i + 1
+        end
+        self.bring(*to_bring)
+      end
+
       def self.segment_instance(sub)
         sub.bring(:ontology) unless sub.loaded_attributes.include?(:ontology)
         sub.ontology.bring(:acronym) unless sub.ontology.loaded_attributes.include?(:acronym)
@@ -122,6 +559,7 @@ module LinkedData
         )
       end
 
+      # Copy file from /tmp/uncompressed-ont-rest-file to /srv/ncbo/repository/MY_ONT/1/
       def self.copy_file_repository(acronym, submissionId, src, filename = nil)
         path_to_repo = File.join([LinkedData.settings.repository_folder, acronym.to_s, submissionId.to_s])
         name = filename || File.basename(File.new(src).path)
@@ -431,6 +869,7 @@ module LinkedData
 
       def generate_rdf(logger, file_path, reasoning=true)
         mime_type = nil
+        user_params = {} if user_params.nil?
 
         if self.hasOntologyLanguage.umls?
           triples_file_path = self.triples_file_path
@@ -473,11 +912,368 @@ module LinkedData
           logger.flush
         end
         delete_and_append(triples_file_path, logger, mime_type)
+        begin
+          # Extract metadata directly from the ontology
+          extract_ontology_metadata(logger, user_params)
+          logger.info("Additional metadata extracted.")
+        rescue => e
+          logger.error("Error while extracting additional metadata: #{e}")
+        end
+        begin
+          # Set default metadata
+          set_default_metadata(logger)
+          logger.info("Default metadata set.")
+        rescue => e
+          logger.error("Error while setting default metadata: #{e}")
+        end
         version_info = extract_version()
 
         if version_info
           self.version = version_info
         end
+      end
+
+      # Extract additional metadata about the ontology
+      # First it extracts the main metadata, then the mapped metadata
+      def extract_ontology_metadata(logger, user_params)
+        ontology_uri = extract_ontology_uri()
+        logger.info("Extraction metadata from ontology #{ontology_uri}")
+        #logger.info("User params: #{user_params}")
+
+        # go through all OntologySubmission attributes. Returns symbols
+        LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
+          # for attribute with the :extractedMetadata setting on, and that have not been defined by the user
+          if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:extractedMetadata]) && !(user_params.has_key?(attr) && !user_params[attr].nil? && !user_params[attr].empty?)
+            # a boolean to check if a value that should be single have already been extracted
+            single_extracted = false
+
+            if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].nil?
+              property_to_extract = LinkedData::Models::OntologySubmission.attribute_settings(attr)[:namespace].to_s + ":" + attr.to_s
+              hash_results = extract_each_metadata(ontology_uri, attr, property_to_extract, logger)
+
+              if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
+                # Add the retrieved value(s) to the attribute if the attribute take a list of objects
+                if self.send(attr.to_s).nil?
+                  metadata_values = []
+                else
+                  metadata_values = self.send(attr.to_s).dup
+                end
+                hash_results.each do |k,v|
+                  metadata_values.push(v)
+                end
+                self.send("#{attr.to_s}=", metadata_values)
+              elsif (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
+                # don't keep value from previous submissions for concats
+                metadata_concat = []
+                # if multiple value for this attribute, then we concatenate it. And it's send to the attr after getting all metadataMappings
+                hash_results.each do |k,v|
+                  metadata_concat << v.to_s
+                end
+              else
+                # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
+                hash_results.each do |k,v|
+                  single_extracted = true
+                  self.send("#{attr.to_s}=", v)
+                  break
+                end
+              end
+            end
+
+            # extracts attribute value from metadata mappings
+            if !LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].nil?
+
+              LinkedData::Models::OntologySubmission.attribute_settings(attr)[:metadataMappings].each do |mapping|
+                if single_extracted == true
+                  # if an attribute with only one possible object as already been extracted
+                  break
+                end
+                hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
+
+                if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:list))
+                  # Add the retrieved value(s) to the attribute if the attribute take a list of objects
+                  if self.send(attr.to_s).nil?
+                    metadata_values = []
+                  else
+                    metadata_values = self.send(attr.to_s).dup
+                  end
+                  hash_mapping_results.each do |k,v|
+                    metadata_values.push(v)
+                  end
+                  self.send("#{attr.to_s}=", metadata_values)
+                elsif (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
+                  # if multiple value for this attribute, then we concatenate it
+                  hash_mapping_results.each do |k,v|
+                    metadata_concat << v.to_s
+                  end
+                else
+                  # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
+                  hash_mapping_results.each do |k,v|
+                    self.send("#{attr.to_s}=", v)
+                    break
+                  end
+                end
+              end
+            end
+
+            # Add the concat at the very end, to easily join the content of the array
+            if (LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:concatenate))
+              if !metadata_concat.empty?
+                self.send("#{attr.to_s}=", metadata_concat.join(", "))
+              end
+            end
+          end
+        end
+
+        # Retrieve ontology URI attribute directly with OWLAPI
+        self.URI = ontology_uri
+      end
+
+      # Set some metadata to default values if nothing extracted
+      def set_default_metadata(logger)
+        if self.identifier.nil?
+          self.identifier = self.URI.to_s
+        end
+
+        if self.deprecated.nil?
+          if self.status.eql?("retired")
+            self.deprecated = true
+          else
+            self.deprecated = false
+          end
+        end
+
+        # Add the ontology hasDomain to the submission hasDomain metadata value
+        ontology_domain_list = []
+        self.ontology.bring(:hasDomain).hasDomain.each do |domain|
+          ontology_domain_list << domain.id
+        end
+        if (ontology_domain_list.length > 0 && self.hasDomain.nil?)
+          self.hasDomain = ""
+        end
+        if !self.hasDomain.nil?
+          self.hasDomain << ontology_domain_list.join(", ")
+        end
+
+        # Only get the first view because the attribute is not a list
+        ontology_view = self.ontology.bring(:views).views.first
+        if (self.hasPart.nil? && !ontology_view.nil?)
+          self.hasPart = ontology_view.id
+        end
+
+        # If no example identifier extracted: take the first class
+        if self.exampleIdentifier.nil?
+          self.exampleIdentifier = LinkedData::Models::Class.in(self).first.id
+        end
+
+        # Metadata specific to BioPortal that have been removed:
+        #if self.hostedBy.nil?
+        #  self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
+        #end
+
+        # Add the search endpoint URL
+        if self.openSearchDescription.nil?
+          self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}&q=")
+        end
+
+        # Search allow to search by URI too
+        if self.uriLookupEndpoint.nil?
+          self.uriLookupEndpoint = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}&require_exact_match=true&q=")
+        end
+
+        # Add the dataDump URL
+        if self.dataDump.nil?
+          self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download?download_format=rdf")
+        end
+
+        if self.csvDump.nil?
+          self.csvDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download?download_format=csv")
+        end
+
+        # Add the previous submission as a prior version
+        if self.submissionId > 1
+=begin
+          if prior_versions.nil?
+            prior_versions = []
+          else
+            prior_versions = self.hasPriorVersion.dup
+          end
+          prior_versions.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}"))
+          self.hasPriorVersion = prior_versions
+=end
+          self.hasPriorVersion = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}")
+        end
+
+        if self.hasOntologyLanguage.umls?
+          self.hasOntologySyntax = "http://www.w3.org/ns/formats/Turtle"
+        elsif self.hasOntologyLanguage.obo?
+          self.hasOntologySyntax = "http://purl.obolibrary.org/obo/oboformat/spec.html"
+        end
+
+        # Define default properties for prefLabel, synonyms, definition, author:
+        if self.hasOntologyLanguage.owl?
+          if self.prefLabelProperty.nil?
+            self.prefLabelProperty = Goo.vocabulary(:skos)[:prefLabel]
+          end
+          if self.synonymProperty.nil?
+            self.synonymProperty = Goo.vocabulary(:skos)[:altLabel]
+          end
+          if self.definitionProperty.nil?
+            self.definitionProperty = Goo.vocabulary(:rdfs)[:comment]
+          end
+          if self.authorProperty.nil?
+            self.authorProperty = Goo.vocabulary(:dc)[:creator]
+          end
+          # Add also hierarchyProperty? Could not find any use of it
+        end
+
+        # Add the sparql endpoint URL
+        if self.endpoint.nil?
+          self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
+        end
+
+      end
+
+      # Return a hash with the best literal value for an URI
+      # it selects the literal according to their language: no language > english > french > other languages
+      def select_metadata_literal(metadata_uri, metadata_literal, hash)
+        if metadata_literal.is_a?(RDF::Literal)
+          if hash.has_key?(metadata_uri)
+            if metadata_literal.has_language?
+              if !hash[metadata_uri].has_language?
+                return hash
+              else
+                if metadata_literal.language == :en || metadata_literal.language == :eng
+                  # Take the value with english language over other languages
+                  hash[metadata_uri] = metadata_literal
+                  return hash
+                elsif metadata_literal.language == :fr || metadata_literal.language == :fre
+                  # If no english, take french
+                  if hash[metadata_uri].language == :en || hash[metadata_uri].language == :eng
+                    return hash
+                  else
+                    hash[metadata_uri] = metadata_literal
+                    return hash
+                  end
+                else
+                  return hash
+                end
+              end
+            else
+              # Take the value with no language in priority (considered as a default)
+              hash[metadata_uri] = metadata_literal
+              return hash
+            end
+          else
+            hash[metadata_uri] = metadata_literal
+            return hash
+          end
+        end
+      end
+
+
+      # A function to extract additional metadata
+      # Take the literal data if the property is pointing to a literal
+      # If pointing to an URI: first it takes the "omv:name" of the object pointed by the property, if nil it takes the "rdfs:label".
+      # If not found it check for "omv:firstName + omv:lastName" (for "omv:Person") of this object. And to finish it takes the "URI"
+      # The hash_results contains the metadataUri (objet pointed on by the metadata property) with the value we are using from it
+      def extract_each_metadata(ontology_uri, attr, prop_to_extract, logger)
+
+        query_metadata = <<eos 
+
+SELECT DISTINCT ?extractedObject ?omvname ?omvfirstname ?omvlastname ?rdfslabel
+FROM #{self.id.to_ntriples}
+WHERE {
+  <#{ontology_uri}> #{prop_to_extract} ?extractedObject .
+  OPTIONAL { ?extractedObject omv:name ?omvname } .
+  OPTIONAL { ?extractedObject omv:firstName ?omvfirstname } .
+  OPTIONAL { ?extractedObject omv:lastName ?omvlastname } .
+  OPTIONAL { ?extractedObject rdfs:label ?rdfslabel } .
+}
+eos
+        Goo.namespaces.each do |prefix,uri|
+          query_metadata = "PREFIX #{prefix}: <#{uri}>\n" + query_metadata
+        end
+
+        #logger.info(query_metadata)
+        # This hash will contain the "literal" metadata for each object (uri or literal) pointed by the metadata predicate
+        hash_results = {}
+        Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
+
+          if LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:uri)
+            # If the attr is enforced as URI then it directly takes the URI
+            if sol[:extractedObject].is_a?(RDF::URI)
+              hash_results[sol[:extractedObject]] = sol[:extractedObject]
+            end
+
+          elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:date_time)
+            begin
+              hash_results[sol[:extractedObject]] = DateTime.iso8601(sol[:extractedObject].to_s)
+            rescue => e
+              logger.error("Impossible to extract DateTime metadata for #{attr.to_s}: #{sol[:extractedObject].to_s}. It should follow iso8601 standards. Error message: #{e}")
+            end
+
+          elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:integer)
+            begin
+              hash_results[sol[:extractedObject]] = sol[:extractedObject].to_s.to_i
+            rescue => e
+              logger.error("Impossible to extract integer metadata for #{attr.to_s}: #{sol[:extractedObject].to_s}. Error message: #{e}")
+            end
+
+          elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:boolean)
+            begin
+              if (sol[:extractedObject].to_s.downcase.eql?("true"))
+                hash_results[sol[:extractedObject]] = true
+              elsif (sol[:extractedObject].to_s.downcase.eql?("false"))
+                hash_results[sol[:extractedObject]] = false
+              end
+            rescue => e
+              logger.error("Impossible to extract boolean metadata for #{attr.to_s}: #{sol[:extractedObject].to_s}. Error message: #{e}")
+            end
+
+          else
+            if sol[:extractedObject].is_a?(RDF::URI)
+              # if the object is an URI but we are requesting a String
+              # TODO: ATTENTION on veut pas forcément TOUT le temps recump omvname, etc... Voir si on change ce comportement
+              if !sol[:omvname].nil?
+                hash_results = select_metadata_literal(sol[:extractedObject],sol[:omvname], hash_results)
+              elsif !sol[:rdfslabel].nil?
+                hash_results = select_metadata_literal(sol[:extractedObject],sol[:rdfslabel], hash_results)
+              elsif !sol[:omvfirstname].nil?
+                hash_results = select_metadata_literal(sol[:extractedObject],sol[:omvfirstname], hash_results)
+                # if first and last name are defined (for omv:Person)
+                if !sol[:omvlastname].nil?
+                  hash_results[sol[:extractedObject]] = hash_results[sol[:extractedObject]].to_s + " " + sol[:omvlastname].to_s
+                end
+              elsif !sol[:omvlastname].nil?
+                # if only last name is defined
+                hash_results = select_metadata_literal(sol[:extractedObject],sol[:omvlastname], hash_results)
+              else
+                hash_results[sol[:extractedObject]] = sol[:extractedObject].to_s
+              end
+
+            else
+              # If this is directly a literal
+              hash_results = select_metadata_literal(sol[:extractedObject],sol[:extractedObject], hash_results)
+            end
+          end
+        end
+
+        return hash_results
+      end
+
+      # Extract the ontology URI to use it to extract ontology metadata
+      def extract_ontology_uri
+        query_get_onto_uri = <<eos
+SELECT DISTINCT ?uri
+FROM #{self.id.to_ntriples}
+WHERE {
+<http://bioportal.bioontology.org/ontologies/URI> <http://www.w3.org/2002/07/owl#versionInfo> ?uri .
+}
+eos
+        Goo.sparql_query_client.query(query_get_onto_uri).each_solution do |sol|
+          return sol[:uri].to_s
+        end
+        return nil
       end
 
       def extract_version
@@ -596,6 +1392,8 @@ eos
                 |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page) }
 
             page_classes.each { |c|
+              # For real this is calling "generate_missing_labels_each". Is it that hard to be clear in your code?
+              # It is unreadable, not stable and not powerful. What did you want to do?
               process_callbacks(logger, callbacks, :caller_on_each) {
                   |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page, c) }
             } if iterate_classes
@@ -641,29 +1439,36 @@ eos
         artifacts[:label_triples] = []
         artifacts[:mapping_triples] = []
       end
-
+      
+      # Generate labels when no label found in the prefLabel attribute (it checks rdfs:label and take label from the URI if nothing else found)
       def generate_missing_labels_each(artifacts={}, logger, paging, page_classes, page, c)
         prefLabel = nil
 
         if c.prefLabel.nil?
-          rdfs_labels = c.label
+          begin
+            # in case there is no skos:prefLabel or rdfs:label from our main_lang
+            rdfs_labels = c.label
 
-          if rdfs_labels && rdfs_labels.length > 1 && c.synonym.length > 0
-            rdfs_labels = (Set.new(c.label) -  Set.new(c.synonym)).to_a.first
+            if rdfs_labels && rdfs_labels.length > 1 && c.synonym.length > 0
+              rdfs_labels = (Set.new(c.label) -  Set.new(c.synonym)).to_a.first
 
-            if rdfs_labels.nil? || rdfs_labels.length == 0
-              rdfs_labels = c.label
+              if rdfs_labels.nil? || rdfs_labels.length == 0
+                rdfs_labels = c.label
+              end
             end
-          end
 
-          if rdfs_labels and not (rdfs_labels.instance_of? Array)
-            rdfs_labels = [rdfs_labels]
-          end
-          label = nil
+            if rdfs_labels and not (rdfs_labels.instance_of? Array)
+              rdfs_labels = [rdfs_labels]
+            end
+            label = nil
 
-          if rdfs_labels && rdfs_labels.length > 0
-            label = rdfs_labels[0]
-          else
+            if rdfs_labels && rdfs_labels.length > 0
+              label = rdfs_labels[0]
+            else
+              # If no label found, we take the last fragment of the URI
+              label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
+            end
+          rescue Goo::Base::AttributeNotLoaded => e
             label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
           end
           artifacts[:label_triples] << LinkedData::Utils::Triples.label_for_class_triple(
@@ -970,10 +1775,11 @@ eos
                 remove_submission_status(status) #remove RDF status before starting
                 zip_dst = unzip_submission(logger)
                 file_path = zip_dst ? zip_dst.to_s : self.uploadFilePath.to_s
-                generate_rdf(logger, file_path, reasoning=reasoning)
+                generate_rdf(logger, file_path, reasoning=reasoning, options[:params])
                 add_submission_status(status)
                 self.save
               rescue Exception => e
+                logger.error("#{self.errors}")
                 logger.error("#{e.class}: #{e.message}\n#{e.backtrace.join("\n\t")}")
                 logger.flush
                 add_submission_status(status.get_error_status)
@@ -1127,6 +1933,18 @@ eos
         exist_metrics = LinkedData::Models::Metric.find(metrics.id).first
         exist_metrics.delete if exist_metrics
         metrics.save
+
+        # Define metrics in submission metadata
+        self.numberOfClasses = metrics.classes
+        self.numberOfIndividuals = metrics.individuals
+        self.numberOfProperties = metrics.properties
+        self.maxDepth = metrics.maxDepth
+        self.maxChildCount = metrics.maxChildCount
+        self.averageChildCount = metrics.averageChildCount
+        self.classesWithOneChild = metrics.classesWithOneChild
+        self.classesWithMoreThan25Children = metrics.classesWithMoreThan25Children
+        self.classesWithNoDefinition = metrics.classesWithNoDefinition
+        
         self.metrics = metrics
         self
       end
@@ -1146,7 +1964,9 @@ eos
           logger.info("Removed ontology terms index (#{Time.now - t0}s)"); logger.flush
 
           paging = LinkedData::Models::Class.in(self).include(:unmapped).aggregate(:count, :children).page(page, size)
-          cls_count = class_count(logger)
+          # a fix for SKOS ontologies, see https://github.com/ncbo/ontologies_api/issues/20
+          self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
+          cls_count = self.hasOntologyLanguage.skos? ? -1 : class_count(logger)
           paging.page_count_set(cls_count) unless cls_count < 0
 
           csv_writer = LinkedData::Utils::OntologyCSVWriter.new
@@ -1513,6 +2333,7 @@ eos
         check
       end
 
+      # Download ont file from pullLocation in /tmp/uncompressed-ont-rest-file
       def download_ontology_file
         file, filename = LinkedData::Utils::FileHelpers.download_file(self.pullLocation.to_s)
         return file, filename
