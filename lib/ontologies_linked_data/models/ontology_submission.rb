@@ -867,7 +867,7 @@ module LinkedData
         self.generate_metrics_file(class_count, indiv_count, prop_count)
       end
 
-      def generate_rdf(logger, file_path, reasoning=true)
+      def generate_rdf(logger, file_path, reasoning=true, user_params = {})
         mime_type = nil
         user_params = {} if user_params.nil?
 
