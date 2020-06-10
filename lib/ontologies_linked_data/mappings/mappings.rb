@@ -230,11 +230,6 @@ eos
     mappings = []
     persistent_count = 0
     if classId.nil?
-      acr2 = nil
-
-      if not sub2.nil?
-        acr2 = sub2.id.to_s.split("/")[-3]
-      end
       pcount = LinkedData::Models::MappingCount.where(ontologies: acr1)
       if not acr2 == nil
         pcount = pcount.and(ontologies: acr2)
