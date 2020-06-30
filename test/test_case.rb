@@ -11,8 +11,19 @@ end
 
 require_relative "test_log_file"
 require_relative "../lib/ontologies_linked_data"
-require_relative "../config/config.rb"
 
+if ENV['OVERRIDE_CONNECT_GOO'] == 'true'
+  LinkedData.config do |config|
+    config.goo_backend_name  = ENV['GOO_BACKEND_NAME']
+    config.goo_port          = ENV['GOO_PORT'].to_i
+    config.goo_host          = ENV['GOO_HOST']
+    config.goo_path_query    = ENV['GOO_PATH_QUERY']
+    config.goo_path_data     = ENV['GOO_PATH_DATA']
+    config.goo_path_update   = ENV['GOO_PATH_UPDATE']
+  end
+end
+
+require_relative "../config/config.rb"
 require 'minitest/unit'
 MiniTest::Unit.autorun
 

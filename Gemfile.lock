@@ -199,6 +199,7 @@ DEPENDENCIES
   rack (~> 1.0)
   rack-test (~> 0.6)
   rake (~> 10.0)
+  rest-client
   rsolr (~> 1.0)
   rubocop
   rubyzip (~> 1.0)

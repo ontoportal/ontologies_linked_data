@@ -18,6 +18,7 @@ gem 'omni_logger'
 gem 'thin'
 gem 'rubocop', require: false
 gem 'ffi', '< 1.9.22'   # https://github.com/ffi/ffi/issues/621
+gem 'rest-client'
 
 # Testing
 group :test do

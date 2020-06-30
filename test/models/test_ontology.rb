@@ -221,8 +221,8 @@ class TestOntology < LinkedData::TestOntologyCommon
                  "Non-root nodes found where roots are expected"
 
     # test property trees
-    has_narrower_match_prop = LinkedData::Models::ObjectProperty.find(RDF::URI.new("http://www.w3.org/2004/02/skos/core#narrowMatch")).in(sub).include(:parents).first()
-    tree = has_narrower_match_prop.tree
+    close_match_prop = LinkedData::Models::ObjectProperty.find(RDF::URI.new("http://www.w3.org/2004/02/skos/core#closeMatch")).in(sub).include(:parents).first()
+    tree = close_match_prop.tree
     assert_equal "http://www.w3.org/2004/02/skos/core#semanticRelation", tree.id.to_s
     assert_equal 4, tree.children.length
     both_found = 0
@@ -238,7 +238,7 @@ class TestOntology < LinkedData::TestOntologyCommon
         both_found += 1
         assert node.hasChildren
         assert_equal 4, node.children.length
-        has_source_child = node.children.select { |ch| ch.id.to_s == has_narrower_match_prop.id.to_s }
+        has_source_child = node.children.select { |ch| ch.id.to_s == close_match_prop.id.to_s }
         assert has_source_child.length == 1
       end
 

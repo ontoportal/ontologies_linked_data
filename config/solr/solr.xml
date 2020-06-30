@@ -29,6 +29,7 @@
 <solr>
 
   <int name="maxBooleanClauses">${solr.max.booleanClauses:500000}</int>
+  <str name="sharedLib">${solr.sharedLib:}</str>
 
   <solrcloud>
 
