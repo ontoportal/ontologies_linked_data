@@ -139,7 +139,7 @@ GEM
     rexml (3.2.4)
     rsolr (1.1.2)
       builder (>= 2.1.2)
-    rubocop (0.87.0)
+    rubocop (0.87.1)
       parallel (~> 1.10)
       parser (>= 2.7.1.1)
       rainbow (>= 2.2.2, < 4.0)
