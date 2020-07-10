@@ -23,7 +23,7 @@ GIT
 
 GIT
   remote: https://github.com/sifrproject/goo.git
-  revision: bf42c5c632cfc6475b38fc4e2694d2b8e65d32e4
+  revision: 09e8627a5a894f43eb4c9fd336a999da4a3015c3
   branch: virtual-appliance-3.0-merge
   specs:
     goo (0.0.2)
@@ -103,7 +103,7 @@ GEM
       builder
       minitest (>= 2.12, < 5.0)
       powerbar
-    multi_json (1.14.1)
+    multi_json (1.15.0)
     multipart-post (2.1.1)
     mysql2 (0.5.2)
     net-http-persistent (2.9.4)
