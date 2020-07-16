@@ -982,7 +982,7 @@ eos
 
     assert_equal 486, metrics.classes
     assert_equal 63, metrics.properties
-    assert_equal 80, metrics.individuals
+    assert_equal 124, metrics.individuals
     assert_equal 14, metrics.classesWithOneChild
     assert_equal 474, metrics.classesWithNoDefinition
     assert_equal 2, metrics.classesWithMoreThan25Children
@@ -1004,7 +1004,7 @@ eos
     #all the child metrics should be 0 since we declare it as flat
     assert_equal 486, metrics.classes
     assert_equal 63, metrics.properties
-    assert_equal 80, metrics.individuals
+    assert_equal 124, metrics.individuals
     assert_equal 0, metrics.classesWithOneChild
     #cause it has not the subproperty added
     assert_equal 474, metrics.classesWithNoDefinition
