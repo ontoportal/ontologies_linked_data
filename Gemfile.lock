@@ -13,7 +13,7 @@ GIT
 
 GIT
   remote: https://github.com/ncbo/sparql-client.git
-  revision: 298f9c9a8d2637650a62f8102679aa30084bf878
+  revision: 87bc0e8976519cdcdef06169556677467a10fcfc
   branch: master
   specs:
     sparql-client (1.0.1)
@@ -23,7 +23,7 @@ GIT
 
 GIT
   remote: https://github.com/sifrproject/goo.git
-  revision: 09e8627a5a894f43eb4c9fd336a999da4a3015c3
+  revision: 34aa8878748aca41f94b65fd3ce28629d54f2d92
   branch: virtual-appliance-3.0-merge
   specs:
     goo (0.0.2)
@@ -139,7 +139,7 @@ GEM
     rexml (3.2.4)
     rsolr (1.1.2)
       builder (>= 2.1.2)
-    rubocop (0.87.1)
+    rubocop (0.88.0)
       parallel (~> 1.10)
       parser (>= 2.7.1.1)
       rainbow (>= 2.2.2, < 4.0)
