@@ -30,7 +30,7 @@ group :test do
 end
 
 # NCBO gems (can be from a local dev path or from rubygems/git)
-gem 'goo', github: 'sifrproject/goo', branch: 'virtual-appliance-3.0-merge'
+gem 'goo', github: 'ontoportal-lirmm/goo', branch: 'virtual-appliance-3.0-merge'
 gem 'sparql-client', github: 'ncbo/sparql-client', branch: 'master'
 
 # ResourceIndex dependencies (managed per-platform)
