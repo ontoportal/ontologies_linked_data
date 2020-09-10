@@ -72,7 +72,8 @@ class TestNotifications < LinkedData::TestCase
       note.relatedOntology = [@@ont]
       note.save
 
-      assert last_email_sent.subject.include?("[BioPortal Notes]")
+      assert last_email_sent.subject.include?("[bioportal.bioontology.org Notes]"),
+             "#{last_email_sent.subject} instead of [bioportal.bioontology.org Notes]. Make sure params ui_host is not set in the config.rb file (or set on bioportal.bioontology.org)"
       assert_equal [@@user.email], last_email_sent.to
     ensure
       note.delete if note
@@ -117,7 +118,7 @@ class TestNotifications < LinkedData::TestCase
       assert sub.valid?, sub.errors
       LinkedData::Utils::Notifications.remote_ontology_pull(sub)
 
-      assert last_email_sent.subject.include? "[BioPortal] Load from URL failure for #{ont.name}"
+      assert last_email_sent.subject.include? "Load from URL failure for #{ont.name}"
       recipients = []
       ont_admins.each do |user|
         recipients << user.email

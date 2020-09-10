@@ -26,7 +26,7 @@ module LinkedData
           response = {
             status: status,
             error: "You must provide an API Key either using the query-string parameter `apikey` or the `Authorization` header: `Authorization: apikey token=my_apikey`. " + \
-              "Your API Key can be obtained by logging in at http://bioportal.bioontology.org/account"
+              "Your API Key can be obtained by logging in at #{LinkedData.settings.ui_host}/account"
           }
         end
 
@@ -35,7 +35,7 @@ module LinkedData
           response = {
             status: status,
             error: "You must provide a valid API Key. " + \
-              "Your API Key can be obtained by logging in at http://bioportal.bioontology.org/account"
+              "Your API Key can be obtained by logging in at #{LinkedData.settings.ui_host}/account"
           }
         end
 

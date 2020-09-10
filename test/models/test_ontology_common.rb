@@ -120,7 +120,7 @@ module LinkedData
       uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acr, 1, file_path)
       ont_submission.uploadFilePath = uploadFilePath
       owl, ont, user, contact = submission_dependent_objects("OWL", acr, "test_linked_models",
-                                                             "%ssome ont created by mso for testing"%acr)
+                                                             "%s ont created by mso for testing"%acr)
       ont.administeredBy = [user]
       ont_submission.contact = [contact]
       ont_submission.released = DateTime.now - 4

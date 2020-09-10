@@ -72,9 +72,6 @@ module LinkedData
       attribute :descendants, namespace: :rdfs, property: :subClassOf,
           handler: :retrieve_descendants
 
-      search_options :index_id => lambda { |t| "#{t.id.to_s}_#{t.submission.ontology.acronym}_#{t.submission.submissionId}" },
-                     :document => lambda { |t| t.get_index_doc }
-
       attribute :semanticType, enforce: [:list], :namespace => :umls, :property => :hasSTY
       attribute :cui, enforce: [:list], :namespace => :umls, alias: true
       attribute :xref, :namespace => :oboinowl_gen, alias: true,
@@ -127,61 +124,107 @@ module LinkedData
       end
 
       def obsolete
-        return @obsolete || false
+        @obsolete || false
       end
 
-      def get_index_doc
-        child_count = 0
+      def index_id()
+        self.bring(:submission) if self.bring?(:submission)
+        return nil unless self.submission
+        self.submission.bring(:submissionId) if self.submission.bring?(:submissionId)
+        self.submission.bring(:ontology) if self.submission.bring?(:ontology)
+        return nil unless self.submission.ontology
+        self.submission.ontology.bring(:acronym) if self.submission.ontology.bring?(:acronym)
+        "#{self.id.to_s}_#{self.submission.ontology.acronym}_#{self.submission.submissionId}"
+      end
 
-        begin
-          LinkedData::Models::Class.in(self.submission).models([self]).aggregate(:count, :children).all
-          child_count = self.childrenCount
-        rescue Exception => e
-          child_count = 0
-          puts "Exception getting childCount for search for #{self.id.to_s}: #{e.class}: #{e.message}"
-        end
+      # to_set is an optional array that allows passing specific
+      # field names that require updating
+      # if to_set is nil, it's assumed to be a new document for insert
+      def index_doc(to_set=nil)
+        doc = {}
+        path_ids = Set.new
+        self.bring(:submission) if self.bring?(:submission)
 
-        doc = {
-            :resource_id => self.id.to_s,
-            :ontologyId => self.submission.id.to_s,
-            :submissionAcronym => self.submission.ontology.acronym,
-            :submissionId => self.submission.submissionId,
-            :ontologyType => self.submission.ontology.ontologyType.get_code_from_id,
-            :obsolete => self.obsolete.to_s,
-            :childCount => child_count
-        }
+        if to_set.nil?
+          begin
+            doc[:childCount] = self.childrenCount
+          rescue ArgumentError
+            LinkedData::Models::Class.in(self.submission).models([self]).aggregate(:count, :children).all
+            doc[:childCount] = self.childrenCount
+          rescue Exception => e
+            doc[:childCount] = 0
+            puts "Exception getting childCount for search for #{self.id.to_s}: #{e.class}: #{e.message}"
+          end
 
-        all_attrs = self.to_hash
-        std = [:id, :prefLabel, :notation, :synonym, :definition, :cui]
+          begin
+            # paths_to_root = self.paths_to_root
+            # paths_to_root.each do |paths|
+            #   path_ids += paths.map { |p| p.id.to_s }
+            # end
+            # path_ids.delete(self.id.to_s)
+            path_ids = retrieve_hierarchy_ids(:ancestors)
+            path_ids.select! { |x| !x["owl#Thing"] }
+            doc[:parents] = path_ids
+          rescue Exception => e
+            doc[:parents] = Set.new
+            puts "Exception getting paths to root for search for #{self.id.to_s}: #{e.class}: #{e.message}\n#{e.backtrace.join("\n")}"
+          end
 
-        std.each do |att|
-          cur_val = all_attrs[att]
+          doc[:ontologyId] = self.submission.id.to_s
+          doc[:submissionAcronym] = self.submission.ontology.acronym
+          doc[:submissionId] = self.submission.submissionId
+          doc[:ontologyType] = self.submission.ontology.ontologyType.get_code_from_id
+          doc[:obsolete] = self.obsolete.to_s
 
-          # don't store empty values
-          next if cur_val.nil? || (cur_val.respond_to?('empty?') && cur_val.empty?)
+          all_attrs = self.to_hash
+          std = [:id, :prefLabel, :notation, :synonym, :definition, :cui]
 
-          if cur_val.is_a?(Array)
+          std.each do |att|
+            cur_val = all_attrs[att]
+
             # don't store empty values
-            cur_val = cur_val.reject { |c| c.respond_to?('empty?') && c.empty? }
-            doc[att] = []
-            cur_val = cur_val.uniq
-            cur_val.map { |val| doc[att] << (val.kind_of?(Goo::Base::Resource) ? val.id.to_s : val.to_s.strip) }
-          else
-            doc[att] = cur_val.to_s.strip
+            next if cur_val.nil? || (cur_val.respond_to?('empty?') && cur_val.empty?)
+
+            if cur_val.is_a?(Array)
+              # don't store empty values
+              cur_val = cur_val.reject { |c| c.respond_to?('empty?') && c.empty? }
+              doc[att] = []
+              cur_val = cur_val.uniq
+              cur_val.map { |val| doc[att] << (val.kind_of?(Goo::Base::Resource) ? val.id.to_s : val.to_s.strip) }
+            else
+              doc[att] = cur_val.to_s.strip
+            end
+          end
+
+          # special handling for :semanticType (AKA tui)
+          if all_attrs[:semanticType] && !all_attrs[:semanticType].empty?
+            doc[:semanticType] = []
+            all_attrs[:semanticType].each { |semType| doc[:semanticType] << semType.split("/").last }
           end
         end
 
-        # special handling for :semanticType (AKA tui)
-        if all_attrs[:semanticType] && !all_attrs[:semanticType].empty?
-          doc[:semanticType] = []
-          all_attrs[:semanticType].each { |semType| doc[:semanticType] << semType.split("/").last }
+        if to_set.nil? || (to_set.is_a?(Array) && to_set.include?(:properties))
+          props = self.properties_for_indexing
+
+          unless props.nil?
+            doc[:property] = props[:property]
+            doc[:propertyRaw] = props[:propertyRaw]
+          end
         end
 
+        doc
+      end
+
+      def properties_for_indexing()
+        self_props = self.properties
+        return nil if self_props.nil?
+
+        ret_val = nil
         props = {}
         prop_vals = []
 
-        self.properties.each do |attr_key, attr_val|
-          if !doc.include?(attr_key)
+        self_props.each do |attr_key, attr_val|
+          # unless doc.include?(attr_key)
             if attr_val.is_a?(Array)
               props[attr_key] = []
               attr_val = attr_val.uniq
@@ -204,57 +247,52 @@ module LinkedData
                 props[attr_key] = real_val
               end
             end
-          end
+          # end
         end
-        prop_vals.uniq!
 
         begin
-          doc[:property] = prop_vals
-          doc[:propertyRaw] = MultiJson.dump(props)
+          ret_val = {}
+          ret_val[:propertyRaw] = MultiJson.dump(props)
+          prop_vals.uniq!
+          ret_val[:property] = prop_vals
         rescue JSON::GeneratorError => e
-          doc[:property] = nil
-          doc[:propertyRaw] = nil
+          ret_val = nil
           # need to ignore non-UTF-8 characters in properties of classes (this is a rare issue)
           puts "#{e.class}: #{e.message}\n#{e.backtrace.join("\n\t")}"
         end
-
-        doc
+        ret_val
       end
 
-      def childrenCount
+      def childrenCount()
         self.bring(:submission) if self.bring?(:submission)
         raise ArgumentError, "No aggregates included in #{self.id.to_ntriples}. Submission: #{self.submission.id.to_s}" unless self.aggregates
         cc = self.aggregates.select { |x| x.attribute == :children && x.aggregate == :count}.first
         raise ArgumentError, "No aggregate for attribute children and count found in #{self.id.to_ntriples}" if !cc
-        return cc.value
+        cc.value
       end
 
       BAD_PROPERTY_URIS = LinkedData::Mappings.mapping_predicates.values.flatten + ['http://bioportal.bioontology.org/metadata/def/prefLabel']
       EXCEPTION_URIS = ["http://bioportal.bioontology.org/ontologies/umls/cui"]
       BLACKLIST_URIS = BAD_PROPERTY_URIS - EXCEPTION_URIS
       def properties
-        if self.unmapped.nil?
-          raise Exception, "Properties can be call only with :unmmapped attributes preloaded"
-        end
+        return nil if self.unmapped.nil?
         properties = self.unmapped
         BLACKLIST_URIS.each {|bad_iri| properties.delete(RDF::URI.new(bad_iri))}
         properties
       end
 
-      def paths_to_root
-        self.bring(parents: [:prefLabel,:synonym, :definition]) if self.bring?(:parents)
-
+      def paths_to_root()
+        self.bring(parents: [:prefLabel, :synonym, :definition]) if self.bring?(:parents)
         return [] if self.parents.nil? or self.parents.length == 0
         paths = [[self]]
         traverse_path_to_root(self.parents.dup, paths, 0)
         paths.each do |p|
           p.reverse!
         end
-        return paths
+        paths
       end
 
-      def self.partially_load_children(models,threshold,
-                                       submission)
+      def self.partially_load_children(models, threshold, submission)
         ld = [:prefLabel, :definition, :synonym]
         ld << :subClassOf if submission.hasOntologyLanguage.obo?
         single_load = []
@@ -290,7 +328,7 @@ module LinkedData
         end
       end
 
-      def tree
+      def tree()
         self.bring(parents: [:prefLabel]) if self.bring?(:parents)
         return self if self.parents.nil? or self.parents.length == 0
         paths = [[self]]
@@ -345,9 +383,7 @@ module LinkedData
           end
         end
 
-       LinkedData::Models::Class.
-         partially_load_children(childrens_hash.values,threshhold,
-                                 self.submission)
+        LinkedData::Models::Class.partially_load_children(childrens_hash.values,threshhold, self.submission)
 
         #build the tree
         root_node = path.first
@@ -380,10 +416,17 @@ module LinkedData
           tree_node = next_tree_node
           path.delete_at(0)
         end
+
         root_node
       end
 
-      def retrieve_ancestors
+      def tree_sorted()
+        tr = tree
+        self.class.sort_tree_children(tr)
+        tr
+      end
+
+      def retrieve_ancestors()
         ids = retrieve_hierarchy_ids(:ancestors)
         if ids.length == 0
           return []
@@ -393,7 +436,7 @@ module LinkedData
         return LinkedData::Models::Class.in(self.submission).ids(ids).all
       end
 
-      def retrieve_descendants(page=nil,size=nil)
+      def retrieve_descendants(page=nil, size=nil)
         ids = retrieve_hierarchy_ids(:descendants)
         if ids.length == 0
           return []
@@ -414,14 +457,14 @@ module LinkedData
         return models
       end
 
-      def hasChildren
+      def hasChildren()
         if instance_variable_get("@intlHasChildren").nil?
           raise ArgumentError, "HasChildren not loaded for #{self.id.to_ntriples}"
         end
         return @intlHasChildren
      end
 
-     def load_has_children
+     def load_has_children()
         if !instance_variable_get("@intlHasChildren").nil?
           return
         end
@@ -435,8 +478,6 @@ module LinkedData
         end
         @intlHasChildren = has_c
       end
-
-      private
 
       def retrieve_hierarchy_ids(direction=:ancestors)
         current_level = 1
@@ -481,7 +522,9 @@ module LinkedData
         return all_ids
       end
 
-      def has_children_query(class_id,submission_id)
+      private
+
+      def has_children_query(class_id, submission_id)
         property_tree = self.class.tree_view_property(self.submission)
         pattern = "?c <#{property_tree.to_s}> <#{class_id.to_s}> . "
         query = <<eos
@@ -495,7 +538,7 @@ eos
          return query
       end
 
-      def hierarchy_query(direction,class_ids)
+      def hierarchy_query(direction, class_ids)
         filter_ids = class_ids.map { |id| "?id = <#{id}>" } .join " || "
         directional_pattern = ""
         property_tree = self.class.tree_view_property(self.submission)
@@ -516,8 +559,7 @@ eos
          return query
       end
 
-
-      def append_if_not_there_already(path,r)
+      def append_if_not_there_already(path, r)
         return nil if r.id.to_s["#Thing"]
         return nil if (path.select { |x| x.id.to_s == r.id.to_s }).length > 0
         path << r
@@ -525,9 +567,9 @@ eos
 
       def traverse_path_to_root(parents, paths, path_i, tree=false)
         return if (tree and parents.length == 0)
-        recurse_on_path = []
         recursions = [path_i]
         recurse_on_path = [false]
+
         if parents.length > 1 and not tree
           (parents.length-1).times do
             paths << paths[path_i].clone
@@ -542,7 +584,7 @@ eos
           end
         else
           path = paths[path_i]
-          recurse_on_path[0] = !append_if_not_there_already(path,parents[0]).nil?
+          recurse_on_path[0] = !append_if_not_there_already(path, parents[0]).nil?
         end
 
         recursions.each_index do |i|
@@ -550,13 +592,15 @@ eos
           path = paths[rec_i]
           p = path.last
           next if p.id.to_s["umls/OrphanClass"]
+
           if p.bring?(:parents)
-            p.bring(parents: [:prefLabel,:synonym, :definition] )
+            p.bring(parents: [:prefLabel, :synonym, :definition, parents: [:prefLabel, :synonym, :definition]])
           end
 
           if !p.loaded_attributes.include?(:parents)
             # fail safely
-            LOGGER.error("Class #{p.id.to_s} from #{p.submission.id} cannot load parents")
+            logger = LinkedData::Parser.logger || Logger.new($stderr)
+            logger.error("Class #{p.id.to_s} from #{p.submission.id} cannot load parents")
             return
           end
 
@@ -565,6 +609,44 @@ eos
             traverse_path_to_root(p.parents.dup, paths, rec_i, tree=tree)
           end
         end
+      end
+
+      def self.sort_tree_children(root_node)
+        self.sort_classes!(root_node.children)
+        root_node.children.each { |ch| self.sort_tree_children(ch) }
+      end
+
+      def self.sort_classes(classes)
+        classes.sort { |class_a, class_b| self.compare_classes(class_a, class_b) }
+      end
+
+      def self.sort_classes!(classes)
+        classes.sort! { |class_a, class_b| self.compare_classes(class_a, class_b) }
+        classes
+      end
+
+      def self.compare_classes(class_a, class_b)
+        label_a = ""
+        label_b = ""
+        class_a.bring(:prefLabel) if class_a.bring?(:prefLabel)
+        class_b.bring(:prefLabel) if class_b.bring?(:prefLabel)
+
+        begin
+          label_a = class_a.prefLabel unless (class_a.prefLabel.nil? || class_a.prefLabel.empty?)
+        rescue Goo::Base::AttributeNotLoaded
+          label_a = ""
+        end
+
+        begin
+          label_b = class_b.prefLabel unless (class_b.prefLabel.nil? || class_b.prefLabel.empty?)
+        rescue Goo::Base::AttributeNotLoaded
+          label_b = ""
+        end
+
+        label_a = class_a.id if label_a.empty?
+        label_b = class_b.id if label_b.empty?
+
+        [label_a.downcase] <=> [label_b.downcase]
       end
 
     end

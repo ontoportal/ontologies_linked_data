@@ -206,7 +206,17 @@ eos
         query
       end
 
-      def get_index_doc
+      def index_id()
+        self.bring(:submission) if self.bring?(:submission)
+        return nil unless self.submission
+        self.submission.bring(:submissionId) if self.submission.bring?(:submissionId)
+        self.submission.bring(:ontology) if self.submission.bring?(:ontology)
+        return nil unless self.submission.ontology
+        self.submission.ontology.bring(:acronym) if self.submission.ontology.bring?(:acronym)
+        "#{self.id.to_s}_#{self.submission.ontology.acronym}_#{self.submission.submissionId}"
+      end
+
+      def index_doc(to_set=nil)
         self.bring(:label) if self.bring?(:label)
         self.bring(:submission) if self.bring?(:submission)
         self.submission.bring(:submissionId) if self.submission.bring?(:submissionId)
@@ -215,7 +225,6 @@ eos
         self.submission.ontology.bring(:ontologyType) if self.submission.ontology.bring?(:ontologyType)
 
         doc = {
-            :resource_id => self.id.to_s,
             :ontologyId => self.submission.id.to_s,
             :submissionAcronym => self.submission.ontology.acronym,
             :submissionId => self.submission.submissionId,
@@ -283,7 +292,8 @@ eos
 
           unless p.loaded_attributes.include?(:parents)
             # fail safely
-            LOGGER.error("Property #{p.id.to_s} from #{p.submission.id.to_s} cannot load parents")
+            logger = LinkedData::Parser.logger || Logger.new($stderr)
+            logger.error("Property #{p.id.to_s} from #{p.submission.id.to_s} cannot load parents")
             return
           end
 

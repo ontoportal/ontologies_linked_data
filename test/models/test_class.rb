@@ -152,7 +152,8 @@ class TestClassModel < LinkedData::TestOntologyCommon
 
     paths = cls.paths_to_root
     assert paths.length == 7
-    paths = paths.select { |x| x.length == 3 }
+    # sort the array by the 0s element id
+    paths = paths.sort {|a, b| a[0].nil? ? -1 : b[0].nil? ? 1 : a[0].id.to_s <=> b[0].id.to_s}.select { |x| x.length == 3 }
     path = paths[0]
     assert path.length == 3
     assert path[2].id.to_s == "http://bioportal.bioontology.org/ontologies/msotes#class_5"

@@ -16,9 +16,9 @@ module LinkedData
       PARENTS = 'Parents'
 
       def open(ont, path)
-        file = File.new(path, 'w')
-        gz = Zlib::GzipWriter.new(file)
-        @csv = CSV.new(gz, headers: true, return_headers: true, write_headers: true)
+        @file = File.new(path, 'w')
+        @gz = Zlib::GzipWriter.new(@file)
+        @csv = CSV.new(@gz, headers: true, return_headers: true, write_headers: true)
         @property_ids = Hash[ont.properties.map { |prop| [prop.id.to_s, get_prop_label(prop)] }]
         write_header(ont)
       end
@@ -77,6 +77,8 @@ module LinkedData
       end
 
       def close
+        @gz.close
+        @file.close
         @csv.close
       end
 
