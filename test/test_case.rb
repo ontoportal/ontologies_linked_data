@@ -20,6 +20,8 @@ if ENV['OVERRIDE_CONNECT_GOO'] == 'true'
     config.goo_path_query    = ENV['GOO_PATH_QUERY']
     config.goo_path_data     = ENV['GOO_PATH_DATA']
     config.goo_path_update   = ENV['GOO_PATH_UPDATE']
+    config.goo_redis_port    = ENV['GOO_REDIS_PORT']
+    config.http_redis_port   = ENV['HTTP_REDIS_PORT']
   end
 end
 
