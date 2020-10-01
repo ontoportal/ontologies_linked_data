@@ -732,9 +732,10 @@ module LinkedData
 
       def unzip_submission(logger)
         zip = LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
+        gzip = !zip && LinkedData::Utils::FileHelpers.gzip?(self.uploadFilePath)
         zip_dst = nil
 
-        if zip
+        if zip || gzip
           zip_dst = self.zip_folder
 
           if Dir.exist? zip_dst
@@ -749,7 +750,7 @@ module LinkedData
             self.save
           end
 
-          logger.info("Files extracted from zip #{extracted}")
+          logger.info("Files extracted from zip/gz #{extracted}")
           logger.flush
         end
         return zip_dst
