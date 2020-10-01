@@ -1,11 +1,28 @@
 require 'net/http'
 require 'uri'
 require 'zip'
+require 'zlib'
 require 'tmpdir'
 
 module LinkedData
   module Utils
     module FileHelpers
+      
+      class GzipFile
+        attr_accessor :name
+        def initialize(gz)
+          self.name = gz.orig_name
+        end
+      end
+      
+      def self.gzip?(file_path)
+        file_path = file_path.to_s
+        unless File.exist? file_path
+          raise ArgumentError, "File path #{file_path} not found"
+        end
+        file_type = `file --mime -b #{Shellwords.escape(file_path)}`
+        return file_type.split(";")[0] == "application/x-gzip"
+      end
 
       def self.zip?(file_path)
         file_path = file_path.to_s
@@ -44,16 +61,23 @@ module LinkedData
           raise ArgumentError, "Folder path #{dst_folder} not found"
         end
         extracted_files = []
-        Zip::File.open(file_path) do |zipfile|
-          zipfile.each do |file|
-            if file.name.split("/").length > 1
-              sub_folder = File.join(dst_folder,
-                                    file.name.split("/")[0..-2].join("/"))
-              unless Dir.exist?(sub_folder)
-                FileUtils.mkdir_p sub_folder
+        if gzip?(file_path)
+          Zlib::GzipReader.open(file_path) do |gz|
+            File.open([dst_folder, gz.orig_name].join('/'), "w") { |file| file.puts(gz.read) }
+            extracted_files << GzipFile.new(gz)
+          end
+        else
+          Zip::File.open(file_path) do |zipfile|
+            zipfile.each do |file|
+              if file.name.split("/").length > 1
+                sub_folder = File.join(dst_folder,
+                                      file.name.split("/")[0..-2].join("/"))
+                unless Dir.exist?(sub_folder)
+                  FileUtils.mkdir_p sub_folder
+                end
               end
+              extracted_files << file.extract(File.join(dst_folder,file.name))
             end
-            extracted_files << file.extract(File.join(dst_folder,file.name))
           end
         end
         return extracted_files
