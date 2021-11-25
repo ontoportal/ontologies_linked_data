@@ -59,66 +59,48 @@ eos
       return 0
     end
 
-    def self.get_instances_by_class(submission_id,class_id)
+    def self.get_instances_by_class(submission_id,class_id, page_no, size)
+
       query = <<-eos
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-SELECT ?s ?label WHERE
-  {
-    GRAPH <#{submission_id.to_s}> {
-        ?s a owl:NamedIndividual .
-        ?s a <#{class_id.to_s}> .
-    }
-  }
-eos
+      PREFIX owl: <http://www.w3.org/2002/07/owl#>
+      SELECT ?s ?label WHERE
+        {
+          GRAPH <#{submission_id.to_s}> {
+              ?s a owl:NamedIndividual .
+              ?s a <#{class_id.to_s}> .
+          }
+        }
+      eos
       epr = Goo.sparql_query_client(:main)
       graphs = [submission_id]
-      resultset = epr.query(query, graphs: graphs)
-      instances = []
-      resultset.each do |r|
-        inst = LinkedData::Models::Instance.new(r[:s],nil,{})
-        instances << inst
-      end
-      
-      if instances.empty? 
-        return []
-      end
-      
-      include_instance_properties(submission_id,instances)
-      return instances
+      result_set = epr.query(query, graphs: graphs)
+
+      paginate submission_id, result_set, page_no, size
+
     end
 
     def self.get_instances_by_ontology(submission_id,page_no,size)
       query = <<-eos
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-SELECT ?s ?label WHERE
-  {
-    GRAPH <#{submission_id.to_s}> {
-        ?s a owl:NamedIndividual .
-    }
-  }
-eos
+      PREFIX owl: <http://www.w3.org/2002/07/owl#>
+      SELECT ?s ?label WHERE
+        {
+          GRAPH <#{submission_id.to_s}> {
+              ?s a owl:NamedIndividual .
+          }
+        }
+      eos
+
       epr = Goo.sparql_query_client(:main)
       graphs = [submission_id]
-      resultset = epr.query(query, graphs: graphs)
+      result_set = epr.query(query, graphs: graphs)
 
-      total_size = resultset.size
-      range_start = (page_no - 1) * size
-      range_end = (page_no * size) - 1
-      resultset = resultset[range_start..range_end]
+      paginate submission_id , result_set, page_no, size
 
-      instances = []
-      resultset.each do |r|
-        inst = LinkedData::Models::Instance.new(r[:s],r[:label],{})
-        instances << inst
-      end unless resultset.nil?
-      
-      if instances.size > 0
-        include_instance_properties(submission_id,instances)
-      end
-      
-      page = Goo::Base::Page.new(page_no,size,total_size,instances)
-      return page
     end
+
+
+
+    private
 
     def self.include_instance_properties(submission_id,instances)
       index = Hash.new
@@ -137,7 +119,7 @@ SELECT ?s ?p ?o WHERE
     }
     FILTER( #{uri_filter} )
   }
-eos
+      eos
       epr = Goo.sparql_query_client(:main)
       graphs = [submission_id]
       resultset = epr.query(query, graphs: graphs)
@@ -151,6 +133,25 @@ eos
           index[s.to_s].add_property_value(p,o)
         end
       end
+    end
+
+    def self.paginate(submission_id, result_set, page_no, size)
+      total_size = result_set.size
+      range_start = (page_no - 1) * size
+      range_end = (page_no * size) - 1
+      result_set = result_set[range_start..range_end]
+
+      instances = []
+      result_set.each do |r|
+        inst = LinkedData::Models::Instance.new(r[:s],r[:label],{})
+        instances << inst
+      end unless result_set.nil?
+
+      if instances.size > 0
+        include_instance_properties(submission_id,instances)
+      end
+
+      Goo::Base::Page.new(page_no,size,total_size,instances)
     end
   end
 end
