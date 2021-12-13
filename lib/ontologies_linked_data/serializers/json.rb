@@ -70,11 +70,7 @@ module LinkedData
           elsif current_cls.model_settings[:attributes][attr][:namespace]
             # predicate with custom namespace
             # if the namespace can be resolved by the namespaces added in Goo then it will be resolved.
-            if (!Goo.vocabulary(current_cls.model_settings[:attributes][attr][:namespace]).nil?)
-              predicate = "#{Goo.vocabulary(current_cls.model_settings[:attributes][attr][:namespace]).to_s}#{attr}"
-            else
-              predicate = "#{Goo.vocabulary[current_cls.model_settings[:attributes][attr][:namespace]].to_s}#{attr}"
-            end
+            predicate = "#{Goo.vocabulary[current_cls.model_settings[:attributes][attr][:namespace]].to_s}#{attr}"
           end
           hash[attr] = predicate unless predicate.nil?
         end

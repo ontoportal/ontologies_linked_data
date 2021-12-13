@@ -1,32 +1,35 @@
 source 'https://rubygems.org'
 
-gem 'rake', '~> 10.0'
-gem 'rack', '~> 1.0'
-gem 'rack-test', '~> 0.6'
 gem 'activesupport', '~> 4.0'
-gem 'rubyzip', '~> 1.0'
+gem 'addressable', '= 2.3.5'
 gem 'bcrypt', '~> 3.0'
+gem 'cube-ruby', require: 'cube'
+gem 'ffi'
+gem 'libxml-ruby', '~> 2.0'
+gem 'minitest', '~> 4.0'
 gem 'multi_json', '~> 1.0'
 gem 'oj', '~> 2.0'
-gem 'libxml-ruby', '~> 2.0'
-gem 'rsolr', '~> 1.0'
-gem 'minitest', '~> 4.0'
-gem 'cube-ruby', require: "cube"
-gem 'pony'
-gem 'addressable', '= 2.3.5'
 gem 'omni_logger'
-gem 'thin'
-gem 'rubocop', require: false
-gem 'ffi', '< 1.9.22'   # https://github.com/ffi/ffi/issues/621
+gem 'pony'
+gem 'rack', '~> 1.0'
+gem 'rack-test', '~> 0.6'
+gem 'rake', '~> 10.0'
 gem 'rest-client'
+gem 'rsolr', '~> 1.0'
+gem 'rubyzip', '~> 1.0'
+gem 'thin'
 
 # Testing
 group :test do
-	gem 'simplecov'
-	gem 'pry'
-	gem 'email_spec'
-	gem 'test-unit-minitest'
-	gem 'minitest-reporters', '>= 0.5.0'
+  gem 'email_spec'
+  gem 'minitest-reporters', '>= 0.5.0'
+  gem 'pry'
+  gem 'simplecov'
+  gem 'test-unit-minitest'
+end
+
+group :development do
+  gem 'rubocop', require: false
 end
 
 # NCBO gems (can be from a local dev path or from rubygems/git)
