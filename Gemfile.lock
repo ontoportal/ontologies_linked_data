@@ -37,6 +37,22 @@ GIT
       net-http-persistent (= 2.9.4)
       rdf (>= 1.0)
 
+GIT
+  remote: https://github.com/ontoportal-lirmm/goo.git
+  revision: 4523fd33949f917d6c6033a0bddccaf2b512d1fa
+  branch: master
+  specs:
+    goo (0.0.2)
+      addressable (= 2.3.5)
+      pry
+      rdf (= 1.0.8)
+      redis
+      rest-client
+      rsolr
+      sparql-client
+      systemu
+      uuid
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -104,7 +120,7 @@ GEM
     launchy (2.4.3)
       addressable (~> 2.3)
     libxml-ruby (2.9.0)
-    logger (1.4.3)
+    logger (1.5.0)
     macaddr (1.7.2)
       systemu (~> 2.6.5)
     mail (2.7.1)
@@ -156,16 +172,16 @@ GEM
     rexml (3.2.5)
     rsolr (1.1.2)
       builder (>= 2.1.2)
-    rubocop (1.18.4)
+    rubocop (1.24.0)
       parallel (~> 1.10)
       parser (>= 3.0.0.0)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 1.8, < 3.0)
       rexml
-      rubocop-ast (>= 1.8.0, < 2.0)
+      rubocop-ast (>= 1.15.0, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 3.0)
-    rubocop-ast (1.9.0)
+    rubocop-ast (1.15.1)
       parser (>= 3.0.1.1)
     ruby-progressbar (1.11.0)
     ruby-xxHash (0.4.0.1)
