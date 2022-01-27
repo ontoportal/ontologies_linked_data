@@ -7,6 +7,9 @@ module LinkedData
             namespace: :owl, :schemaless => :true ,  rdf_type: lambda { |*x| RDF::OWL[:NamedIndividual]}
 
 
+      attribute :label, namespace: :rdfs, enforce: [:list]
+      attribute :prefLabel, namespace: :skos, enforce: [:existence], alias: true
+
       attribute :types, :namespace => :rdf, enforce: [:list], property: :type
       attribute :submission, :collection => lambda { |s| s.resource_id }, :namespace => :metadata
 
@@ -21,6 +24,7 @@ module LinkedData
 
     end
   end
+
   module InstanceLoader
     def self.count_instances_by_class(submission_id,class_id)
       ## TODO: pass directly an LinkedData::Models::OntologySubmission instance in the arguments instead of submission_id
