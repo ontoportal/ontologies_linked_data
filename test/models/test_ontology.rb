@@ -300,11 +300,16 @@ class TestOntology < LinkedData::TestOntologyCommon
     u, of, contact = ontology_objects()
     o1 = ontologies[0]
     o2 = ontologies[1]
-
+    pc = LinkedData::Models::ProvisionalClass.new({label: "Test Provisional Class", creator: u, ontology: o1})
+    pc.save
     n = LinkedData::Models::Note.new({
                                          creator: u,
                                          relatedOntology: [o1]
                                      })
+    assert pc.valid?
+    pc.save
+    assert_equal true, pc.exist?(reload=true)
+
     assert n.valid?
     n.save()
     assert_equal true, n.exist?(reload=true)
