@@ -205,7 +205,7 @@ module LinkedData
           return true
         end
 
-        zip = LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
+        zip = zipped?
         files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
 
         if not zip and self.masterFileName.nil?
@@ -261,10 +261,19 @@ module LinkedData
                          self.submissionId.to_s)
       end
 
-      def zip_folder
-        return File.join([self.data_folder, "unzipped"])
+      def zipped?(full_file_path: self.uploadFilePath)
+        LinkedData::Utils::FileHelpers.zip?(full_file_path) || LinkedData::Utils::FileHelpers.gzip?(full_file_path)
       end
 
+      def zip_folder
+         File.join([self.data_folder, "unzipped"])
+      end
+
+      def master_file_path
+        bring :uploadFilePath if bring? :uploadFilePath
+        bring :masterFileName  if bring :masterFileName
+        File.expand_path(zipped? ? File.join(zip_folder, self.masterFileName) : self.uploadFilePath)
+      end
       def csv_path
         return File.join(self.data_folder, self.ontology.acronym.to_s + ".csv.gz")
       end
@@ -286,17 +295,16 @@ module LinkedData
         self.bring(:masterFileName) if self.bring?(:masterFileName)
         triples_file_name = File.basename(self.uploadFilePath.to_s)
         full_file_path = File.join(File.expand_path(self.data_folder.to_s), triples_file_name)
-        zip = LinkedData::Utils::FileHelpers.zip?(full_file_path)
+        zip = zipped? full_file_path
         triples_file_name = File.basename(self.masterFileName.to_s) if zip && self.masterFileName
         file_name = File.join(File.expand_path(self.data_folder.to_s), triples_file_name)
         File.expand_path(file_name)
       end
 
       def unzip_submission(logger)
-        zip = LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
         zip_dst = nil
 
-        if zip
+        if zipped?
           zip_dst = self.zip_folder
 
           if Dir.exist? zip_dst
@@ -328,17 +336,17 @@ module LinkedData
       # accepts another submission in 'older' (it should be an 'older' ontology version)
       def diff(logger, older)
         begin
-          self.bring_remaining
-          self.bring(:diffFilePath)
-          self.bring(:uploadFilePath)
-          older.bring(:uploadFilePath)
+          bring_remaining
+          bring :diffFilePath if bring? :diffFilePath
+
           LinkedData::Diff.logger = logger
           bubastis = LinkedData::Diff::BubastisDiffCommand.new(
-              File.expand_path(older.uploadFilePath),
-              File.expand_path(self.uploadFilePath)
+              File.expand_path(older.master_file_path),
+              File.expand_path(self.master_file_path),
+              data_folder
           )
           self.diffFilePath = bubastis.diff
-          self.save
+          save
           logger.info("Bubastis diff generated successfully for #{self.id}")
           logger.flush
         rescue Exception => e
