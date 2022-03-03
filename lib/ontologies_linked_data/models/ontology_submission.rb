@@ -261,12 +261,12 @@ module LinkedData
                          self.submissionId.to_s)
       end
 
-      def zipped?(full_file_path: self.uploadFilePath)
+      def zipped?(full_file_path =  uploadFilePath)
         LinkedData::Utils::FileHelpers.zip?(full_file_path) || LinkedData::Utils::FileHelpers.gzip?(full_file_path)
       end
 
       def zip_folder
-         File.join([self.data_folder, "unzipped"])
+         File.join([data_folder, "unzipped"])
       end
 
       def master_file_path
