@@ -154,7 +154,7 @@ module LinkedData
       conf.add_namespace(:omv, RDF::Vocabulary.new('http://omv.ontoware.org/2005/05/ontology#'))
       conf.add_namespace(:skos, RDF::Vocabulary.new('http://www.w3.org/2004/02/skos/core#'))
       conf.add_namespace(:owl, RDF::Vocabulary.new('http://www.w3.org/2002/07/owl#'))
-      conf.add_namespace(:rdfs, RDF::Vocabulary.new("http://www.w3.org/2000/01/rdf-schema#"))
+      conf.add_namespace(:rdf, RDF::Vocabulary.new('http://www.w3.org/1999/02/22-rdf-syntax-ns#'))
       conf.add_namespace(:rdfs, RDF::Vocabulary.new('http://www.w3.org/2000/01/rdf-schema#'))
       conf.add_namespace(:metadata,
                          RDF::Vocabulary.new('http://data.bioontology.org/metadata/'),
