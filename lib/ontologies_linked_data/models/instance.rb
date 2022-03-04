@@ -28,41 +28,40 @@ module LinkedData
     def self.count_instances_by_class(submission_id,class_id)
       ## TODO: pass directly an LinkedData::Models::OntologySubmission instance in the arguments instead of submission_id
       s = LinkedData::Models::OntologySubmission.find(submission_id).first
-      self.instances_by_class_where_query(s,class_id).count
+      instances_by_class_where_query(s, class_id: class_id).count
     end
 
-    def self.get_instances_by_class(submission_id,class_id, page_no=1, size=50)
+    def self.get_instances_by_class(submission_id, class_id, page_no: nil, size: nil)
       ## TODO: pass directly an LinkedData::Models::OntologySubmission instance in the arguments instead of submission_id
       s = LinkedData::Models::OntologySubmission.find(submission_id).first
 
-      inst = self.instances_by_class_where_query(s,class_id).page(page_no,size).all
+      inst = instances_by_class_where_query(s, class_id: class_id, page_no: page_no, size: size).all
 
       # TODO test if "include=all" parameter is passed in the request
-      load_unmapped s,inst unless if inst.empty? # For getting all the properties # For getting all the properties
-
+      # For getting all the properties # For getting all the properties
+      load_unmapped s,inst unless inst.nil? || inst.empty?
+      inst
     end
 
-    def self.get_instances_by_ontology(submission_id,page_no=1,size=50)
+    def self.get_instances_by_ontology(submission_id, page_no: nil, size: nil)
       ## TODO: pass directly an LinkedData::Models::OntologySubmission instance in the arguments instead of submission_id
       s = LinkedData::Models::OntologySubmission.find(submission_id).first
-      inst = s.nil? ? [] : self.instances_by_class_where_query(s).page(page_no,size).all
+      inst = s.nil? ? [] : instances_by_class_where_query(s, page_no: page_no, size: size).all
 
       ## TODO test if "include=all" parameter is passed in the request
-      load_unmapped s,inst  unless inst.empty?  # For getting all the properties
-      end
+      load_unmapped s, inst unless inst.nil? || inst.empty?  # For getting all the properties
+      inst
     end
 
-    private
-
-    def self.instances_by_class_where_query(submission, class_id = nil )
-
-      where_condition = class_id.nil? ? nil :{types: RDF::URI.new(class_id.to_s)}
-      LinkedData::Models::Instance.where(where_condition).in(submission).include(:types)
-
+    def self.instances_by_class_where_query(submission, class_id: nil, page_no: nil, size: nil)
+        where_condition = class_id.nil? ? nil : {types: RDF::URI.new(class_id.to_s)}
+        query = LinkedData::Models::Instance.where(where_condition).in(submission).include(:types, :label, :prefLabel)
+        query.page(page_no, size) unless page_no.nil?
+        query
     end
 
     def self.load_unmapped(submission, models)
-      LinkedData::Models::Instance.where.in(submission).models(models).include(:unmapped).all
+        LinkedData::Models::Instance.where.in(submission).models(models).include(:unmapped).all
     end
 
 
