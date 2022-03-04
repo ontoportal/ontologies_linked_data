@@ -12,6 +12,7 @@ DEF_AG_PORT = 10035
 DEF_4STORE_PORT = 9000
 JOB_NAME = 'bioportal'
 DEF_VERSION = 'latest'
+REDIS_HOST = 'localhost'
 REDIS_PORT = 6379
 @options = nil
 
@@ -83,6 +84,7 @@ def main
     ENV['GOO_PORT'] = @options[:backend_port].to_s
     ENV['GOO_BACKEND_NAME'] = @options[:backend]
     ENV['GOO_REDIS_PORT'] = @options[:redis_port].to_s
+    ENV['REDIS_HOST'] = REDIS_HOST
     ENV['HTTP_REDIS_PORT'] = @options[:redis_port].to_s
 
     if @options[:backend] == BACKEND_AG

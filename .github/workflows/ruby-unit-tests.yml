@@ -1,0 +1,20 @@
+name: Ruby Unit Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up solr configsets
+      run: test/solr/generate_ncbo_configsets.sh
+    - name: create config.rb file
+      run: cp config/config.rb.sample config/config.rb
+    - name: Build docker-compose
+      run: docker-compose build
+    - name: Run unit tests
+      run: docker-compose up --exit-code-from unit-test
+

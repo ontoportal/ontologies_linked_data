@@ -12,16 +12,22 @@ end
 require_relative "test_log_file"
 require_relative "../lib/ontologies_linked_data"
 
+
 if ENV['OVERRIDE_CONNECT_GOO'] == 'true'
+  SOLR_HOST = ENV.include?('SOLR_HOST') ? ENV['SOLR_HOST'] : 'localhost'
   LinkedData.config do |config|
-    config.goo_backend_name  = ENV['GOO_BACKEND_NAME']
-    config.goo_port          = ENV['GOO_PORT'].to_i
-    config.goo_host          = ENV['GOO_HOST']
-    config.goo_path_query    = ENV['GOO_PATH_QUERY']
-    config.goo_path_data     = ENV['GOO_PATH_DATA']
-    config.goo_path_update   = ENV['GOO_PATH_UPDATE']
-    config.goo_redis_port    = ENV['GOO_REDIS_PORT']
-    config.http_redis_port   = ENV['HTTP_REDIS_PORT']
+    config.goo_backend_name           = ENV['GOO_BACKEND_NAME']
+    config.goo_port                   = ENV['GOO_PORT'].to_i
+    config.goo_host                   = ENV['GOO_HOST']
+    config.goo_path_query             = ENV['GOO_PATH_QUERY']
+    config.goo_path_data              = ENV['GOO_PATH_DATA']
+    config.goo_path_update            = ENV['GOO_PATH_UPDATE']
+    config.goo_redis_port             = ENV['REDIS_PORT']
+    config.goo_redis_host             = ENV['REDIS_HOST']
+    config.http_redis_port            = ENV['REDIS_PORT']
+    config.http_redis_host            = ENV['REDIS_HOST']
+    config.search_server_url          = "http://#{SOLR_HOST}:8983/solr/term_search_core1"
+    config.property_search_server_url = "http://#{SOLR_HOST}:8983/solr/prop_search_core1"
   end
 end
 
@@ -30,7 +36,7 @@ require 'minitest/unit'
 MiniTest::Unit.autorun
 
 # Check to make sure you want to run if not pointed at localhost
-safe_hosts = Regexp.new(/localhost|ncbo-dev*|ncbo-stg-app-22*|ncbo-unittest*/)
+safe_hosts = Regexp.new(/localhost|4store|redis|solr|ncbo-dev*|ncbo-unittest*/)
 def safe_redis_hosts?(sh)
   return [LinkedData.settings.http_redis_host,
    LinkedData.settings.goo_redis_host].select { |x|
