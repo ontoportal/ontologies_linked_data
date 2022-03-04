@@ -4,14 +4,13 @@ module LinkedData
     class Instance < LinkedData::Models::Base
 
       model :named_individual, name_with: :id, collection: :submission,
-            namespace: :owl, :schemaless => :true ,  rdf_type: lambda { |*x| RDF::OWL[:NamedIndividual]}
-
+                               namespace: :owl, schemaless: :true ,  rdf_type: lambda { |*x| RDF::OWL[:NamedIndividual]}
 
       attribute :label, namespace: :rdfs, enforce: [:list]
       attribute :prefLabel, namespace: :skos, enforce: [:existence], alias: true
 
-      attribute :types, :namespace => :rdf, enforce: [:list], property: :type
-      attribute :submission, :collection => lambda { |s| s.resource_id }, :namespace => :metadata
+      attribute :types, namespace: :rdf, enforce: [:list], property: :type
+      attribute :submission, collection: lambda { |s| s.resource_id }, namespace: :metadata
 
       serialize_never :submission, :id
       serialize_methods :properties
@@ -38,19 +37,18 @@ module LinkedData
 
       inst = self.instances_by_class_where_query(s,class_id).page(page_no,size).all
 
-      if inst.length > 0 # TODO test if "include=all" parameter is passed in the request
-        self.load_unmapped s,inst # For getting all the properties # For getting all the properties
-      end
-    end
+      # TODO test if "include=all" parameter is passed in the request
+      load_unmapped s,inst unless if inst.empty? # For getting all the properties # For getting all the properties
 
+    end
 
     def self.get_instances_by_ontology(submission_id,page_no=1,size=50)
       ## TODO: pass directly an LinkedData::Models::OntologySubmission instance in the arguments instead of submission_id
       s = LinkedData::Models::OntologySubmission.find(submission_id).first
       inst = s.nil? ? [] : self.instances_by_class_where_query(s).page(page_no,size).all
 
-      if inst.length > 0 ## TODO test if "include=all" parameter is passed in the request
-        self.load_unmapped s,inst # For getting all the properties
+      ## TODO test if "include=all" parameter is passed in the request
+      load_unmapped s,inst  unless inst.empty?  # For getting all the properties
       end
     end
 
