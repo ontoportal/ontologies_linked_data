@@ -19,5 +19,5 @@ jobs:
       run: docker-compose build
     - name: Run unit tests
       working-directory: ./test
-      run: docker-compose run ld-unit-test wait-for-it ld-solr-ut:8983 -- rake test TESTOPTS='-v'
+      run: docker-compose run ld-unit-test wait-for-it ld-solr-ut:8983 -- bundle exec rake test TESTOPTS='-v'
 
