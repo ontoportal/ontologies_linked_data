@@ -41,7 +41,7 @@ class TestInstances < LinkedData::TestOntologyCommon
     assert_equal 714, instances.length
   end
 
-  def test_instance_labels
+  def test_instance_types
     submission_parse('TESTINST', 'Testing instances',
                      'test/data/ontology_files/XCTontologyvtemp2_vvtemp2.zip',
                      12,
@@ -53,17 +53,17 @@ class TestInstances < LinkedData::TestOntologyCommon
 
     instances = LinkedData::InstanceLoader.get_instances_by_class(submission_id, class_id)
     instances.each do |inst|
-      assert (not inst.label.nil?)
+      assert (not inst.types.nil?)
       assert (not inst.id.nil?)
     end
 
     inst1 = instances.find {|inst| inst.id.to_s == 'http://www.owl-ontologies.com/OntologyXCT.owl#PresenceofAbnormalFacialShapeAt46'}
     assert  !inst1.nil?
-    assert_equal 'PresenceofAbnormalFacialShapeAt46', inst1.label
+    assert_includes inst1.types, class_id
 
     inst2 = instances.find {|inst| inst.id.to_s == 'http://www.owl-ontologies.com/OntologyXCT.owl#PresenceofGaitDisturbanceAt50'}
     assert !inst2.nil?
-    assert_equal 'PresenceofGaitDisturbanceAt50', inst2.label
+    assert_includes inst2.types, class_id
   end
 
   def test_instance_properties
