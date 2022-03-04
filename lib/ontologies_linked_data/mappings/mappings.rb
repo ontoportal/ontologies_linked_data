@@ -145,7 +145,7 @@ module LinkedData
           query = query.sub("group", "")
         end
 
-        graphs = [sub1.id, LinkedData::Models::MappingProcess.type_uri]
+        graphs = [sub1, LinkedData::Models::MappingProcess.type_uri]
         graphs << sub2.id unless sub2.nil?
 
         if sub2.nil?
