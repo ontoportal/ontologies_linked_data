@@ -21,6 +21,7 @@ module LinkedData
         @file_triples_path = nil
         @missing_imports = nil
         @reasoning = true
+        @java_heap_size = LinkedData.settings.java_max_heap_size
       end
 
       def setup_environment
@@ -71,7 +72,7 @@ module LinkedData
         if File.exist? errors_log
           File.delete errors_log
         end
-        command_call = "java -DentityExpansionLimit=2500000 -Xmx10240M -jar #{@owlapi_wrapper_jar_path} #{options}"
+        command_call = "java -DentityExpansionLimit=2500000 -Xmx#{@java_heap_size} -jar #{@owlapi_wrapper_jar_path} #{options}"
         @logger.info("Java call [#{command_call}]")
         Open3.popen3(command_call) do |i,o,e,w|
           i.close
