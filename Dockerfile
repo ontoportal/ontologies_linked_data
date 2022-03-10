@@ -6,7 +6,7 @@ RUN mkdir -p /srv/ontoportal/ontologies_linked_data
 COPY Gemfile* *.gemspec /srv/ontoportal/ontologies_linked_data/
 WORKDIR /srv/ontoportal/ontologies_linked_data
 RUN gem install bundler -v "$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1)"
-RUN bundle install
+RUN bundle install --jobs 4
 
 COPY . /srv/ontoportal/ontologies_linked_data
 
