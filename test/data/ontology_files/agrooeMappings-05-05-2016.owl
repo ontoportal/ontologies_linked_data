@@ -377,7 +377,7 @@
     <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#Class"/>
     <rdfs:label xml:lang="en">entity</rdfs:label>
     <rdfs:label xml:lang="fr">entité</rdfs:label>
-    <dcterms:description xml:lang="en">Every thing is an entity.</dcterms:description>
+    <dcterms:description>Every thing is an entity.</dcterms:description>
     <dcterms:identifier>AGROOE_c_01</dcterms:identifier>
     <rdfs:isDefinedBy rdf:resource="http://lirmm.fr/2015/ontology/agroportal_ontology_example.owl"/>
 </rdf:Description>
