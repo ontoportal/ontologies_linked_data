@@ -110,7 +110,9 @@ module LinkedData
 
               file_size = res.read_header["content-length"].to_i
               begin
-                filename = res.read_header["content-disposition"].match(/filename=\"(.*)\"/)[1] if filename.nil?
+                content_disposition = res.read_header['content-disposition']
+                filenames = content_disposition.match(/filename=\"(.*)\"/) || content_disposition.match(/filename=(.*)/)
+                filename = filenames[1] if filename.nil?
               rescue
                 filename = LinkedData::Utils::Triples.last_iri_fragment(uri.request_uri) if filename.nil?
               end
