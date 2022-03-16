@@ -29,9 +29,9 @@ class TestClassMainLang <  LinkedData::TestOntologyCommon
     # 'es' will not be found so will take 'fr' if fond or anything else
     cls = parse_and_get_class lang: %w[es fr]
 
-    assert_equal 'entité matérielle detaillée', cls.label.first
+    assert_equal ['entité matérielle detaillée'], cls.label
     assert_equal 'skos prefLabel rien', cls.prefLabel
-    assert_equal ['entita esp', 'entite rien', 'entité fra'], cls.synonym
+    assert_equal ['entita esp', 'entite rien'], cls.synonym
   end
 
   def test_label_main_lang_en_found
