@@ -19,6 +19,16 @@ class TestClassMainLang < LinkedData::TestOntologyCommon
     assert_equal ['entita esp' , 'entite rien' ], cls.synonym
   end
 
+  def test_map_attribute_secondary_lang
+    cls = parse_and_get_class lang: %w[es fr]
+    cls.bring :unmapped
+    LinkedData::Models::Class.map_attributes(cls)
+    assert_equal ['entité matérielle detaillée'], cls.label
+    assert_equal 'skos prefLabel rien', cls.prefLabel
+    assert_equal ['entita esp', 'entite rien'], cls.synonym
+  end
+
+
   def test_label_main_lang_fr_found
     cls = parse_and_get_class lang: ['fr']
     assert_equal 'entité matérielle detaillée', cls.label.first
