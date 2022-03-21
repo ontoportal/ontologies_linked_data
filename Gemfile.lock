@@ -23,7 +23,7 @@ GIT
 
 GIT
   remote: https://github.com/ontoportal-lirmm/goo.git
-  revision: ca344b0966b941e55e51ef175a31e79b24c8ab70
+  revision: 60c686f9408fddc86e930fa5afcb1774f8dc693d
   branch: development
   specs:
     goo (0.0.2)
@@ -108,7 +108,7 @@ GEM
     launchy (2.4.3)
       addressable (~> 2.3)
     libxml-ruby (2.9.0)
-    logger (1.5.0)
+    logger (1.5.1)
     macaddr (1.7.2)
       systemu (~> 2.6.5)
     mail (2.7.1)
@@ -132,7 +132,7 @@ GEM
     oj (2.18.5)
     omni_logger (0.1.4)
       logger
-    parallel (1.21.0)
+    parallel (1.22.0)
     parser (3.1.1.0)
       ast (~> 2.4.1)
     pony (1.13.1)
