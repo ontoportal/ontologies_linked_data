@@ -1,13 +1,22 @@
 require_relative './test_ontology_common'
-class TestClassMainLang <  LinkedData::TestOntologyCommon
+class TestClassMainLang < LinkedData::TestOntologyCommon
 
-  def test_map_attribute
+  def test_map_attribute_found
     cls = parse_and_get_class lang: ['fr']
     cls.bring :unmapped
     LinkedData::Models::Class.map_attributes(cls)
     assert_equal 'entité matérielle detaillée', cls.label.first
     assert_equal 'skos prefLabel fr', cls.prefLabel
     assert_equal ['entité fra', 'entite rien'], cls.synonym
+  end
+
+  def test_map_attribute_not_found
+    cls = parse_and_get_class lang: ['es']
+    cls.bring :unmapped
+    LinkedData::Models::Class.map_attributes(cls)
+    assert_equal ['material detailed entity', 'entité matérielle detaillée'], cls.label
+    assert_equal 'skos prefLabel rien', cls.prefLabel
+    assert_equal ['entita esp' , 'entite rien' ], cls.synonym
   end
 
   def test_label_main_lang_fr_found

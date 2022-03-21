@@ -23,7 +23,7 @@ GIT
 
 GIT
   remote: https://github.com/ontoportal-lirmm/goo.git
-  revision: 1108250e41ff37f65ad7659d8aa81ab251b93c8b
+  revision: ba27011fd2b093ff04d522477010d146602d0b62
   branch: pl/add-mainlang-defaults-refactored
   specs:
     goo (0.0.2)
