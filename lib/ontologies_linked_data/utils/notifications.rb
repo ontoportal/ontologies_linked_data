@@ -9,7 +9,7 @@ module LinkedData::Utils
 
       headers = { 'Content-Type' => 'text/html' }
       sender = options[:sender] || LinkedData.settings.email_sender
-      recipients = options[:recipients]
+      recipients = Array(options[:recipients]).uniq
       raise ArgumentError, 'Recipient needs to be provided in options[:recipients]' if !recipients || recipients.empty?
 
       # By default we override all recipients to avoid
