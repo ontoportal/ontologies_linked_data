@@ -72,7 +72,7 @@ module LinkedData::Utils
                                  .gsub('%ontology_location%', LinkedData::Hypermedia.generate_links(ontology)['ui'])
 
       notify_subscribed_separately subject, body, ontology, 'PROCESSING'
-        ontologies: ontology,
+      notify_support_grouped subject, body
     end
 
     def self.remote_ontology_pull(submission)
