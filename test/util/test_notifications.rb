@@ -8,6 +8,7 @@ class TestNotifications < LinkedData::TestCase
   def self.before_suite
     @@notifications_enabled = LinkedData.settings.enable_notifications
     @@disable_override = LinkedData.settings.email_disable_override
+    @@suppor_mails = LinkedData.settings.admin_emails
     LinkedData.settings.email_disable_override = true
     LinkedData.settings.enable_notifications = true
     @@ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(ont_count: 1, submission_count: 1)[2].first
@@ -88,8 +89,19 @@ class TestNotifications < LinkedData::TestCase
       @@user.subscription = @@user.subscription.dup << subscription
       @@user.save
       ont.latest_submission(status: :any).process_submission(Logger.new(TestLogFile.new))
-      assert last_email_sent.subject.include?("Parsing Success")
-      assert_equal [@@user.email], last_email_sent.to
+      subscription.bring :user
+      mails = all_emails.last(subscription.user.size+1)
+
+      assert_equal subscription.user.size + 1, mails.size # subscribed users + support mail
+
+      first_user = subscription.user.first
+      first_user.bring :email
+      assert mails.first.subject.include?("Parsing Success")
+      assert_equal [first_user.email],  mails.first.to
+
+      assert mails.last.subject.include?("Parsing Success")
+      assert_equal @@suppor_mails,  mails.last.to
+
     ensure
       ont.delete if ont
       subscription.delete if subscription
@@ -119,7 +131,7 @@ class TestNotifications < LinkedData::TestCase
       LinkedData::Utils::Notifications.remote_ontology_pull(sub)
 
       assert last_email_sent.subject.include? "Load from URL failure for #{ont.name}"
-      recipients = []
+      recipients = @@suppor_mails
       ont_admins.each do |user|
         recipients << user.email
       end
