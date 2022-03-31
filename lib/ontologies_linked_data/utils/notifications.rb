@@ -7,10 +7,10 @@ module LinkedData::Utils
     def self.notify(options = {})
       return unless LinkedData.settings.enable_notifications
 
-      headers    = { 'Content-Type' => 'text/html' }
-      sender     = options[:sender] || LinkedData.settings.email_sender
+      headers = { 'Content-Type' => 'text/html' }
+      sender = options[:sender] || LinkedData.settings.email_sender
       recipients = options[:recipients]
-      raise ArgumentError, "Recipient needs to be provided in options[:recipients]" if !recipients || recipients.empty?
+      raise ArgumentError, 'Recipient needs to be provided in options[:recipients]' if !recipients || recipients.empty?
 
       # By default we override all recipients to avoid
       # sending emails from testing environments.
@@ -22,22 +22,22 @@ module LinkedData::Utils
       end
 
       Pony.mail({
-        to: recipients,
-        from: sender,
-        subject: options[:subject],
-        body: options[:body],
-        headers: headers,
-        via: :smtp,
-        enable_starttls_auto: LinkedData.settings.enable_starttls_auto,
-        via_options: mail_options
-      })
+                  to: recipients,
+                  from: sender,
+                  subject: options[:subject],
+                  body: options[:body],
+                  headers: headers,
+                  via: :smtp,
+                  enable_starttls_auto: LinkedData.settings.enable_starttls_auto,
+                  via_options: mail_options
+                })
     end
 
     def self.new_note(note)
       note.bring_remaining
       note.creator.bring(:username) if note.creator.bring?(:username)
-      note.relatedOntology.each {|o| o.bring(:name) if o.bring?(:name); o.bring(:subscriptions) if o.bring?(:subscriptions)}
-      ontologies = note.relatedOntology.map {|o| o.name}.join(", ")
+      note.relatedOntology.each { |o| o.bring(:name) if o.bring?(:name); o.bring(:subscriptions) if o.bring?(:subscriptions) }
+      ontologies = note.relatedOntology.map { |o| o.name }.join(', ')
       subject = "[#{LinkedData.settings.ui_host} Notes] [#{ontologies}] #{note.subject}"
       # Fix the note URL when using replace_url_prefix (in another VM than NCBO)
       if LinkedData.settings.replace_url_prefix == true
@@ -45,11 +45,11 @@ module LinkedData::Utils
       else
         note_url = "http://#{LinkedData.settings.ui_host}/notes/#{CGI.escape(note.id.to_s)}"
       end
-      body = NEW_NOTE.gsub("%username%", note.creator.username)
-                     .gsub("%ontologies%", ontologies)
-                     .gsub("%note_url%", note_url)
-                     .gsub("%note_subject%", note.subject || "")
-                     .gsub("%note_body%", note.body || "")
+      body = NEW_NOTE.gsub('%username%', note.creator.username)
+                     .gsub('%ontologies%', ontologies)
+                     .gsub('%note_url%', note_url)
+                     .gsub('%note_subject%', note.subject || '')
+                     .gsub('%note_body%', note.body || '')
 
       options = {
         ontologies: note.relatedOntology,
@@ -64,15 +64,15 @@ module LinkedData::Utils
       submission.bring_remaining
       ontology = submission.ontology
       ontology.bring(:name, :acronym)
-      result = submission.ready? ? "Success" : "Failure"
+      result = submission.ready? ? 'Success' : 'Failure'
       status = LinkedData::Models::SubmissionStatus.readable_statuses(submission.submissionStatus)
 
       subject = "[#{LinkedData.settings.ui_host}] #{ontology.name} Parsing #{result}"
-      body = SUBMISSION_PROCESSED.gsub("%ontology_name%", ontology.name)
-                                 .gsub("%ontology_acronym%", ontology.acronym)
-                                 .gsub("%statuses%", status.join("<br/>"))
-                                 .gsub("%admin_email%", LinkedData.settings.email_sender)
-                                 .gsub("%ontology_location%", LinkedData::Hypermedia.generate_links(ontology)["ui"])
+      body = SUBMISSION_PROCESSED.gsub('%ontology_name%', ontology.name)
+                                 .gsub('%ontology_acronym%', ontology.acronym)
+                                 .gsub('%statuses%', status.join('<br/>'))
+                                 .gsub('%admin_email%', LinkedData.settings.email_sender)
+                                 .gsub('%ontology_location%', LinkedData::Hypermedia.generate_links(ontology)['ui'])
 
       options = {
         ontologies: ontology,
@@ -89,10 +89,10 @@ module LinkedData::Utils
       ontology.bring(:name, :acronym, :administeredBy)
 
       subject = "[#{LinkedData.settings.ui_host}] Load from URL failure for #{ontology.name}"
-      body = REMOTE_PULL_FAILURE.gsub("%ont_pull_location%", submission.pullLocation.to_s)
-                                .gsub("%ont_name%", ontology.name)
-                                .gsub("%ont_acronym%", ontology.acronym)
-                                .gsub("%ontology_location%", LinkedData::Hypermedia.generate_links(ontology)["ui"])
+      body = REMOTE_PULL_FAILURE.gsub('%ont_pull_location%', submission.pullLocation.to_s)
+                                .gsub('%ont_name%', ontology.name)
+                                .gsub('%ont_acronym%', ontology.acronym)
+                                .gsub('%ontology_location%', LinkedData::Hypermedia.generate_links(ontology)['ui'])
       recipients = []
       ontology.administeredBy.each do |user|
         user.bring(:email) if user.bring?(:email)
@@ -102,7 +102,6 @@ module LinkedData::Utils
         LinkedData.settings.admin_emails.each do |admin_email|
           recipients << admin_email
         end
-      end
 
 
       options = {
@@ -117,9 +116,9 @@ module LinkedData::Utils
       user.bring_remaining
 
       subject = "[#{LinkedData.settings.ui_host}] New User: #{user.username}"
-      body = NEW_USER_CREATED.gsub("%username%", user.username.to_s)
-                 .gsub("%email%", user.email.to_s)
-                 .gsub("%site_url%", LinkedData.settings.ui_host)
+      body = NEW_USER_CREATED.gsub('%username%', user.username.to_s)
+                             .gsub('%email%', user.email.to_s)
+                             .gsub('%site_url%', LinkedData.settings.ui_host)
       recipients = LinkedData.settings.admin_emails
 
       options = {
@@ -134,11 +133,11 @@ module LinkedData::Utils
       ont.bring_remaining
 
       subject = "[#{LinkedData.settings.ui_host}] New Ontology: #{ont.acronym}"
-      body = NEW_ONTOLOGY_CREATED.gsub("%acronym%", ont.acronym)
-                 .gsub("%name%", ont.name.to_s)
-                 .gsub("%addedby%", ont.administeredBy[0].to_s)
-                 .gsub("%site_url%", LinkedData.settings.ui_host)
-                 .gsub("%ont_url%", LinkedData::Hypermedia.generate_links(ont)["ui"])
+      body = NEW_ONTOLOGY_CREATED.gsub('%acronym%', ont.acronym)
+                                 .gsub('%name%', ont.name.to_s)
+                                 .gsub('%addedby%', ont.administeredBy[0].to_s)
+                                 .gsub('%site_url%', LinkedData.settings.ui_host)
+                                 .gsub('%ont_url%', LinkedData::Hypermedia.generate_links(ont)['ui'])
       recipients = LinkedData.settings.admin_emails
 
       options = {
@@ -171,24 +170,24 @@ module LinkedData::Utils
     end
 
     def self.obofoundry_sync(missing_onts, obsolete_onts)
-      body = ""
+      body = ''
 
       if missing_onts.size > 0
-        body << "<strong>The following OBO Library ontologies are missing from BioPortal:</strong><br/><br/>"
+        body << '<strong>The following OBO Library ontologies are missing from BioPortal:</strong><br/><br/>'
         missing_onts.each do |ont|
           body << "<a href='#{ont['homepage']}'>#{ont['id']}</a> (#{ont['title']})<br/><br/>"
         end
       end
 
       if obsolete_onts.size > 0
-        body << "<strong>The following OBO Library ontologies have been deprecated:</strong><br/><br/>"
+        body << '<strong>The following OBO Library ontologies have been deprecated:</strong><br/><br/>'
         obsolete_onts.each do |ont|
           body << "<a href='#{ont['homepage']}'>#{ont['id']}</a> (#{ont['title']})<br/><br/>"
         end
       end
 
       if body.empty?
-        body << "BioPortal and the OBO Foundry are in sync.<br/><br/>"
+        body << 'BioPortal and the OBO Foundry are in sync.<br/><br/>'
       end
 
       options = {
@@ -231,22 +230,22 @@ module LinkedData::Utils
     def self.mail_options
       options = {
         address: LinkedData.settings.smtp_host,
-        port:    LinkedData.settings.smtp_port,
-        domain:  LinkedData.settings.smtp_domain # the HELO domain provided by the client to the server
+        port: LinkedData.settings.smtp_port,
+        domain: LinkedData.settings.smtp_domain # the HELO domain provided by the client to the server
       }
 
       if LinkedData.settings.smtp_auth_type && LinkedData.settings.smtp_auth_type != :none
         options.merge({
-          user_name:      LinkedData.settings.smtp_user,
-          password:       LinkedData.settings.smtp_password,
-          authentication: LinkedData.settings.smtp_auth_type
-        })
+                        user_name: LinkedData.settings.smtp_user,
+                        password: LinkedData.settings.smtp_password,
+                        authentication: LinkedData.settings.smtp_auth_type
+                      })
       end
 
       return options
     end
 
-NEW_NOTE = <<EOS
+    NEW_NOTE = <<EOS
 A new note was added to %ontologies% by <b>%username%</b>.<br/><br/>
 
 ----------------------------------------------------------------------------------<br/>
@@ -258,7 +257,7 @@ A new note was added to %ontologies% by <b>%username%</b>.<br/><br/>
 You can respond by visiting: <a href="%note_url%">AgroPortal</a>.<br/><br/>
 EOS
 
-SUBMISSION_PROCESSED = <<EOS
+    SUBMISSION_PROCESSED = <<EOS
 %ontology_name% (%ontology_acronym%) was processed for use in AgroPortal. Here are the results:
 <br><br>
 %statuses%
@@ -271,7 +270,7 @@ Thank you,<br>
 The AgroPortal Team
 EOS
 
-REMOTE_PULL_FAILURE = <<EOS
+    REMOTE_PULL_FAILURE = <<EOS
 AgroPortal failed to load %ont_name% (%ont_acronym%) from URL: %ont_pull_location%.
 <br><br>
 Please verify the URL you provided for daily loading of your ontology:
@@ -287,7 +286,7 @@ Thank you,<br>
 The AgroPortal Team
 EOS
 
-NEW_USER_CREATED = <<EOS
+    NEW_USER_CREATED = <<EOS
 A new user have been created on %site_url%
 <br>
 Username: %username%
@@ -297,7 +296,7 @@ Email: %email%
 The BioPortal Team
 EOS
 
-NEW_ONTOLOGY_CREATED = <<EOS
+    NEW_ONTOLOGY_CREATED = <<EOS
 A new ontology have been created by %addedby% on %site_url%
 <br>
 Acronym: %acronym%
