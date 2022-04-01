@@ -50,12 +50,12 @@ class TestNotifications < LinkedData::TestCase
 
     # Email recipient address will be overridden
     LinkedData.settings.email_disable_override = false
-    LinkedData::Utils::Notifications.notify(recipients: recipients)
+    LinkedData::Utils::Notifier.notify(recipients: recipients)
     assert_equal [LinkedData.settings.email_override], last_email_sent.to
 
     # Disable override
     LinkedData.settings.email_disable_override = true
-    LinkedData::Utils::Notifications.notify({
+    LinkedData::Utils::Notifier.notify({
                                               recipients: recipients,
                                               subject: subject,
                                               body: body
