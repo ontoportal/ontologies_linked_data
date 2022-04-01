@@ -1371,7 +1371,7 @@ eos
         end
 
         # delete the folder and files
-        FileUtils.remove_dir(self.data_folder)
+        FileUtils.remove_dir(self.data_folder) if Dir.exist?(self.data_folder)
       end
 
       def roots(extra_include=nil, page=nil, pagesize=nil)
