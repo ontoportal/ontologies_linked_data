@@ -45,7 +45,7 @@ module LinkedData
                                  .gsub('%ui_name%', LinkedData.settings.ui_name)
 
       Notifier.notify_subscribed_separately subject, body, ontology, 'PROCESSING'
-      Notifier.notify_support_grouped subject, body
+      Notifier.notify_mails_grouped subject, body, Notifier.support_mails + Notifier.admin_mails(ontology)
     end
 
     def self.remote_ontology_pull(submission)
