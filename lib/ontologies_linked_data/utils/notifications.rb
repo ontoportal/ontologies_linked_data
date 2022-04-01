@@ -211,10 +211,9 @@ module LinkedData::Utils
     def self.support_mails
 
       if !LinkedData.settings.admin_emails.nil? &&
-        LinkedData.settings.admin_emails.kind_of?(Array)
+         LinkedData.settings.admin_emails.kind_of?(Array)
         return LinkedData.settings.admin_emails
       end
-
       []
     end
 
@@ -227,7 +226,7 @@ module LinkedData::Utils
         subscription.notification_type.bring(:type) if subscription.notification_type.bring?(:notification_type)
 
         unless subscription.notification_type.type.eql?(notification_type.to_s.upcase) ||
-          subscription.notification_type.type.eql?('ALL')
+               subscription.notification_type.type.eql?('ALL')
           next
         end
 
