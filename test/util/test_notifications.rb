@@ -94,6 +94,7 @@ class TestNotifications < LinkedData::TestCase
       @@user.save
       ont.latest_submission(status: :any).process_submission(Logger.new(TestLogFile.new))
       subscription.bring :user
+      admin_mails =  LinkedData::Utils::Notifier.admin_mails(ont)
       mail_sent_count = subscription.user.size + 1
       mails = all_emails.last(mail_sent_count)
       assert_equal mail_sent_count, mails.size # subscribed users + support mail
@@ -105,7 +106,7 @@ class TestNotifications < LinkedData::TestCase
 
 
       assert mails.last.subject.include?("Parsing Success")
-      assert_equal @@support_mails, mails.last.to
+      assert_equal (@@support_mails + admin_mails).uniq.sort, mails.last.to.sort
 
     ensure
       ont.delete if ont
