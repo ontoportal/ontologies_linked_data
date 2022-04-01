@@ -85,6 +85,7 @@ module LinkedData::Utils
                                 .gsub('%ont_name%', ontology.name)
                                 .gsub('%ont_acronym%', ontology.acronym)
                                 .gsub('%ontology_location%', LinkedData::Hypermedia.generate_links(ontology)['ui'])
+                                .gsub('%support_mail%', support_mails.first)
 
       notify_mails_separately subject, body, [admin_mails(ontology) + support_mails]
     end
@@ -292,7 +293,7 @@ Please verify the URL you provided for daily loading of your ontology:
 <li>Click the &quot;Edit submission information&quot; link.</li>
 <li>In the Location row, verify that you entered a valid URL for daily loading of your ontology in the URL text area.</li>
 </ol>
-If you need further assistance, please <a href="mailto:support@bioontology.org">contact us</a> via the AgroPortal support mailing list.
+If you need further assistance, please <a href="mailto:%support_mail%">contact us</a> via the AgroPortal support mailing list.
 <br><br>
 Thank you,<br>
 The AgroPortal Team
