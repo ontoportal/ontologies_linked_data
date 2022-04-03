@@ -2218,7 +2218,7 @@ eos
           root_skos = <<eos
 SELECT DISTINCT ?root WHERE {
 GRAPH #{self.id.to_ntriples} {
-  ?x #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
+  #{self.ontology_uri.to_ntriples} #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
 }}
 eos
           count = 0
@@ -2322,6 +2322,10 @@ eos
         classes
       end
 
+      def ontology_uri
+        self.bring(:URI) if self.bring? :URI
+        RDF::URI.new(self.URI)
+      end
       def roots_sorted(extra_include=nil)
         classes = roots(extra_include)
         LinkedData::Models::Class.sort_classes(classes)
