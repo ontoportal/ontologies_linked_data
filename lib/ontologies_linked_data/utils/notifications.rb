@@ -1,37 +1,11 @@
 require 'cgi'
 require 'pony'
 
-module LinkedData::Utils
+module LinkedData
+  module Utils
   class Notifications
 
-    def self.notify(options = {})
-      return unless LinkedData.settings.enable_notifications
 
-      headers = { 'Content-Type' => 'text/html' }
-      sender = options[:sender] || LinkedData.settings.email_sender
-      recipients = Array(options[:recipients]).uniq
-      raise ArgumentError, 'Recipient needs to be provided in options[:recipients]' if !recipients || recipients.empty?
-
-      # By default we override all recipients to avoid
-      # sending emails from testing environments.
-      # Set `email_disable_override` in production
-      # to send to the actual user.
-      unless LinkedData.settings.email_disable_override
-        headers['Overridden-Sender'] = recipients
-        recipients = LinkedData.settings.email_override
-      end
-
-      Pony.mail({
-                  to: recipients,
-                  from: sender,
-                  subject: options[:subject],
-                  body: options[:body],
-                  headers: headers,
-                  via: :smtp,
-                  enable_starttls_auto: LinkedData.settings.enable_starttls_auto,
-                  via_options: mail_options
-                })
-    end
 
     def self.new_note(note)
       note.bring_remaining
@@ -49,13 +23,10 @@ module LinkedData::Utils
                      .gsub("%note_url%", LinkedData::Hypermedia.generate_links(note)["ui"])
                      .gsub('%ui_name%', LinkedData.settings.ui_name)
 
-      options = {
-        ontologies: note.relatedOntology,
-        notification_type: "NOTES",
-        subject: subject,
-        body: body
-      }
-      send_ontology_notifications(options)
+
+      note.relatedOntology.each do |ont|
+        Notifier.notify_subscribed_separately subject, body, ont, 'NOTES'
+      end
     end
 
     def self.submission_processed(submission)
@@ -73,13 +44,8 @@ module LinkedData::Utils
                                  .gsub('%ontology_location%', LinkedData::Hypermedia.generate_links(ontology)['ui'])
                                  .gsub('%ui_name%', LinkedData.settings.ui_name)
 
-      options = {
-        ontologies: ontology,
-        notification_type: "PROCESSING",
-        subject: subject,
-        body: body
-      }
-      send_ontology_notifications(options)
+      Notifier.notify_subscribed_separately subject, body, ontology, 'PROCESSING'
+      Notifier.notify_support_grouped subject, body
     end
 
     def self.remote_ontology_pull(submission)
@@ -92,7 +58,7 @@ module LinkedData::Utils
                                 .gsub('%ont_name%', ontology.name)
                                 .gsub('%ont_acronym%', ontology.acronym)
                                 .gsub('%ontology_location%', LinkedData::Hypermedia.generate_links(ontology)['ui'])
-                                .gsub('%support_mail%', support_mails.first || '')
+                                .gsub('%support_mail%', Notifier.support_mails.first || '')
                                 .gsub('%ui_name%', LinkedData.settings.ui_name)
       recipients = []
       ontology.administeredBy.each do |user|
@@ -104,12 +70,7 @@ module LinkedData::Utils
           recipients << admin_email
         end
 
-      options = {
-        subject: subject,
-        body: body,
-        recipients: recipients
-      }
-      notify(options)
+      Notifier.notify_mails_grouped subject, body, [Notifier.admin_mails(ontology) + Notifier.support_mails]
     end
 
     def self.new_user(user)
@@ -122,12 +83,7 @@ module LinkedData::Utils
                              .gsub('%ui_name%', LinkedData.settings.ui_name)
       recipients = LinkedData.settings.admin_emails
 
-      options = {
-          subject: subject,
-          body: body,
-          recipients: recipients
-      }
-      notify(options)
+      Notifier.notify_support_grouped subject, body
     end
 
     def self.new_ontology(ont)
@@ -142,12 +98,7 @@ module LinkedData::Utils
                                  .gsub('%ui_name%', LinkedData.settings.ui_name)
       recipients = LinkedData.settings.admin_emails
 
-      options = {
-          subject: subject,
-          body: body,
-          recipients: recipients
-      }
-      notify(options)
+      Notifier.notify_support_grouped subject, body
     end
 
     def self.reset_password(user, token)
@@ -166,13 +117,7 @@ module LinkedData::Utils
         BioPortal Team
         #{ui_name} Team
       HTML
-
-      options = {
-        subject: subject,
-        body: body,
-        recipients: user.email
-      }
-      notify(options)
+      Notifier.notify_mails_separately subject, body, [user.mail]
     end
 
     def self.obofoundry_sync(missing_onts, obsolete_onts)
@@ -196,60 +141,10 @@ module LinkedData::Utils
         body << "#{ui_name} and the OBO Foundry are in sync.<br/><br/>"
       end
 
-      options = {
-        subject: "[BioPortal] OBOFoundry synchronization report",
-        body: body,
-        recipients: LinkedData.settings.email_sender
-      }
-      notify(options)
+      Notifier.notify_mails_separately subject, body, [LinkedData.settings.email_sender]
     end
 
-    private
 
-    ##
-    # This method takes a list of ontologies and a notification type,
-    # then looks up all the users who subscribe to that ontology/type pair
-    # and sends them an email with the given subject and body.
-    def self.send_ontology_notifications(options = {})
-      ontologies        = options[:ontologies]
-      ontologies        = ontologies.is_a?(Array) ? ontologies : [ontologies]
-      notification_type = options[:notification_type]
-      subject           = options[:subject]
-      body              = options[:body]
-      emails            = []
-      ontologies.each {|o| o.bring(:subscriptions) if o.bring?(:subscriptions)}
-      ontologies.each do |ont|
-        ont.subscriptions.each do |subscription|
-          subscription.bring(:notification_type) if subscription.bring?(:notification_type)
-          subscription.notification_type.bring(:type) if subscription.notification_type.bring?(:notification_type)
-          next unless subscription.notification_type.type.eql?(notification_type.to_s.upcase) || subscription.notification_type.type.eql?("ALL")
-          subscription.bring(:user) if subscription.bring?(:user)
-          subscription.user.each do |user|
-            user.bring(:email) if user.bring?(:email)
-            emails << notify(recipients: user.email, subject: subject, body: body)
-          end
-        end
-      end
-      emails
-    end
-
-    def self.mail_options
-      options = {
-        address: LinkedData.settings.smtp_host,
-        port: LinkedData.settings.smtp_port,
-        domain: LinkedData.settings.smtp_domain # the HELO domain provided by the client to the server
-      }
-
-      if LinkedData.settings.smtp_auth_type && LinkedData.settings.smtp_auth_type != :none
-        options.merge({
-                        user_name: LinkedData.settings.smtp_user,
-                        password: LinkedData.settings.smtp_password,
-                        authentication: LinkedData.settings.smtp_auth_type
-                      })
-      end
-
-      return options
-    end
 
     NEW_NOTE = <<EOS
 A new note was added to %ontologies% by <b>%username%</b>.<br/><br/>
@@ -314,5 +209,6 @@ At <a href="%ont_url%">%ont_url%</a>
 The %ui_name% Team
 EOS
 
+  end
   end
 end
