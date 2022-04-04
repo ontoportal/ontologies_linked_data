@@ -40,7 +40,7 @@ module LinkedData::Utils
       
       note.relatedOntology.each {|o| o.bring(:name) if o.bring?(:name); o.bring(:subscriptions) if o.bring?(:subscriptions)}
       ontologies = note.relatedOntology.map {|o| o.name}.join(", ")
-      subject = "[BioPortal Notes] [#{ontologies}] #{note.subject}"
+      subject = "[#{LinkedData.settings.ui_host} Notes] [#{ontologies}] #{note.subject}"
       body = NEW_NOTE.gsub("%username%", note.creator.username)
                      .gsub("%ontologies%", ontologies)
                      .gsub("%note_url%", LinkedData::Hypermedia.generate_links(note)["ui"])
@@ -64,7 +64,7 @@ module LinkedData::Utils
       result = submission.ready? ? 'Success' : 'Failure'
       status = LinkedData::Models::SubmissionStatus.readable_statuses(submission.submissionStatus)
 
-      subject = "[BioPortal] #{ontology.name} Parsing #{result}"
+      subject = "[#{LinkedData.settings.ui_host}] #{ontology.name} Parsing #{result}"
       body = SUBMISSION_PROCESSED.gsub('%ontology_name%', ontology.name)
                                  .gsub('%ontology_acronym%', ontology.acronym)
                                  .gsub('%statuses%', status.join('<br/>'))
@@ -85,7 +85,7 @@ module LinkedData::Utils
       ontology = submission.ontology
       ontology.bring(:name, :acronym, :administeredBy)
 
-      subject = "[BioPortal] Load from URL failure for #{ontology.name}"
+      subject = "[#{LinkedData.settings.ui_host}] Load from URL failure for #{ontology.name}"
       body = REMOTE_PULL_FAILURE.gsub('%ont_pull_location%', submission.pullLocation.to_s)
                                 .gsub('%ont_name%', ontology.name)
                                 .gsub('%ont_acronym%', ontology.acronym)
