@@ -34,6 +34,7 @@ require "ontologies_linked_data/models/base"
 
 # Require all models
 project_root = File.dirname(File.absolute_path(__FILE__))
+require 'ontologies_linked_data/services/submission_process/submission_process'
 
 # We need to require deterministic - that is why we have the sort.
 models = Dir.glob(project_root + '/ontologies_linked_data/models/**/*.rb').sort
