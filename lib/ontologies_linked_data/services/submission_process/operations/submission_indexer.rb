@@ -12,7 +12,7 @@ module LinkedData
 
         status = LinkedData::Models::SubmissionStatus.find('INDEXED').first
         begin
-          index(logger, options[:index_commit], false)
+          index(logger, options[:commit], false)
           @submission.add_submission_status(status)
         rescue Exception => e
           logger.error("#{e.class}: #{e.message}\n#{e.backtrace.join("\n\t")}")

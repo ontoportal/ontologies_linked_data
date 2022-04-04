@@ -11,7 +11,7 @@ module LinkedData
       def process_indexation(logger, options)
         status = LinkedData::Models::SubmissionStatus.find('INDEXED_PROPERTIES').first
         begin
-          index_properties(logger, options[:index_commit], false)
+          index_properties(logger, commit: options[:commit], optimize: false)
           @submission.add_submission_status(status)
         rescue StandardError => e
           logger.error("#{e.class}: #{e.message}\n#{e.backtrace.join("\n\t")}")
@@ -22,8 +22,7 @@ module LinkedData
         end
       end
 
-
-      def index_properties(logger, commit = true, optimize = true)
+      def index_properties(logger, commit: true, optimize: true)
         page = 1
         size = 2500
         count_props = 0
