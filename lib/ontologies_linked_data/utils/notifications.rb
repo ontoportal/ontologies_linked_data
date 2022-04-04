@@ -92,7 +92,7 @@ module LinkedData::Utils
                                 .gsub('%ont_name%', ontology.name)
                                 .gsub('%ont_acronym%', ontology.acronym)
                                 .gsub('%ontology_location%', LinkedData::Hypermedia.generate_links(ontology)['ui'])
-                                .gsub('%support_mail%', support_mails.first)
+                                .gsub('%support_mail%', support_mails.first || '')
                                 .gsub('%ui_name%', LinkedData.settings.ui_name)
       recipients = []
       ontology.administeredBy.each do |user|
