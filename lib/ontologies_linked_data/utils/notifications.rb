@@ -125,6 +125,25 @@ module LinkedData::Utils
       notify(options)
     end
 
+    def self.new_ontology(ont)
+      ont.bring_remaining
+
+      subject = "[#{LinkedData.settings.ui_host}] New Ontology: #{ont.acronym}"
+      body = NEW_ONTOLOGY_CREATED.gsub('%acronym%', ont.acronym)
+                                 .gsub('%name%', ont.name.to_s)
+                                 .gsub('%addedby%', ont.administeredBy[0].to_s)
+                                 .gsub('%site_url%', LinkedData.settings.ui_host)
+                                 .gsub('%ont_url%', LinkedData::Hypermedia.generate_links(ont)['ui'])
+      recipients = LinkedData.settings.admin_emails
+
+      options = {
+          subject: subject,
+          body: body,
+          recipients: recipients
+      }
+      notify(options)
+    end
+
     def self.reset_password(user, token)
       subject = "[BioPortal] User #{user.username} password reset"
       password_url = "https://#{LinkedData.settings.ui_host}/reset_password?tk=#{token}&em=#{CGI.escape(user.email)}&un=#{CGI.escape(user.username)}"
@@ -269,6 +288,18 @@ A new user have been created on %site_url%
 Username: %username%
 <br>
 Email: %email%
+<br><br>
+The BioPortal Team
+EOS
+
+    NEW_ONTOLOGY_CREATED = <<EOS
+A new ontology have been created by %addedby% on %site_url%
+<br>
+Acronym: %acronym%
+<br>
+Name: %name%
+<br>
+At <a href="%ont_url%">%ont_url%</a>
 <br><br>
 The BioPortal Team
 EOS
