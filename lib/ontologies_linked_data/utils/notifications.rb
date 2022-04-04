@@ -108,6 +108,23 @@ module LinkedData::Utils
       notify(options)
     end
 
+    def self.new_user(user)
+      user.bring_remaining
+
+      subject = "[#{LinkedData.settings.ui_host}] New User: #{user.username}"
+      body = NEW_USER_CREATED.gsub('%username%', user.username.to_s)
+                             .gsub('%email%', user.email.to_s)
+                             .gsub('%site_url%', LinkedData.settings.ui_host)
+      recipients = LinkedData.settings.admin_emails
+
+      options = {
+          subject: subject,
+          body: body,
+          recipients: recipients
+      }
+      notify(options)
+    end
+
     def self.reset_password(user, token)
       subject = "[BioPortal] User #{user.username} password reset"
       password_url = "https://#{LinkedData.settings.ui_host}/reset_password?tk=#{token}&em=#{CGI.escape(user.email)}&un=#{CGI.escape(user.username)}"
@@ -245,6 +262,14 @@ Please verify the URL you provided for daily loading of your ontology:
 If you need further assistance, please <a href="mailto:support@bioontology.org">contact us</a> via the BioPortal support mailing list.
 <br><br>
 Thank you,<br>
+
+    NEW_USER_CREATED = <<EOS
+A new user have been created on %site_url%
+<br>
+Username: %username%
+<br>
+Email: %email%
+<br><br>
 The BioPortal Team
 EOS
 
