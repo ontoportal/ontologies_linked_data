@@ -2,50 +2,6 @@ require 'csv'
 
 module LinkedData
   module Metrics
-    def self.metrics_for_submission(submission, logger)
-      metrics = nil
-      logger.info("metrics_for_submission start")
-      logger.flush
-      begin
-        submission.bring(:submissionStatus) if submission.bring?(:submissionStatus)
-        cls_metrics = class_metrics(submission, logger)
-        logger.info("class_metrics finished")
-        logger.flush
-        metrics = LinkedData::Models::Metric.new
-
-        cls_metrics.each do |k,v|
-          unless v.instance_of?(Integer)
-            begin
-              v = Integer(v)
-            rescue ArgumentError
-              v = 0
-            rescue TypeError
-              v = 0
-            end
-          end
-          metrics.send("#{k}=",v)
-        end
-        indiv_count = number_individuals(logger, submission)
-        metrics.individuals = indiv_count
-        logger.info("individuals finished")
-        logger.flush
-        prop_count = number_properties(logger, submission)
-        metrics.properties = prop_count
-        logger.info("properties finished")
-        logger.flush
-        # re-generate metrics file
-        submission.generate_metrics_file(cls_metrics[:classes], indiv_count, prop_count)
-        logger.info("generation of metrics file finished")
-        logger.flush
-      rescue Exception => e
-        logger.error(e.message)
-        logger.error(e)
-        logger.flush
-        metrics = nil
-      end
-      metrics
-    end
-
     def self.class_metrics(submission, logger)
       t00 = Time.now
       submission.ontology.bring(:flat) if submission.ontology.bring?(:flat)
@@ -97,7 +53,7 @@ module LinkedData
       logger.flush
       children_counts = []
       groupby_children.each do |cls,count|
-        unless cls.start_with?("http")
+        unless cls.start_with?('http')
           next
         end
         unless is_flat
@@ -178,7 +134,7 @@ module LinkedData
       else
         logger.info("Unable to find metrics in file for submission #{submission.id.to_s}. Performing a COUNT of type query to get the total individual count...")
         logger.flush
-        indiv_count = count_owl_type(submission.id, "NamedIndividual")
+        indiv_count = count_owl_type(submission.id, 'NamedIndividual')
       end
       indiv_count
     end
@@ -192,8 +148,8 @@ module LinkedData
       else
         logger.info("Unable to find metrics in file for submission #{submission.id.to_s}. Performing a COUNT of type query to get the total property count...")
         logger.flush
-        prop_count = count_owl_type(submission.id, "DatatypeProperty")
-        prop_count += count_owl_type(submission.id, "ObjectProperty")
+        prop_count = count_owl_type(submission.id, 'DatatypeProperty')
+        prop_count += count_owl_type(submission.id, 'ObjectProperty')
       end
       prop_count
     end
@@ -203,17 +159,17 @@ module LinkedData
       hops = []
       vars = []
       n.times do |i|
-        hop = sTemplate.sub("children","?x#{i}")
+        hop = sTemplate.sub('children',"?x#{i}")
         if i == 0
-          hop = hop.sub("parent", "<#{root.to_s}>")
+          hop = hop.sub('parent', "<#{root.to_s}>")
         else
-          hop = hop.sub("parent", "?x#{i-1}")
+          hop = hop.sub('parent', "?x#{i-1}")
         end
         hops << hop
         vars << "?x#{i}"
       end
       joins = hops.join(".\n")
-      vars = vars.join(" ")
+      vars = vars.join(' ')
       query = <<eof
 SELECT #{vars} WHERE {
   GRAPH <#{graph.to_s}> {
@@ -238,7 +194,7 @@ eof
     
     def self.query_count_definitions(subId,defProps)
       propFilter = defProps.map { |x| "?p = <#{x.to_s}>" }
-      propFilter = propFilter.join " || "
+      propFilter = propFilter.join ' || '
       query = <<-eos
 SELECT (count(DISTINCT ?s) as ?c) WHERE {
     GRAPH <#{subId.to_s}> {
@@ -249,7 +205,7 @@ SELECT (count(DISTINCT ?s) as ?c) WHERE {
           FILTER (?s != <#{Goo.namespaces[:owl][:Thing]}>)
 }}
 eos
-      query = query.sub("properties", propFilter)
+      query = query.sub('properties', propFilter)
       rs = Goo.sparql_query_client.query(query)
       rs.each do |sol|
         return sol[:c].object
