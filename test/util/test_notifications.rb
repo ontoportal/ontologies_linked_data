@@ -8,11 +8,13 @@ class TestNotifications < LinkedData::TestCase
   def self.before_suite
     @@notifications_enabled = LinkedData.settings.enable_notifications
     @@disable_override = LinkedData.settings.email_disable_override
-    @@old_suppor_mails = LinkedData.settings.admin_emails
-    LinkedData.settings.admin_emails  = ["ontoportal-support@mail.com"] if LinkedData.settings.admin_emails.empty?
+    @@old_support_mails = LinkedData.settings.admin_emails
+    if @@old_support_mails.nil? || @@old_support_mails.empty?
+      LinkedData.settings.admin_emails  = ["ontoportal-support@mail.com"]
+    end
     LinkedData.settings.email_disable_override = true
     LinkedData.settings.enable_notifications = true
-
+    @@ui_name = LinkedData.settings.ui_name
     @@support_mails = LinkedData.settings.admin_emails
     @@ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(ont_count: 1, submission_count: 1)[2].first
     @@ont.bring_remaining
@@ -26,7 +28,7 @@ class TestNotifications < LinkedData::TestCase
   def self.after_suite
     LinkedData.settings.enable_notifications = @@notifications_enabled
     LinkedData.settings.email_disable_override = @@disable_override
-    LinkedData.settings.admin_emails = @@old_suppor_mails
+    LinkedData.settings.admin_emails = @@old_support_mails
     @@ont.delete if defined?(@@ont)
     @@subscription.delete if defined?(@@subscription)
     @@user.delete if defined?(@@user)
@@ -76,9 +78,7 @@ class TestNotifications < LinkedData::TestCase
       note.body = body
       note.relatedOntology = [@@ont]
       note.save
-
-      assert last_email_sent.subject.include?("[bioportal.bioontology.org Notes]"),
-             "#{last_email_sent.subject} instead of [bioportal.bioontology.org Notes]. Make sure params ui_host is not set in the config.rb file (or set on bioportal.bioontology.org)"
+      assert last_email_sent.subject.include?("[#{@@ui_name} Notes]")
       assert_equal [@@user.email], last_email_sent.to
     ensure
       note.delete if note
@@ -136,7 +136,7 @@ class TestNotifications < LinkedData::TestCase
       assert sub.valid?, sub.errors
       LinkedData::Utils::Notifications.remote_ontology_pull(sub)
 
-      assert last_email_sent.subject.include? "Load from URL failure for #{ont.name}"
+      assert last_email_sent.subject.include? "[#{@@ui_name}] Load from URL failure for #{ont.name}"
       recipients = @@support_mails
       ont_admins.each do |user|
         recipients << user.email
