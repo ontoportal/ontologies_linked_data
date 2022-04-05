@@ -2198,7 +2198,19 @@ eos
         FileUtils.remove_dir(self.data_folder) if Dir.exist?(self.data_folder)
       end
 
-      def roots(extra_include=nil, page=nil, pagesize=nil)
+      def get_main_concept_scheme
+        all = all_concepts_schemes
+        unless all.nil?
+          all = all.map { |x| x.id }
+          all.include?(ontology_uri) ? ontology_uri : all.first
+        end
+      end
+
+      def all_concepts_schemes
+        LinkedData::Models::Instance.where({ types: RDF::URI.new(RDF::SKOS[:ConceptScheme]) }).in(self).all
+      end
+
+      def roots(extra_include = nil, page = nil, pagesize = nil)
         self.bring(:ontology) unless self.loaded_attributes.include?(:ontology)
         self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
         paged = false
@@ -2213,11 +2225,13 @@ eos
         skos = self.hasOntologyLanguage&.skos?
         classes = []
 
+        main_concept_scheme = get_main_concept_scheme
+        main_concept_scheme = main_concept_scheme.nil? ? "?x" : main_concept_scheme.to_ntriples
         if skos
           root_skos = <<eos
 SELECT DISTINCT ?root WHERE {
 GRAPH #{self.id.to_ntriples} {
-  #{self.ontology_uri.to_ntriples} #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
+  #{main_concept_scheme} #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
 }}
 eos
           count = 0
