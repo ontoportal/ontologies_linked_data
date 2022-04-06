@@ -2240,7 +2240,7 @@ eos
             query = <<eos
 SELECT (COUNT(?x) as ?count) WHERE {
 GRAPH #{self.id.to_ntriples} {
-  ?x #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
+  #{main_concept_scheme} #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
 }}
 eos
             rs = Goo.sparql_query_client.query(query)
