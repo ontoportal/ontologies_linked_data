@@ -2202,7 +2202,7 @@ eos
         all = all_concepts_schemes
         unless all.nil?
           all = all.map { |x| x.id }
-          all.include?(ontology_uri) ? ontology_uri : all.first
+          return ontology_uri if all.include?(ontology_uri)
         end
       end
 
@@ -2226,7 +2226,7 @@ eos
         classes = []
 
         main_concept_scheme = get_main_concept_scheme
-        main_concept_scheme = main_concept_scheme.nil? ? "?x" : main_concept_scheme.to_ntriples
+        main_concept_scheme = main_concept_scheme.nil? ? '?x' : main_concept_scheme.to_ntriples
         if skos
           root_skos = <<eos
 SELECT DISTINCT ?root WHERE {
