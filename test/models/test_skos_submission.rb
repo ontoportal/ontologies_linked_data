@@ -4,18 +4,22 @@ require 'rack'
 
 class TestOntologySubmission < LinkedData::TestOntologyCommon
 
-  def test_skos_ontology
+  def before_suite
     submission_parse('SKOS-TEST',
                      'SKOS TEST Bla',
                      './test/data/ontology_files/efo_gwas.skos.owl', 987,
                      process_rdf: true, index_search: false,
                      run_metrics: false, reasoning: true)
 
-    sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: 'SKOS-TEST'],
-                                                       submissionId: 987)
-                                                .include(:version)
-                                                .first
+    LinkedData::Models::OntologySubmission.where(ontology: [acronym: 'SKOS-TEST'],
+                                                   submissionId: 987)
+                                            .first
+  end
 
+  def test_skos_ontology
+
+    sub = before_suite
+    assert_nil sub.get_main_concept_scheme # no concept scheme as owl:ontology found
     assert sub.roots.map { |x| x.id.to_s }.sort == ['http://www.ebi.ac.uk/efo/EFO_0000311',
                                                     'http://www.ebi.ac.uk/efo/EFO_0001444',
                                                     'http://www.ifomis.org/bfo/1.1/snap#Disposition',
@@ -38,16 +42,23 @@ SELECT ?children WHERE {
   end
 
   def test_get_main_concept_scheme
-    submission_parse('SKOS-TEST',
-                     'SKOS TEST Bla',
-                     './test/data/ontology_files/efo_gwas.skos.owl', 987,
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: true)
-    sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: 'SKOS-TEST'],
-                                                       submissionId: 987)
-                                                .first
+    sub = before_suite
 
-    assert_equal 'http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view', sub.get_main_concept_scheme.to_s
+    sub.bring_remaining
+    sub.URI = 'http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view'
+    sub.save
+    assert_equal sub.URI, sub.get_main_concept_scheme.to_s
+  end
+
+  def test_roots_of_a_scheme
+    sub = before_suite
+
+
+    roots = sub.roots(concept_scheme: 'http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view_2')
+    roots = roots.map { |r| r.id.to_s } unless roots.nil?
+    assert_equal 2, roots.size
+    assert_includes roots, 'http://www.ebi.ac.uk/efo/EFO_0000311'
+    assert_includes roots, 'http://www.ebi.ac.uk/efo/EFO_0000324'
   end
 end
 
