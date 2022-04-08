@@ -2210,7 +2210,7 @@ eos
         LinkedData::Models::Instance.where({ types: RDF::URI.new(RDF::SKOS[:ConceptScheme]) }).in(self).all
       end
 
-      def roots(extra_include = nil, page = nil, pagesize = nil)
+      def roots(extra_include = nil, page = nil, pagesize = nil, concept_scheme: nil)
         self.bring(:ontology) unless self.loaded_attributes.include?(:ontology)
         self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
         paged = false
@@ -2225,8 +2225,8 @@ eos
         skos = self.hasOntologyLanguage&.skos?
         classes = []
 
-        main_concept_scheme = get_main_concept_scheme
-        main_concept_scheme = main_concept_scheme.nil? ? '?x' : main_concept_scheme.to_ntriples
+        main_concept_scheme = concept_scheme || get_main_concept_scheme
+        main_concept_scheme = main_concept_scheme.nil? ? '?x' : RDF::URI.new(main_concept_scheme.to_s).to_ntriples
         if skos
           root_skos = <<eos
 SELECT DISTINCT ?root WHERE {
@@ -2340,8 +2340,8 @@ eos
         RDF::URI.new(self.URI)
       end
 
-      def roots_sorted(extra_include = nil)
-        classes = roots(extra_include)
+      def roots_sorted(extra_include = nil, concept_scheme: nil)
+        classes = roots(extra_include , concept_scheme)
         LinkedData::Models::Class.sort_classes(classes)
       end
 
