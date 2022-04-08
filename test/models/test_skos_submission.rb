@@ -12,8 +12,8 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
                      run_metrics: false, reasoning: true)
 
     LinkedData::Models::OntologySubmission.where(ontology: [acronym: 'SKOS-TEST'],
-                                                   submissionId: 987)
-                                            .first
+                                                 submissionId: 987)
+                                          .first
   end
 
   def test_skos_ontology
@@ -53,12 +53,27 @@ SELECT ?children WHERE {
   def test_roots_of_a_scheme
     sub = before_suite
 
-
-    roots = sub.roots(concept_scheme: 'http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view_2')
+    roots = sub.roots(concept_schemes: ['http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view_2'])
     roots = roots.map { |r| r.id.to_s } unless roots.nil?
     assert_equal 2, roots.size
     assert_includes roots, 'http://www.ebi.ac.uk/efo/EFO_0000311'
     assert_includes roots, 'http://www.ebi.ac.uk/efo/EFO_0000324'
+  end
+
+  def test_roots_of_miltiple_scheme
+    sub = before_suite
+
+    concept_schemes = ['http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view_2',
+                       'http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view']
+    roots = sub.roots(concept_schemes: concept_schemes)
+    roots = roots.map { |r| r.id.to_s } unless roots.nil?
+    assert_equal 6, roots.size
+    assert sub.roots.map { |x| x.id.to_s }.sort == ['http://www.ebi.ac.uk/efo/EFO_0000311',
+                                                    'http://www.ebi.ac.uk/efo/EFO_0001444',
+                                                    'http://www.ifomis.org/bfo/1.1/snap#Disposition',
+                                                    'http://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:37577',
+                                                    'http://www.ebi.ac.uk/efo/EFO_0000635',
+                                                    'http://www.ebi.ac.uk/efo/EFO_0000324'].sort
   end
 end
 
