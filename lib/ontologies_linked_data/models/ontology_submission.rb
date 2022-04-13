@@ -2206,8 +2206,10 @@ eos
         end
       end
 
-      def all_concepts_schemes
-        LinkedData::Models::Instance.where({ types: RDF::URI.new(RDF::SKOS[:ConceptScheme]) }).in(self).all
+      def all_concepts_schemes(includes: nil)
+        schemes = LinkedData::Models::Instance.where({ types: RDF::URI.new(RDF::SKOS[:ConceptScheme]) })
+        schemes = schemes.include(includes) if includes
+        schemes.in(self).all
       end
 
       def roots(extra_include = nil, page = nil, pagesize = nil, concept_schemes: [])
