@@ -2206,10 +2206,8 @@ eos
         end
       end
 
-      def all_concepts_schemes(includes: nil)
-        schemes = LinkedData::Models::Instance.where({ types: RDF::URI.new(RDF::SKOS[:ConceptScheme]) })
-        schemes = schemes.include(includes) if includes
-        schemes.in(self).all
+      def all_concepts_schemes
+        LinkedData::Models::SKOS::Scheme.in(self).all
       end
 
       def roots(extra_include = nil, page = nil, pagesize = nil, concept_schemes: [])
@@ -2231,7 +2229,7 @@ eos
           concept_schemes = get_main_concept_scheme || []
         end
         concept_schemes = concept_schemes.map { |x| RDF::URI.new(x.to_s).to_ntriples }
-        concept_schemes_filter = concept_schemes.empty? ? '': "FILTER (?x IN (#{concept_schemes.join(',')}))"
+        concept_schemes_filter = concept_schemes.empty? ? '' : "FILTER (?x IN (#{concept_schemes.join(',')}))"
         if skos
           root_skos = <<eos
 SELECT DISTINCT ?root WHERE {
