@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'activesupport', '~> 4'
-gem 'addressable', '= 2.3.5'
+gem 'addressable', '~> 2.8'
 gem 'bcrypt', '~> 3.0'
 gem 'cube-ruby', require: 'cube'
 gem 'faraday', '~> 1.9'
@@ -34,5 +34,5 @@ group :development do
 end
 
 # NCBO gems (can be from a local dev path or from rubygems/git)
-gem 'goo', github: 'ncbo/goo', branch: 'develop'
+gem 'goo', github: 'ncbo/goo', branch: 'update_addressable_gem_2_8'
 gem 'sparql-client', github: 'ncbo/sparql-client', branch: 'develop'
