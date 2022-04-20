@@ -328,12 +328,12 @@ module LinkedData
         end
       end
 
-      def tree()
+      def tree(concept_schemes: [])
         self.bring(parents: [:prefLabel]) if self.bring?(:parents)
         return self if self.parents.nil? or self.parents.length == 0
         paths = [[self]]
         traverse_path_to_root(self.parents.dup, paths, 0, tree=true)
-        roots = self.submission.roots(extra_include=[:hasChildren])
+        roots = self.submission.roots(extra_include=[:hasChildren], concept_schemes:concept_schemes)
         threshhold = 99
 
         #select one path that gets to root
