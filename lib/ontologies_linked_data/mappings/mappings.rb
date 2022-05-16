@@ -189,11 +189,18 @@ module LinkedData
       if sub1.respond_to?(:id)
         # Case where sub1 is a Submission
         sub1 = sub1.id
+        acr1 = sub1.to_s.split("/")[-3]
+      else
+        acr1 = sub1.to_s
       end
-
-      if sub2.respond_to?(:id)
+      if sub2.nil?
+        acr2 = nil
+      elsif sub2.respond_to?(:id)
         # Case where sub2 is a Submission
         sub2 = sub2.id
+        acr2 = sub2.to_s.split("/")[-3]
+      else
+        acr2 = sub2.to_s
       end
 
       union_template = <<-eos
@@ -210,11 +217,9 @@ module LinkedData
       blocks = []
       mappings = []
       persistent_count = 0
-      acr1 = sub1.to_s.split("/")[-3]
+
 
       if classId.nil?
-        acr2 = nil
-        acr2 = sub2.to_s.split("/")[-3] unless sub2.nil?
         pcount = LinkedData::Models::MappingCount.where(ontologies: acr1)
         pcount = pcount.and(ontologies: acr2) unless acr2.nil?
         f = Goo::Filter.new(:pair_count) == (not acr2.nil?)
@@ -517,7 +522,6 @@ WHERE {
 SELECT DISTINCT ?s1 ?c1 ?s2 ?c2 ?uuid ?o
 WHERE {
   ?uuid <http://data.bioontology.org/metadata/process> ?o .
-
   GRAPH ?s1 {
     ?c1 <#{rest_predicate}> ?uuid .
   }
@@ -819,7 +823,6 @@ ORDER BY DESC(?o) LIMIT #{n}
 SELECT DISTINCT ?ont1 ?c1 ?s1 ?ont2 ?c2 ?s2 ?o ?uuid
 WHERE {
   ?uuid <http://data.bioontology.org/metadata/process> ?o .
-
   OPTIONAL { ?s1 <http://data.bioontology.org/metadata/ontology> ?ont1 . }
   GRAPH ?s1 {
     ?c1 <#{rest_predicate}> ?uuid .
