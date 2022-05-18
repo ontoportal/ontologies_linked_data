@@ -34,5 +34,5 @@ group :development do
 end
 
 # NCBO gems (can be from a local dev path or from rubygems/git)
-gem 'goo', github: 'ncbo/goo', branch: 'update_addressable_gem_2_8'
+gem 'goo', github: 'ncbo/goo', branch: 'develop'
 gem 'sparql-client', github: 'ncbo/sparql-client', branch: 'develop'
