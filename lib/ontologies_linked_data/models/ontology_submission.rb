@@ -958,7 +958,6 @@ eos
               self.save
 
               # Parse RDF
-              file_path = master_file_path
               begin
                 if not self.valid?
                   error = "Submission is not valid, it cannot be processed. Check errors."
@@ -982,6 +981,7 @@ eos
                 raise e
               end
 
+              file_path = self.uploadFilePath
               callbacks = {
                   missing_labels: {
                       op_name: "Missing Labels Generation",
