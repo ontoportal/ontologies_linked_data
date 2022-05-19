@@ -1544,6 +1544,19 @@ eos
                end
         File.expand_path(path)
       end
+
+      def parsable?(logger: Logger.new($stdout))
+        owlapi = owlapi_parser(logger: logger)
+        owlapi.disable_reasoner
+        parsable = true
+        begin
+          owlapi.parse
+        rescue StandardError => e
+          parsable = false
+        end
+        parsable
+      end
+
       def zip?
         LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
       end
