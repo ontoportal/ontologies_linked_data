@@ -261,19 +261,14 @@ module LinkedData
                          self.submissionId.to_s)
       end
 
-      def zipped?(full_file_path =  uploadFilePath)
+      def zipped?(full_file_path = uploadFilePath)
         LinkedData::Utils::FileHelpers.zip?(full_file_path) || LinkedData::Utils::FileHelpers.gzip?(full_file_path)
       end
 
       def zip_folder
-         File.join([data_folder, "unzipped"])
+         File.join([data_folder, 'unzipped'])
       end
 
-      def master_file_path
-        bring :uploadFilePath if bring? :uploadFilePath
-        bring :masterFileName  if bring :masterFileName
-        File.expand_path(zipped? ? File.join(zip_folder, self.masterFileName) : self.uploadFilePath)
-      end
       def csv_path
         return File.join(self.data_folder, self.ontology.acronym.to_s + ".csv.gz")
       end
@@ -319,10 +314,12 @@ module LinkedData
             self.save
           end
 
-          logger.info("Files extracted from zip #{extracted}")
-          logger.flush
+          if logger
+            logger.info("Files extracted from zip #{extracted}")
+            logger.flush
+          end
         end
-        return zip_dst
+        zip_dst
       end
 
       def delete_old_submission_files
@@ -1537,6 +1534,23 @@ eos
         Goo.sparql_data_client.delete_graph(self.id)
       end
 
+      def owlapi_parser(logger: Logger.new($stdout))
+        unzip_submission(logger)
+        LinkedData::Parser::OWLAPICommand.new(
+          master_file_path,
+          File.expand_path(self.data_folder.to_s),
+          master_file: self.masterFileName,
+          logger: logger)
+      end
+
+      def master_file_path
+        path = if zip?
+                 File.join(self.zip_folder, self.masterFileName)
+              else
+                  self.uploadFilePath
+               end
+        File.expand_path(path)
+      end
       private
 
       def delete_and_append(triples_file_path, logger, mime_type = nil)
