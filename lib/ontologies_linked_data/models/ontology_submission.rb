@@ -1529,6 +1529,9 @@ eos
         Goo.sparql_data_client.delete_graph(self.id)
       end
 
+      def zip?
+        LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
+      end
       private
 
       def delete_and_append(triples_file_path, logger, mime_type = nil)
