@@ -262,7 +262,7 @@ module LinkedData
       end
 
       def zip_folder
-        return File.join([self.data_folder, "unzipped"])
+        File.join([self.data_folder, 'unzipped'])
       end
 
       def csv_path
