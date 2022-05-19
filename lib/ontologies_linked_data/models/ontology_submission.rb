@@ -1539,13 +1539,14 @@ eos
       end
 
       def master_file_path
-        path = if zip?
+        path = if zipped?
                  File.join(self.zip_folder, self.masterFileName)
-              else
+               else
                   self.uploadFilePath
                end
         File.expand_path(path)
       end
+
       def parsable?(logger: Logger.new($stdout))
         owlapi = owlapi_parser(logger: logger)
         owlapi.disable_reasoner
@@ -1557,6 +1558,7 @@ eos
         end
         parsable
       end
+      
       private
 
       def delete_and_append(triples_file_path, logger, mime_type = nil)
