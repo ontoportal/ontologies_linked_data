@@ -205,7 +205,7 @@ module LinkedData
           return true
         end
 
-        zip = LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
+        zip = zip?
         files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
 
         if not zip and self.masterFileName.nil?
@@ -293,10 +293,10 @@ module LinkedData
       end
 
       def unzip_submission(logger)
-        zip = LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
+
         zip_dst = nil
 
-        if zip
+        if zip?
           zip_dst = self.zip_folder
 
           if Dir.exist? zip_dst
