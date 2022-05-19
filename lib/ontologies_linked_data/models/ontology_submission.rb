@@ -335,6 +335,7 @@ module LinkedData
         begin
           bring_remaining
           bring :diffFilePath if bring? :diffFilePath
+          older.bring :uploadFilePath if older.bring? :uploadFilePath
 
           LinkedData::Diff.logger = logger
           bubastis = LinkedData::Diff::BubastisDiffCommand.new(
