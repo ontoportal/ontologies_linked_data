@@ -311,10 +311,12 @@ module LinkedData
             self.save
           end
 
-          logger.info("Files extracted from zip #{extracted}")
-          logger.flush
+          if logger
+            logger.info("Files extracted from zip #{extracted}")
+            logger.flush
+          end
         end
-        return zip_dst
+        zip_dst
       end
 
       def delete_old_submission_files
@@ -1529,6 +1531,24 @@ eos
         Goo.sparql_data_client.delete_graph(self.id)
       end
 
+      
+      def owlapi_parser(logger: Logger.new($stdout))
+        unzip_submission(logger)
+        LinkedData::Parser::OWLAPICommand.new(
+          master_file_path,
+          File.expand_path(self.data_folder.to_s),
+          master_file: self.masterFileName,
+          logger: logger)
+      end
+
+      def  master_file_path
+        path = if zip?
+                  self.zip_folder
+              else
+                  self.uploadFilePath
+               end
+        File.expand_path(path)
+      end
       def zip?
         LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
       end
