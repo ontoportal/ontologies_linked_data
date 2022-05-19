@@ -1529,14 +1529,6 @@ eos
         Goo.sparql_data_client.delete_graph(self.id)
       end
 
-      def owlapi_parser(logger: Logger.new($stdout))
-        unzip_submission(logger)
-        LinkedData::Parser::OWLAPICommand.new(
-          master_file_path,
-          File.expand_path(self.data_folder.to_s),
-          master_file: self.masterFileName,
-          logger: logger)
-      end
 
       def master_file_path
         path = if zipped?
@@ -1558,8 +1550,30 @@ eos
         end
         parsable
       end
-      
+
+
       private
+
+
+      def owlapi_parser_input
+        path = if zipped?
+                 self.zip_folder
+               else
+                 self.uploadFilePath
+               end
+        File.expand_path(path)
+      end
+
+
+      def owlapi_parser(logger: Logger.new($stdout))
+        unzip_submission(logger)
+        LinkedData::Parser::OWLAPICommand.new(
+          owlapi_parser_input,
+          File.expand_path(self.data_folder.to_s),
+          master_file: self.masterFileName,
+          logger: logger)
+      end
+
 
       def delete_and_append(triples_file_path, logger, mime_type = nil)
         Goo.sparql_data_client.delete_graph(self.id)
