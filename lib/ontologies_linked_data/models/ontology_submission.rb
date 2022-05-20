@@ -639,7 +639,7 @@ module LinkedData
           return true
         end
 
-        zip = zip?
+        zip = zipped?
         files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
 
         if not zip and self.masterFileName.nil?
@@ -700,13 +700,7 @@ module LinkedData
       end
 
       def zip_folder
-        File.join([self.data_folder, 'unzipped'])
-      end
-
-      def master_file_path
-        bring :uploadFilePath if bring? :uploadFilePath
-        bring :masterFileName
-        File.expand_path(zipped? ? File.join(zip_folder, self.masterFileName) : self.uploadFilePath)
+         File.join([data_folder, 'unzipped'])
       end
 
       def csv_path
@@ -740,7 +734,7 @@ module LinkedData
 
         zip_dst = nil
 
-        if zip?
+        if zipped?
           zip_dst = self.zip_folder
 
           if Dir.exist? zip_dst
@@ -776,6 +770,7 @@ module LinkedData
         begin
           bring_remaining
           bring :diffFilePath if bring? :diffFilePath
+          older.bring :uploadFilePath if older.bring? :uploadFilePath
 
           LinkedData::Diff.logger = logger
           bubastis = LinkedData::Diff::BubastisDiffCommand.new(
@@ -1765,7 +1760,6 @@ eos
               self.save
 
               # Parse RDF
-              file_path = master_file_path
               begin
                 if not self.valid?
                   error = "Submission is not valid, it cannot be processed. Check errors."
@@ -1790,6 +1784,7 @@ eos
                 raise e
               end
 
+              file_path = self.uploadFilePath
               callbacks = {
                 missing_labels: {
                   op_name: "Missing Labels Generation",
@@ -2378,20 +2373,11 @@ eos
         Goo.sparql_data_client.delete_graph(self.id)
       end
 
-      
-      def owlapi_parser(logger: Logger.new($stdout))
-        unzip_submission(logger)
-        LinkedData::Parser::OWLAPICommand.new(
-          master_file_path,
-          File.expand_path(self.data_folder.to_s),
-          master_file: self.masterFileName,
-          logger: logger)
-      end
 
-      def  master_file_path
-        path = if zip?
-                  self.zip_folder
-              else
+      def master_file_path
+        path = if zipped?
+                 File.join(self.zip_folder, self.masterFileName)
+               else
                   self.uploadFilePath
                end
         File.expand_path(path)
@@ -2409,10 +2395,29 @@ eos
         parsable
       end
 
-      def zip?
-        LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
-      end
+
       private
+
+
+      def owlapi_parser_input
+        path = if zipped?
+                 self.zip_folder
+               else
+                 self.uploadFilePath
+               end
+        File.expand_path(path)
+      end
+
+
+      def owlapi_parser(logger: Logger.new($stdout))
+        unzip_submission(logger)
+        LinkedData::Parser::OWLAPICommand.new(
+          owlapi_parser_input,
+          File.expand_path(self.data_folder.to_s),
+          master_file: self.masterFileName,
+          logger: logger)
+      end
+
 
       def delete_and_append(triples_file_path, logger, mime_type = nil)
         Goo.sparql_data_client.delete_graph(self.id)
