@@ -30,7 +30,7 @@ module LinkedData
           # Generate context
           if current_cls.ancestors.include?(Goo::Base::Resource) && !current_cls.embedded?
             if generate_context?(options)
-              context = generate_context(hashed_obj, hash.keys, options) if generate_context?(options)
+              context = generate_context(hashed_obj, hash.keys, options)
               hash.merge!(context)
             end
           end
