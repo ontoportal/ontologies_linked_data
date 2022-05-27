@@ -2226,8 +2226,10 @@ eos
         classes = []
 
         if concept_schemes.nil? || concept_schemes.empty?
-          concept_schemes = [get_main_concept_scheme] || []
+          main_concept_scheme = get_main_concept_scheme
+          concept_schemes = main_concept_scheme ? [main_concept_scheme] : []
         end
+
         concept_schemes = concept_schemes.map { |x| RDF::URI.new(x.to_s).to_ntriples }
         concept_schemes_filter = concept_schemes.empty? ? '' : "FILTER (?x IN (#{concept_schemes.join(',')}))"
         if skos
