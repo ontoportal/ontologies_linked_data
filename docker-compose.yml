@@ -23,7 +23,7 @@ x-app: &app
       - redis-ut
 
 services:
-  # environment wtih 4store
+  # environment wtih 4store backend
   ruby:
     <<: *app
     environment:
@@ -37,10 +37,12 @@ services:
     profiles:
       - '4store'
     depends_on:
+      - solr-ut
+      - redis-ut
       - 4store-ut
 
-  # environment woth AllegroGraph
-  ruby-ag:
+  # environment with AllegroGraph backend
+  ruby-agraph:
     environment:
       <<: *env
       GOO_BACKEND_NAME: ag
@@ -51,8 +53,10 @@ services:
       GOO_PATH_UPDATE: /repositories/bioportal_test/statements
     <<: *app
     profiles:
-      - 'ag'
+      - 'agraph'
     depends_on:
+      - solr-ut
+      - redis-ut
       - agraph-ut
 
   redis-ut:
@@ -93,7 +97,7 @@ services:
        ; agtool users grant anonymous root:bioportal_test:rw
        ; tail -f /agraph/data/agraph.log"
     profiles:
-      - ag
+      - agraph
 
 volumes:
   bundle:
