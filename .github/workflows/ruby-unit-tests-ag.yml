@@ -1,4 +1,4 @@
-name: Ruby Unit Tests
+name: Ruby Unit Tests with AllegroGraph
 
 on:
   push:
@@ -16,5 +16,5 @@ jobs:
     - name: Build docker-compose
       run: docker-compose up --build
     - name: Run unit tests
-      run: docker-compose run ruby wait-for-it solr-ut:8983 -- bundle exec rake test TESTOPTS='-v'
+      run: docker-compose run ruby-ag wait-for-it solr-ut:8983 -- bundle exec rake test TESTOPTS='-v'
 
