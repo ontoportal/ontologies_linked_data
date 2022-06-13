@@ -99,10 +99,8 @@ def main
     ENV['GOO_HOST'] = GOO_HOST
     ENV['GOO_PORT'] = @options[:backend_port].to_s
     ENV['GOO_BACKEND_NAME'] = @options[:backend]
-    ENV['GOO_REDIS_HOST'] = REDIS_HOST
-    ENV['GOO_REDIS_PORT'] = @options[:redis_port].to_s
-    ENV['HTTP_REDIS_HOST'] = REDIS_HOST
-    ENV['HTTP_REDIS_PORT'] = @options[:redis_port].to_s
+    ENV['REDIS_HOST'] = REDIS_HOST
+    ENV['REDIS_PORT'] = @options[:redis_port].to_s
     ENV['ANNOTATOR_REDIS_HOST'] = REDIS_HOST
     ENV['ANNOTATOR_REDIS_PORT'] = @options[:redis_port].to_s
     ENV['MGREP_HOST'] = MGREP_HOST
