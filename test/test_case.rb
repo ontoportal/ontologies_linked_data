@@ -12,8 +12,9 @@ end
 require_relative 'test_log_file'
 require_relative '../lib/ontologies_linked_data'
 
-if ENV['OVERRIDE_CONNECT_GOO'] == 'true'
+if ENV['OVERRIDE_CONFIG'] == 'true'
   SOLR_HOST = ENV.include?('SOLR_HOST') ? ENV['SOLR_HOST'] : 'localhost'
+
   LinkedData.config do |config|
     config.goo_backend_name           = ENV['GOO_BACKEND_NAME']
     config.goo_port                   = ENV['GOO_PORT'].to_i
@@ -21,10 +22,10 @@ if ENV['OVERRIDE_CONNECT_GOO'] == 'true'
     config.goo_path_query             = ENV['GOO_PATH_QUERY']
     config.goo_path_data              = ENV['GOO_PATH_DATA']
     config.goo_path_update            = ENV['GOO_PATH_UPDATE']
-    config.goo_redis_port             = ENV['REDIS_PORT']
-    config.goo_redis_host             = ENV['REDIS_HOST']
-    config.http_redis_port            = ENV['REDIS_PORT']
-    config.http_redis_host            = ENV['REDIS_HOST']
+    config.goo_redis_port             = ENV['GOO_REDIS_PORT']
+    config.goo_redis_host             = ENV['GOO_REDIS_HOST']
+    config.http_redis_port            = ENV['HTTP_REDIS_PORT']
+    config.http_redis_host            = ENV['HTTP_REDIS_HOST']
     config.search_server_url          = "http://#{SOLR_HOST}:8983/solr/term_search_core1"
     config.property_search_server_url = "http://#{SOLR_HOST}:8983/solr/prop_search_core1"
   end
@@ -194,7 +195,7 @@ module LinkedData
         m.created = 'this string shuld fail'
       rescue Exception => e
         # in ruby 2.3+, this generates a runtime exception, so we need to handle it
-        assert_equal ArgumentError, e.class
+        assert_equal Date::Error, e.class
         assert_equal 'invalid date', e.message
       end
 
