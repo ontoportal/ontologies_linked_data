@@ -7,10 +7,16 @@ require 'benchmark'
 require 'csv'
 require 'fileutils'
 
+require 'ontologies_linked_data/models/skos/skos_submission_schemes'
+require 'ontologies_linked_data/models/skos/skos_submission_roots'
+
 module LinkedData
   module Models
 
     class OntologySubmission < LinkedData::Models::Base
+
+      include SKOS::ConceptSchemes
+      include SKOS::RootsFetcher
 
       FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
       FLAT_ROOTS_LIMIT = 1000
@@ -2191,17 +2197,7 @@ eos
         FileUtils.remove_dir(self.data_folder) if Dir.exist?(self.data_folder)
       end
 
-      def get_main_concept_scheme
-        all = all_concepts_schemes
-        unless all.nil?
-          all = all.map { |x| x.id }
-          return ontology_uri if all.include?(ontology_uri)
-        end
-      end
 
-      def all_concepts_schemes
-        LinkedData::Models::SKOS::Scheme.in(self).all
-      end
 
       def roots(extra_include = nil, page = nil, pagesize = nil, concept_schemes: [])
         self.bring(:ontology) unless self.loaded_attributes.include?(:ontology)
@@ -2218,53 +2214,12 @@ eos
         skos = self.hasOntologyLanguage&.skos?
         classes = []
 
-        if concept_schemes.nil? || concept_schemes.empty?
-          concept_schemes = [get_main_concept_scheme] || []
-        end
-        concept_schemes = concept_schemes.map { |x| RDF::URI.new(x.to_s).to_ntriples }
-        concept_schemes_filter = concept_schemes.empty? ? '' : "FILTER (?x IN (#{concept_schemes.join(',')}))"
+
         if skos
-          root_skos = <<eos
-SELECT DISTINCT ?root WHERE {
-GRAPH #{self.id.to_ntriples} {
-  ?x #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
-  #{concept_schemes_filter}
-}}
-eos
-          count = 0
-
-          if paged
-            query = <<eos
-SELECT (COUNT(?x) as ?count) WHERE {
-GRAPH #{self.id.to_ntriples} {
-  #{main_concept_scheme} #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
-}}
-eos
-            rs = Goo.sparql_query_client.query(query)
-            rs.each do |sol|
-              count = sol[:count].object
-            end
-
-            offset = (page - 1) * pagesize
-            root_skos = "#{root_skos} LIMIT #{pagesize} OFFSET #{offset}"
-          end
-
-          #needs to get cached
-          class_ids = []
-
-          Goo.sparql_query_client.query(root_skos, { :graphs => [self.id] }).each_solution do |s|
-            class_ids << s[:root]
-          end
-
-          class_ids.each do |id|
-            classes << LinkedData::Models::Class.find(id).in(self).disable_rules.first
-          end
-
-          classes = Goo::Base::Page.new(page, pagesize, count, classes) if paged
+          classes = skos_roots(concept_schemes, page, paged, pagesize)
         else
           self.ontology.bring(:flat)
           data_query = nil
-
           if self.ontology.flat
             data_query = LinkedData::Models::Class.in(self)
 

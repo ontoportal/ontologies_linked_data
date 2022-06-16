@@ -68,7 +68,7 @@ SELECT ?children WHERE {
     roots = sub.roots(concept_schemes: concept_schemes)
     roots = roots.map { |r| r.id.to_s } unless roots.nil?
     assert_equal 6, roots.size
-    assert sub.roots.map { |x| x.id.to_s }.sort == ['http://www.ebi.ac.uk/efo/EFO_0000311',
+    assert roots.sort == ['http://www.ebi.ac.uk/efo/EFO_0000311',
                                                     'http://www.ebi.ac.uk/efo/EFO_0001444',
                                                     'http://www.ifomis.org/bfo/1.1/snap#Disposition',
                                                     'http://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:37577',
