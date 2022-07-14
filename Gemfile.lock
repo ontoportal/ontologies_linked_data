@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: b7874b1fd4a3e067a8370543c153cc261e9021f6
-  branch: develop
+  revision: fd7d45cb862c5c2c1833b64a5c8c14154384edc2
+  branch: master
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
@@ -16,7 +16,7 @@ GIT
 GIT
   remote: https://github.com/ncbo/sparql-client.git
   revision: fb4a89b420f8eb6dda5190a126b6c62e32c4c0c9
-  branch: develop
+  branch: master
   specs:
     sparql-client (1.0.1)
       json_pure (>= 1.4)
@@ -126,7 +126,7 @@ GEM
     rake (10.5.0)
     rdf (1.0.8)
       addressable (>= 2.2)
-    redis (4.6.0)
+    redis (4.7.1)
     regexp_parser (2.5.0)
     rest-client (2.1.0)
       http-accept (>= 1.7.0, < 2.0)
@@ -174,6 +174,7 @@ GEM
 
 PLATFORMS
   x86_64-darwin-18
+  x86_64-darwin-21
   x86_64-linux
 
 DEPENDENCIES
@@ -206,4 +207,4 @@ DEPENDENCIES
   thin
 
 BUNDLED WITH
-   2.3.15
+   2.3.14
