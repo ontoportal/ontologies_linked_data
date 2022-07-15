@@ -26,6 +26,7 @@ group :test do
   gem 'minitest-reporters', '>= 0.5.0'
   gem 'pry'
   gem 'simplecov'
+  gem 'simplecov-cobertura' # for codecov.io
   gem 'test-unit-minitest'
 end
 
