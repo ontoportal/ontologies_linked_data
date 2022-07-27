@@ -42,6 +42,9 @@ module LinkedData
       attribute :date, enforce: [:date_time],
                 :default => lambda { |x| DateTime.now }
 
+      attribute :subject_source_id, enforce: [:uri]
+      attribute :object_source_id, enforce: [:uri]
+
       embedded true
 
       def self.process_id_generator(inst)
