@@ -45,12 +45,13 @@ module LinkedData
 
           embedded true
 
-          def self.process_id_generator(inst)
-              return RDF::IRI.new(
-        "#{(self.namespace)}mapping_processes/" +
-        "-#{CGI.escape(inst.creator.username)}" +
-        "-#{UUID.new.generate}")
-          end
+      def self.process_id_generator(inst)
+        RDF::IRI.new(
+          "#{(self.namespace)}mapping_processes/" \
+            "-#{CGI.escape(inst.creator.username)}" \
+            "-#{UUID.new.generate}"
+        )
+      end
     end
 
     class MappingCount < LinkedData::Models::Base
@@ -58,9 +59,10 @@ module LinkedData
       attribute :ontologies, enforce: [:existence, :list]
       attribute :count, enforce: [:existence, :integer]
       attribute :pair_count, enforce: [:existence, :boolean]
+
       def self.mapping_count_id(x)
-        acrs = x.ontologies.sort.join("-")
-        return RDF::URI.new(
+        acrs = x.ontologies.sort.join('-')
+        RDF::URI.new(
           "#{(Goo.id_prefix)}mappingcount/#{CGI.escape(acrs)}"
         )
       end
