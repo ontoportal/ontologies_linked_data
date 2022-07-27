@@ -5,6 +5,7 @@ module LinkedData
       include LinkedData::Hypermedia::Resource
       embed :classes, :process
       serialize_default :id, :source, :classes, :process
+      attr_reader :id, :source, :classes, :process
 
       def initialize(classes, source, process=nil, id=nil)
         @classes = classes
@@ -12,18 +13,7 @@ module LinkedData
         @source = source
         @id = id
       end
-      def classes
-        return @classes
-      end
-      def process
-        return @process
-      end
-      def source
-        return @source
-      end
-      def id
-        return @id
-      end
+
       def self.type_uri
         LinkedData.settings.id_url_prefix+"metadata/Mapping"
       end
