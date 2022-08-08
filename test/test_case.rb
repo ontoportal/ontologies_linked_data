@@ -1,6 +1,13 @@
-# Start simplecov if this is a coverage task
-if ENV['COVERAGE'].eql?('true')
+# Start simplecov if this is a coverage task or if it is run in the CI pipeline
+if ENV['COVERAGE'] == 'true' || ENV['CI'] == 'true'
   require 'simplecov'
+  require 'simplecov-cobertura'
+  # https://github.com/codecov/ruby-standard-2
+  # Generate HTML and Cobertura reports which can be consumed by codecov uploader
+  SimpleCov.formatters = SimpleCov::Formatter::MultiFormatter.new([
+    SimpleCov::Formatter::HTMLFormatter,
+    SimpleCov::Formatter::CoberturaFormatter
+  ])
   SimpleCov.start do
     add_filter '/test/'
     add_filter 'app.rb'
@@ -12,8 +19,9 @@ end
 require_relative 'test_log_file'
 require_relative '../lib/ontologies_linked_data'
 
-if ENV['OVERRIDE_CONNECT_GOO'] == 'true'
+if ENV['OVERRIDE_CONFIG'] == 'true'
   SOLR_HOST = ENV.include?('SOLR_HOST') ? ENV['SOLR_HOST'] : 'localhost'
+
   LinkedData.config do |config|
     config.goo_backend_name           = ENV['GOO_BACKEND_NAME']
     config.goo_port                   = ENV['GOO_PORT'].to_i
@@ -21,10 +29,10 @@ if ENV['OVERRIDE_CONNECT_GOO'] == 'true'
     config.goo_path_query             = ENV['GOO_PATH_QUERY']
     config.goo_path_data              = ENV['GOO_PATH_DATA']
     config.goo_path_update            = ENV['GOO_PATH_UPDATE']
-    config.goo_redis_port             = ENV['REDIS_PORT']
     config.goo_redis_host             = ENV['REDIS_HOST']
-    config.http_redis_port            = ENV['REDIS_PORT']
+    config.goo_redis_port             = ENV['REDIS_PORT']
     config.http_redis_host            = ENV['REDIS_HOST']
+    config.http_redis_port            = ENV['REDIS_PORT']
     config.search_server_url          = "http://#{SOLR_HOST}:8983/solr/term_search_core1"
     config.property_search_server_url = "http://#{SOLR_HOST}:8983/solr/prop_search_core1"
   end
@@ -194,7 +202,7 @@ module LinkedData
         m.created = 'this string shuld fail'
       rescue Exception => e
         # in ruby 2.3+, this generates a runtime exception, so we need to handle it
-        assert_equal ArgumentError, e.class
+        assert_equal Date::Error, e.class
         assert_equal 'invalid date', e.message
       end
 
