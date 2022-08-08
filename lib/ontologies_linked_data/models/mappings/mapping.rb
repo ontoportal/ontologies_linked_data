@@ -35,7 +35,7 @@ module LinkedData
       attribute :creator, enforce: [:existence, :user]
 
       attribute :source
-      attribute :relation, enforce: [:uri]
+      attribute :relation, enforce: [:uri, :list]
       attribute :source_contact_info
       attribute :source_name
       attribute :comment
