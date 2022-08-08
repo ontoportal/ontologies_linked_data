@@ -250,7 +250,7 @@ module LinkedData
           end
 
           # Add the sparql endpoint URL
-          if self.endpoint.nil?
+          if self.endpoint.nil? && LinkedData.settings.sparql_endpoint_url
             self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
           end
 
