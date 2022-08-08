@@ -108,8 +108,8 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
       assert !c1.nil?
       assert !c2.nil?
 
-      assert_equal m.process.relation,
-                   [RDF::URI.new('http://www.w3.org/2002/07/owl#subClassOf')]
+      assert_equal m.process.relation.to_s,
+                   'http://www.w3.org/2002/07/owl#subClassOf'
 
       assert_equal m.process.subject_source_id.to_s,
                    'http://bioontology.org/ontologies/BiomedicalResources.owl'

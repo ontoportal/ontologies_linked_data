@@ -57,7 +57,7 @@ module LinkedData
         def create_mapping_process(mapping_process, subject_submission, object_submission, user)
           process = LinkedData::Models::MappingProcess.new
           relations_array = Array(mapping_process[:relation]).map { |r| RDF::URI.new(r) }
-          process.relation = relations_array
+          process.relation = relations_array.first
           process.creator = user
           process.subject_source_id =  RDF::URI.new(subject_submission.uri) || mapping_process[:subject_source_id]
           process.object_source_id = RDF::URI.new(object_submission.uri) || mapping_process[:object_source_id]
