@@ -5,6 +5,7 @@ module LinkedData
   module Mappings
     OUTSTANDING_LIMIT = 30
 
+    extend LinkedData::Concerns::Mappings::BulkLoad
 
     def self.mapping_predicates()
       predicates = {}
