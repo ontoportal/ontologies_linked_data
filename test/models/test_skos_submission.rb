@@ -45,9 +45,9 @@ SELECT ?children WHERE {
     sub = before_suite
 
     sub.bring_remaining
-    sub.URI = 'http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view'
+    sub.uri = 'http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view'
     sub.save
-    assert_equal sub.URI, sub.get_main_concept_scheme.to_s
+    assert_equal sub.uri, sub.get_main_concept_scheme.to_s
   end
 
   def test_roots_of_a_scheme

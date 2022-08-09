@@ -1004,7 +1004,6 @@ eos
                      run_metrics: true, reasoning: true)
     sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission()
     sub.bring_remaining
-
     assert_equal false, sub.deprecated
     assert_equal " LIRMM (default name) ", sub.publisher
     assert_equal " URI DC terms identifiers ", sub.identifier
