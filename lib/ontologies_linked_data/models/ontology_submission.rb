@@ -48,7 +48,7 @@ module LinkedData
 
       # attention, attribute particulier. Je le récupère proprement via OWLAPI
       # TODO: careful in bioportal_web_ui (submissions_helper.rb) @submission.send("URI") causes a bug! Didn't get why
-      attribute :uri, namespace: :omv, extractedMetadata: true, label: "URI", helpText: "The URI of the ontology which is described by this metadata."
+      attribute :URI, namespace: :omv, extractedMetadata: true, label: "URI", helpText: "The URI of the ontology which is described by this metadata."
 
       attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true,
                 metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"],
@@ -1904,8 +1904,16 @@ eos
       end
 
       def ontology_uri
-        self.bring(:uri) if self.bring? :uri
-        RDF::URI.new(self.uri)
+        self.bring(:URI) if self.bring? :URI
+        RDF::URI.new(self.URI)
+      end
+
+      def uri
+        self.ontology_uri.to_s
+      end
+
+      def uri=(uri)
+        self.URI = uri
       end
 
       def roots_sorted(extra_include = nil, concept_schemes: [])
@@ -1988,7 +1996,6 @@ eos
           master_file: self.masterFileName,
           logger: logger)
       end
-
 
       def delete_and_append(triples_file_path, logger, mime_type = nil)
         Goo.sparql_data_client.delete_graph(self.id)
