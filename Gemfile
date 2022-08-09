@@ -26,6 +26,7 @@ group :test do
   gem 'minitest-reporters', '>= 0.5.0'
   gem 'pry'
   gem 'simplecov'
+  gem 'simplecov-cobertura' # for codecov.io
   gem 'test-unit-minitest'
 end
 
@@ -36,6 +37,3 @@ end
 # NCBO gems (can be from a local dev path or from rubygems/git)
 gem 'goo', github: 'ontoportal-lirmm/goo', branch: 'master'
 gem 'sparql-client', github: 'ontoportal-lirmm/sparql-client', branch: 'master'
-
-# ResourceIndex dependencies (managed per-platform)
-gem 'ncbo_resource_index', github: 'ncbo/resource_index'
