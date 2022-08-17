@@ -186,42 +186,34 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
 
   private
 
-  def commun_test(mapping_hash, ontology_id)
-    rest_mapping_count = 0
-    mappings = mapping_load(mapping_hash, ontology_id)
-    mappings.each do |m|
-      next unless m.source == 'REST'
-
-      rest_mapping_count += 1
-      assert_equal m.classes.length, 2
-      c1 = m.classes.select {
-        |c| c.id.to_s['Image_Algorithm'] }.first
-      c2 = m.classes.select {
-        |c| c.id.to_s['cno_0000202'] }.first
-      assert !c1.nil?
-      assert !c2.nil?
-
-      assert_equal Array(m.process.relation),
-                   ['http://www.w3.org/2002/07/owl#subClassOf']
-
-      assert_equal m.process.subject_source_id.to_s,
-                   'http://bioontology.org/ontologies/BiomedicalResources.owl'
-
-      assert_equal m.process.object_source_id.to_s,
-                   'http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl'
-
-    end
-    assert_equal 1, rest_mapping_count
-    delete_rest_mappings
-  end
-
   def delete_rest_mappings
     LinkedData::Models::RestBackupMapping.all.each do |m|
       LinkedData::Mappings.delete_rest_mapping(m.id)
     end
   end
 
+  def commun_test(mapping_hash, ontology_id)
+
+    mappings = mapping_load(mapping_hash, ontology_id)
+    selected = mappings.select do |m|
+      m.source == 'REST' &&
+        m.classes.first.id.to_s['Image_Algorithm'] &&
+        m.classes.last.id.to_s['cno_0000202']
+    end
+    selected = selected.first
+    refute_nil selected
+    assert_equal Array(selected.process.relation),
+                 ['http://www.w3.org/2002/07/owl#subClassOf']
+
+    assert_equal selected.process.subject_source_id.to_s,
+                 'http://bioontology.org/ontologies/BiomedicalResources.owl'
+
+    assert_equal selected.process.object_source_id.to_s,
+                 'http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl'
+  end
+
   def mapping_load(mapping_hash, ontology_id)
+    delete_rest_mappings
     user_name = 'test_mappings_user'
     user = LinkedData::Models::User.where(username: user_name).include(:username).first
     if user.nil?
@@ -229,7 +221,7 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
       user.passwordHash = 'some random pass hash'
       user.save
     end
-    LinkedData::Mappings.bulk_load_mappings([mapping_hash], user, check_exist: false)
+    LinkedData::Mappings.bulk_load_mappings([mapping_hash], user, check_exist: true)
 
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
     ct = LinkedData::Models::MappingCount.where.all.length
