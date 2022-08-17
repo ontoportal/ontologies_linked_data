@@ -6,7 +6,7 @@ module LinkedData
     OUTSTANDING_LIMIT = 30
 
     extend LinkedData::Concerns::Mappings::BulkLoad
-    
+
     def self.mapping_predicates()
       predicates = {}
       predicates["CUI"] = ["http://bioportal.bioontology.org/ontologies/umls/cui"]
@@ -98,11 +98,11 @@ module LinkedData
     end
 
     def self.mapping_ontologies_count(sub1, sub2, reload_cache = false)
-      if sub1.instance_of?(LinkedData::Models::OntologySubmission)
-        sub1 = sub1.id
-      else
-        sub1 = sub1
-      end
+      sub1 = if sub1.instance_of?(LinkedData::Models::OntologySubmission)
+               sub1.id
+             else
+               sub1
+             end
       template = <<-eos
 {
   GRAPH <#{sub1.to_s}> {
@@ -220,7 +220,6 @@ module LinkedData
       mappings = []
       persistent_count = 0
 
-
       if classId.nil?
         pcount = LinkedData::Models::MappingCount.where(ontologies: acr1)
         pcount = pcount.and(ontologies: acr2) unless acr2.nil?
@@ -233,22 +232,22 @@ module LinkedData
         return LinkedData::Mappings.empty_page(page, size) if persistent_count == 0
       end
 
-      if classId.nil?
-        union_template = union_template.gsub("classId", "?s1")
-      else
-        union_template = union_template.gsub("classId", "<#{classId.to_s}>")
-      end
+      union_template = if classId.nil?
+                         union_template.gsub("classId", "?s1")
+                       else
+                         union_template.gsub("classId", "<#{classId.to_s}>")
+                       end
       # latest_sub_ids = self.retrieve_latest_submission_ids
 
       mapping_predicates().each do |_source, mapping_predicate|
         union_block = union_template.gsub("predicate", mapping_predicate[0])
         union_block = union_block.gsub("bind", "BIND ('#{_source}' AS ?source)")
 
-        if sub2.nil?
-          union_block = union_block.gsub("graph", "?g")
-        else
-          union_block = union_block.gsub("graph", "<#{sub2.to_s}>")
-        end
+        union_block = if sub2.nil?
+                        union_block.gsub("graph", "?g")
+                      else
+                        union_block.gsub("graph", "<#{sub2.to_s}>")
+                      end
         blocks << union_block
       end
       unions = blocks.join("\nUNION\n")
@@ -298,11 +297,11 @@ filter
       end
       solutions.each do |sol|
         graph2 = nil
-        if sub2.nil?
-          graph2 = sol[:g]
-        else
-          graph2 = sub2
-        end
+        graph2 = if sub2.nil?
+                   sol[:g]
+                 else
+                   sub2
+                 end
         if classId.nil?
           s1 = sol[:s1]
         end
@@ -317,14 +316,14 @@ filter
 
         classes = get_mapping_classes(s1.to_s, sub1.to_s, sol[:s2].to_s, graph2, backup_mapping)
 
-        if backup_mapping.nil?
-          mapping = LinkedData::Models::Mapping.new(
-            classes, sol[:source].to_s)
-        else
-          mapping = LinkedData::Models::Mapping.new(
-            classes, sol[:source].to_s,
-            backup_mapping.process, backup_mapping.id)
-        end
+        mapping = if backup_mapping.nil?
+                    LinkedData::Models::Mapping.new(
+                      classes, sol[:source].to_s)
+                  else
+                    LinkedData::Models::Mapping.new(
+                      classes, sol[:source].to_s,
+                      backup_mapping.process, backup_mapping.id)
+                  end
         mappings << mapping
       end
 
@@ -446,13 +445,11 @@ WHERE {
           graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
         else
           if count == 0
-            graph_delete = RDF::Graph.new
-            graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
           else
             Goo.sparql_update_client.delete_data(graph_delete, graph: RDF::URI.new(actual_graph))
-            graph_delete = RDF::Graph.new
-            graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
           end
+          graph_delete = RDF::Graph.new
+          graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
           count = 0
           actual_graph = sol[:g].to_s
         end
@@ -725,15 +722,14 @@ FILTER(?urn2 = <#{class_urns[1]}>)
       begin
         classes.each do |c|
           if c.is_a?(Hash)
-            if LinkedData.settings.interportal_hash.has_key?(c[:source])
-              # If it is a mapping from another Bioportal
-              c_id = RDF::URI.new(c[:id])
-              graph_id = LinkedData::Models::InterportalClass.graph_uri(c[:source])
-            else
-              # If it is an external mapping
-              c_id = RDF::URI.new(c[:id])
-              graph_id = LinkedData::Models::ExternalClass.graph_uri
-            end
+            c_id = RDF::URI.new(c[:id])
+            graph_id = if LinkedData.settings.interportal_hash.has_key?(c[:source])
+                         # If it is a mapping from another Bioportal
+                         LinkedData::Models::InterportalClass.graph_uri(c[:source])
+                       else
+                         # If it is an external mapping
+                         LinkedData::Models::ExternalClass.graph_uri
+                       end
           else
             sub = c.submission
             unless sub.id.to_s["latest"].nil?
@@ -848,11 +844,11 @@ FILTER (#{procs})
         else
           ont1 = sol[:ont1].to_s
         end
-        if sol[:ont2].nil?
-          ont2 = sol[:s2].to_s
-        else
-          ont2 = sol[:ont2].to_s
-        end
+        ont2 = if sol[:ont2].nil?
+                 sol[:s2].to_s
+               else
+                 sol[:ont2].to_s
+               end
 
         mapping_id = RDF::URI.new(sol[:uuid].to_s)
         backup = LinkedData::Models::RestBackupMapping.find(mapping_id).include(:class_urns).first
@@ -911,11 +907,11 @@ GROUP BY ?ontology
       any = status.eql?("ANY")
       include_views = options[:include_views] || false
 
-      if any
-        submissions_query = LinkedData::Models::OntologySubmission.where
-      else
-        submissions_query = LinkedData::Models::OntologySubmission.where(submissionStatus: [code: status])
-      end
+      submissions_query = if any
+                            LinkedData::Models::OntologySubmission.where
+                          else
+                            LinkedData::Models::OntologySubmission.where(submissionStatus: [code: status])
+                          end
       submissions_query = submissions_query.filter(Goo::Filter.new(ontology: [:viewOf]).unbound) unless include_views
       submissions = submissions_query.include(:submissionStatus, :submissionId, ontology: [:acronym]).to_a
       submissions.select! { |sub| acronyms.include?(sub.ontology.acronym) } unless acronyms.empty?
