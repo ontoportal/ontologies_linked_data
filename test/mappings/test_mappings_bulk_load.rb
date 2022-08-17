@@ -25,7 +25,6 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
                             run_metrics: false, reasoning: true)
   end
 
-
   def test_mapping_classes_found
     ontology_id = 'http://bioontology.org/ontologies/BiomedicalResources.owl'
     mapping_hash = {
@@ -72,7 +71,100 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
     end
   end
 
-  def test_mapping_ontologies_not_found
+  def test_external_mapping
+    ontology_id = 'http://bioontology.org/ontologies/BiomedicalResources.owl'
+    mapping_hash = {
+      "classes": %w[http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Image_Algorithm
+                    http://purl.org/incf/ontology/Computational_Neurosciences/test_2],
+      "process": {
+        "name": 'This is the mappings produced to test the bulk load',
+        "source": 'https://w3id.org/semapv/LexicalMatching',
+        "comment": 'mock data',
+        "relation": [
+          'http://www.w3.org/2002/07/owl#subClassOf'
+        ],
+        "subject_source_id": 'http://bioontology.org/ontologies/BiomedicalResources.owl',
+        "object_source_id": 'http://purl.org/incf/ontology/Computational_Neurosciences/test_2.owl',
+        "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
+        "source_contact_info": 'orcid:1234,orcid:5678',
+        "date": '2020-05-30'
+      }
+    }
+    mappings = mapping_load(mapping_hash, ontology_id)
+    m = mappings.reject { |x| x.process.nil? }.first
+
+    refute_nil m
+    external_class = m.classes.last
+    assert_instance_of LinkedData::Models::ExternalClass, external_class
+    assert_equal 'http://purl.org/incf/ontology/Computational_Neurosciences/test_2', external_class.id.to_s
+    assert_equal 'http://purl.org/incf/ontology/Computational_Neurosciences/test_2.owl', external_class.ontology.to_s
+  end
+
+  def test_external_mapping_with_no_source_ids
+    ontology_id = 'http://bioontology.org/ontologies/BiomedicalResources.owl'
+    mapping_hash = {
+      "classes": %w[http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Image_Algorithm
+                    http://purl.org/incf/ontology/Computational_Neurosciences/test_2],
+      "process": {
+        "name": 'This is the mappings produced to test the bulk load',
+        "source": 'https://w3id.org/semapv/LexicalMatching',
+        "comment": 'mock data',
+        "relation": [
+          'http://www.w3.org/2002/07/owl#subClassOf'
+        ],
+        "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
+        "source_contact_info": 'orcid:1234,orcid:5678',
+        "date": '2020-05-30'
+      }
+    }
+    mappings = mapping_load(mapping_hash, ontology_id)
+    m = mappings.reject { |x| x.process.nil? }.first
+
+    refute_nil m
+    external_class = m.classes.last
+    assert_instance_of LinkedData::Models::ExternalClass, external_class
+    assert_equal 'http://purl.org/incf/ontology/Computational_Neurosciences/test_2', external_class.id.to_s
+    assert_equal 'ext', external_class.ontology.to_s
+  end
+
+  def test_inter_portal_mapping
+    LinkedData.settings.interportal_hash = {
+      'ncbo' => {
+        'api' => 'http://data.bioontology.org',
+        'ui' => 'http://bioportal.bioontology.org',
+        'apikey' => '844e'
+      }
+
+    }
+    inter_portal_api_url = LinkedData.settings.interportal_hash.values.first['api']
+    ontology_id = 'http://bioontology.org/ontologies/BiomedicalResources.owl'
+    mapping_hash = {
+      "classes": %W[http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Image_Algorithm
+                    #{inter_portal_api_url}/test_2],
+      "process": {
+        "name": 'This is the mappings produced to test the bulk load',
+        "source": 'https://w3id.org/semapv/LexicalMatching',
+        "comment": 'mock data',
+        "relation": [
+          'http://www.w3.org/2002/07/owl#subClassOf'
+        ],
+        "subject_source_id": 'http://bioontology.org/ontologies/BiomedicalResources.owl',
+        "object_source_id": "#{inter_portal_api_url}/test_2.owl",
+        "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
+        "source_contact_info": 'orcid:1234,orcid:5678',
+        "date": '2020-05-30'
+      }
+    }
+    mappings = mapping_load(mapping_hash, ontology_id)
+    m = mappings.reject { |x| x.process.nil? }.first
+    refute_nil m
+    inter_portal_class = m.classes.last
+    assert_instance_of LinkedData::Models::InterportalClass, inter_portal_class
+    assert_equal "#{inter_portal_api_url}/test_2", inter_portal_class.id.to_s
+    assert_equal "#{inter_portal_api_url}/test_2.owl", inter_portal_class.ontology.to_s
+  end
+
+  def test_mapping_with_no_source_ids
     ontology_id = 'http://bioontology.org/ontologies/BiomedicalResources.owl'
     mapping_hash = {
       "classes": %w[http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Image_Algorithm
@@ -95,21 +187,22 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
   private
 
   def commun_test(mapping_hash, ontology_id)
-    mappings, rest_mapping_count = mapping_load(mapping_hash, ontology_id)
+    rest_mapping_count = 0
+    mappings = mapping_load(mapping_hash, ontology_id)
     mappings.each do |m|
       next unless m.source == 'REST'
 
       rest_mapping_count += 1
       assert_equal m.classes.length, 2
-      c1 =  m.classes.select {
+      c1 = m.classes.select {
         |c| c.id.to_s['Image_Algorithm'] }.first
       c2 = m.classes.select {
         |c| c.id.to_s['cno_0000202'] }.first
       assert !c1.nil?
       assert !c2.nil?
 
-      assert_equal m.process.relation.to_s,
-                   'http://www.w3.org/2002/07/owl#subClassOf'
+      assert_equal Array(m.process.relation),
+                   ['http://www.w3.org/2002/07/owl#subClassOf']
 
       assert_equal m.process.subject_source_id.to_s,
                    'http://bioontology.org/ontologies/BiomedicalResources.owl'
@@ -118,7 +211,7 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
                    'http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl'
 
     end
-    assert_equal rest_mapping_count, 1
+    assert_equal 1, rest_mapping_count
     delete_rest_mappings
   end
 
@@ -136,18 +229,17 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
       user.passwordHash = 'some random pass hash'
       user.save
     end
-    LinkedData::Mappings.bulk_load_mappings([mapping_hash], user)
+    LinkedData::Mappings.bulk_load_mappings([mapping_hash], user, check_exist: false)
 
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
     ct = LinkedData::Models::MappingCount.where.all.length
     assert ct > 2
-    o = LinkedData::Models::Ontology.where(submissions: { uri: ontology_id })
+    o = LinkedData::Models::Ontology.where(submissions: { URI: ontology_id })
                                     .include(submissions: %i[submissionId submissionStatus])
                                     .first
     latest_sub = o.nil? ? nil : o.latest_submission
-    mappings = LinkedData::Mappings.mappings_ontology(latest_sub, 1, 1000)
-    rest_mapping_count = 0
-    [mappings, rest_mapping_count]
+
+    LinkedData::Mappings.mappings_ontology(latest_sub, 1, 1000)
   end
 end
 
