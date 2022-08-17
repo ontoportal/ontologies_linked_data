@@ -590,111 +590,6 @@ FILTER(?urn2 = <#{class_urns[1]}>)
       return mapping_exist
     end
 
-    # A method to easily add a new mapping without using ontologies_api
-    # Where "params" is the mapping hash (containing classes, relation, creator and comment)
-    # Note: there is no interportal class validation and no check if mapping already exist
-    def self.bulk_load_mapping(params, check_exist = true, logger = nil)
-      raise ArgumentError, "Input does not contain classes" if !params[:classes]
-      if params[:classes].length > 2
-        raise ArgumentError, "Input does not contain at least 2 terms"
-      end
-      raise ArgumentError, "Input does not contain mapping relation" if !params[:relation]
-      if params[:relation].kind_of?(Array)
-        raise ArgumentError, "Input contains too many mapping relations (max 5)" if params[:relation].length > 5
-        params[:relation].each do |relation|
-          begin
-            URI(relation)
-          rescue URI::InvalidURIError => e
-            raise ArgumentError, "#{relation} is not a valid URI for relations."
-          end
-        end
-      end
-      raise ArgumentError, "Input does not contain user creator ID" if !params[:creator]
-      classes = []
-      LinkedData.settings.interportal_hash ||= {}
-      mapping_process_name = "REST Mapping"
-      params[:classes].each do |class_id, ontology_id|
-        interportal_prefix = ontology_id.split(":")[0]
-        if ontology_id.start_with? "ext:"
-          # Just keep the source and the class URI if the mapping is external or interportal and change the mapping process name
-          raise ArgumentError, "Impossible to map 2 classes outside of BioPortal" if mapping_process_name != "REST Mapping"
-          mapping_process_name = "External Mapping"
-          ontology_uri = ontology_id.sub("ext:", "")
-          if !(ontology_uri =~ URI::regexp)
-            raise ArgumentError, "Ontology URI '#{ontology_uri.to_s}' is not valid"
-          end
-          if !(ontology_uri =~ URI::regexp)
-            raise ArgumentError, "Class URI '#{class_id.to_s}' is not valid"
-          end
-          ontology_uri = CGI.escape(ontology_uri)
-          c = { :source => "ext", :ontology => ontology_uri, :id => class_id }
-          classes << c
-        elsif LinkedData.settings.interportal_hash.has_key?(interportal_prefix)
-          #Check if the prefix is contained in the interportal hash to create a mapping to this bioportal
-          raise ArgumentError, "Impossible to map 2 classes outside of BioPortal" if mapping_process_name != "REST Mapping"
-          mapping_process_name = "Interportal Mapping #{interportal_prefix}"
-          ontology_acronym = ontology_id.sub("#{interportal_prefix}:", "")
-          c = { :source => interportal_prefix, :ontology => ontology_acronym, :id => class_id }
-          classes << c
-        else
-          o = ontology_id
-          o = LinkedData::Models::Ontology.find(o)
-                                          .include(submissions:
-                                                     [:submissionId, :submissionStatus]).first
-          if o.nil?
-            raise ArgumentError, "Ontology with ID `#{ontology_id}` not found"
-          end
-          submission = o.latest_submission
-          if submission.nil?
-            raise ArgumentError, "Ontology with id #{ontology_id} does not have parsed valid submission"
-          end
-          submission.bring(ontology: [:acronym])
-          c = LinkedData::Models::Class.find(RDF::URI.new(class_id))
-                                       .in(submission)
-                                       .first
-          if c.nil?
-            raise ArgumentError, "Class ID `#{class_id}` not found in `#{submission.id.to_s}`"
-          end
-          classes << c
-        end
-      end
-      user_id = params[:creator].start_with?("http://") ?
-                  params[:creator].split("/")[-1] : params[:creator]
-      user_creator = LinkedData::Models::User.find(user_id)
-                                             .include(:username).first
-      if user_creator.nil?
-        raise ArgumentError, "User with id `#{params[:creator]}` not found"
-      end
-      process = LinkedData::Models::MappingProcess.new(
-        :creator => user_creator, :name => mapping_process_name)
-      relations_array = []
-      if !params[:relation].kind_of?(Array)
-        relations_array.push(RDF::URI.new(params[:relation]))
-      else
-        params[:relation].each do |relation|
-          relations_array.push(RDF::URI.new(relation))
-        end
-      end
-      # Check if the mapping exist (check mapping by default)
-      raise ArgumentError, "Mapping already exists" if LinkedData::Mappings.check_mapping_exist(classes, relations_array) if check_exist
-      process.relation = relations_array
-      process.date = DateTime.now
-      process_fields = [:source, :source_name, :comment]
-      process_fields.each do |att|
-        process.send("#{att}=", params[att]) if params[att]
-      end
-      process.save
-      begin
-        mapping = LinkedData::Mappings.create_rest_mapping(classes, process)
-      rescue => e
-        # Remove the created process if the following steps of the mapping fail
-        process.delete
-        raise IOError, "Loading mapping has failed. Message: #{e.message.to_s}"
-      end
-
-      return mapping
-    end
-
     def self.create_rest_mapping(classes, process)
       unless process.instance_of? LinkedData::Models::MappingProcess
         raise ArgumentError, "Process should be instance of MappingProcess"
@@ -935,21 +830,6 @@ GROUP BY ?ontology
 
       time = Benchmark.realtime do
         self.create_mapping_count_pairs_for_ontologies(logger, arr_acronyms)
-      end
-      logger.info("Completed rebuilding mapping count pairs for #{ont_msg} in #{(time / 60).round(1)} minutes.")
-    end
-
-    def self.create_mapping_count_totals_for_ontologies(logger, arr_acronyms)
-      new_counts = self.mapping_counts(enable_debug = true, logger = logger, reload_cache = true, arr_acronyms)
-
-      persistent_counts = {}
-      f = Goo::Filter.new(:pair_count) == false
-      LinkedData::Models::MappingCount.where.filter(f)
-                                      .include(:ontologies, :count)
-                                      .include(:all)
-                                      .all
-                                      .each do |m|
-        persistent_counts[m.ontologies.first] = m
       end
       logger.info("Completed rebuilding mapping count pairs for #{ont_msg} in #{(time / 60).round(1)} minutes.")
     end
