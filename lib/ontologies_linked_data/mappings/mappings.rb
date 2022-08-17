@@ -5,6 +5,8 @@ module LinkedData
   module Mappings
     OUTSTANDING_LIMIT = 30
 
+    extend LinkedData::Concerns::Mappings::BulkLoad
+    
     def self.mapping_predicates()
       predicates = {}
       predicates["CUI"] = ["http://bioportal.bioontology.org/ontologies/umls/cui"]
@@ -342,12 +344,12 @@ filter
     def self.read_only_class(classId, submissionId)
       ontologyId = submissionId
       acronym = nil
-      unless submissionId["submissions"].nil?
-        ontologyId = submissionId.split("/")[0..-3]
+      unless submissionId['submissions'].nil?
+        ontologyId = submissionId.split('/')[0..-3]
         acronym = ontologyId.last
-        ontologyId = ontologyId.join("/")
+        ontologyId = ontologyId.join('/')
       else
-        acronym = ontologyId.split("/")[-1]
+        acronym = ontologyId.split('/')[-1]
       end
       ontology = LinkedData::Models::Ontology
                    .read_only(
@@ -944,6 +946,20 @@ GROUP BY ?ontology
     def self.create_mapping_count_totals_for_ontologies(logger, arr_acronyms)
       new_counts = self.mapping_counts(enable_debug = true, logger = logger, reload_cache = true, arr_acronyms)
 
+      persistent_counts = {}
+      f = Goo::Filter.new(:pair_count) == false
+      LinkedData::Models::MappingCount.where.filter(f)
+                                      .include(:ontologies, :count)
+                                      .include(:all)
+                                      .all
+                                      .each do |m|
+        persistent_counts[m.ontologies.first] = m
+      end
+      logger.info("Completed rebuilding mapping count pairs for #{ont_msg} in #{(time / 60).round(1)} minutes.")
+    end
+
+    def self.create_mapping_count_totals_for_ontologies(logger, arr_acronyms)
+      new_counts = self.mapping_counts(enable_debug = true, logger = logger, reload_cache = true, arr_acronyms)
       persistent_counts = {}
       f = Goo::Filter.new(:pair_count) == false
       LinkedData::Models::MappingCount.where.filter(f)
