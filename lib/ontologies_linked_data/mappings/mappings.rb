@@ -460,6 +460,9 @@ WHERE {
       end
     end
 
+    def self.get_external_ont_from_urn(urn, prefix: 'ext')
+      urn.to_s[/#{prefix}:(.*):(http.*)/, 1]
+    end
     # A method that generate classes depending on the nature of the mapping : Internal, External or Interportal
     def self.get_mapping_classes(c1, g1, c2, g2, backup)
       external_source = nil
@@ -468,17 +471,17 @@ WHERE {
       if g1.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
         backup.class_urns.each do |class_urn|
           # get source and ontology from the backup URI from 4store (source(like urn):ontology(like STY):class)
-          if !class_urn.start_with?("urn:")
+          unless class_urn.start_with?("urn:")
             external_source = class_urn.split(":")[0]
-            external_ontology = class_urn.split(":")[1]
+            external_ontology = get_external_ont_from_urn(class_urn, prefix: external_source)
           end
         end
         classes = [LinkedData::Models::InterportalClass.new(c1, external_ontology, external_source),
                    read_only_class(c2, g2)]
       elsif g1 == LinkedData::Models::ExternalClass.graph_uri.to_s
         backup.class_urns.each do |class_urn|
-          if !class_urn.start_with?("urn:")
-            external_ontology = class_urn.split(":")[1]
+          unless class_urn.start_with?("urn:")
+            external_ontology = get_external_ont_from_urn(class_urn)
           end
         end
         classes = [LinkedData::Models::ExternalClass.new(c1, external_ontology),
@@ -487,17 +490,17 @@ WHERE {
         # Generate classes if g2 is interportal or external
       elsif g2.start_with?(LinkedData::Models::InterportalClass.graph_base_str)
         backup.class_urns.each do |class_urn|
-          if !class_urn.start_with?("urn:")
-            external_source = class_urn.split(":")[0]
-            external_ontology = class_urn.split(":")[1]
+          unless class_urn.start_with?("urn:")
+            external_source = class_urn.split(':')[0]
+            external_ontology = get_external_ont_from_urn(class_urn, prefix: external_source)
           end
         end
         classes = [read_only_class(c1, g1),
                    LinkedData::Models::InterportalClass.new(c2, external_ontology, external_source)]
       elsif g2 == LinkedData::Models::ExternalClass.graph_uri.to_s
         backup.class_urns.each do |class_urn|
-          if !class_urn.start_with?("urn:")
-            external_ontology = class_urn.split(":")[1]
+          unless class_urn.start_with?("urn:")
+            external_ontology = get_external_ont_from_urn(class_urn)
           end
         end
         classes = [read_only_class(c1, g1),
