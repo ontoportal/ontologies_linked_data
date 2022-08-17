@@ -57,8 +57,23 @@ module LinkedData
         # a little string to get interportal mappings in URL parameters
         RDF::URI.new("interportal:#{acronym}")
       end
+
       def self.base_url_param_str
         RDF::URI.new("interportal:")
+      end
+
+      private
+
+      def ontology_url(ontology, source)
+        url = ''
+        if ontology =~ URI::DEFAULT_PARSER.make_regexp
+          url = ontology
+        else
+          "#{LinkedData.settings.interportal_hash[source]['api']}/ontologies/#{ontology}"
+        end
+        acronym = url.split('/').last
+        [url, acronym]
+
       end
     end
   end
