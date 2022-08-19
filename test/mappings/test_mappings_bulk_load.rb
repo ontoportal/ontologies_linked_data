@@ -128,7 +128,9 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
       user.passwordHash = 'some random pass hash'
       user.save
     end
-    LinkedData::Mappings.bulk_load_mappings([mapping_hash], user)
+    loaded, errors = LinkedData::Mappings.bulk_load_mappings([mapping_hash], user, check_exist: true)
+
+    raise ArgumentError, errors unless errors.empty?
 
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
     ct = LinkedData::Models::MappingCount.where.all.length
