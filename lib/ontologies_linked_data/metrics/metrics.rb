@@ -33,10 +33,12 @@ module LinkedData
         metrics.properties = prop_count
         logger.info("properties finished")
         logger.flush
+
         # re-generate metrics file
-        submission.generate_metrics_file(cls_metrics[:classes], indiv_count, prop_count)
+        submission.generate_metrics_file2(cls_metrics[:classes], indiv_count, prop_count, cls_metrics[:maxDepth])
         logger.info("generation of metrics file finished")
         logger.flush
+
       rescue Exception => e
         logger.error(e.message)
         logger.error(e)
@@ -46,35 +48,51 @@ module LinkedData
       metrics
     end
 
+    def self.max_depth_fn(submission, logger, is_flat, rdfsSC)
+      max_depth = 0
+      mx_from_file = submission.metrics_from_file(logger)
+      if (mx_from_file && mx_from_file.length == 2 && mx_from_file[0].length >= 4)
+      then
+        max_depth = mx_from_file[1][3].to_i
+      else
+        logger.info("Unable to find metrics providing max_depth in file for submission #{submission.id.to_s}.  Using ruby calculation of max_depth.")  
+        roots = submission.roots
+      
+        unless is_flat
+          depths = []
+          roots.each do |root|
+            ok = true
+            n=1
+            while ok
+              ok = hierarchy_depth?(submission.id.to_s,root.id.to_s,n,rdfsSC)
+              if ok
+                n += 1
+              end
+              if n > 40
+                #safe guard
+                ok = false
+              end
+            end
+            n -= 1
+            depths << n
+          end
+          max_depth = depths.max
+        end
+      end
+      max_depth
+    end
+    
     def self.class_metrics(submission, logger)
       t00 = Time.now
       submission.ontology.bring(:flat) if submission.ontology.bring?(:flat)
 
       is_flat = submission.ontology.flat
-      roots = submission.roots
-      
-      max_depth = 0
+      rdfsSC = nil
       unless is_flat
-        depths = []
-        rdfsSC = Goo.namespaces[:rdfs][:subClassOf]
-        roots.each do |root|
-          ok = true
-          n=1
-          while ok
-            ok = hierarchy_depth?(submission.id.to_s,root.id.to_s,n,rdfsSC)
-            if ok
-              n += 1
-            end
-            if n > 40
-              #safe guard
-              ok = false
-            end
-          end
-          n -= 1
-          depths << n
-        end
-        max_depth = depths.max
+          rdfsSC = Goo.namespaces[:rdfs][:subClassOf]
       end
+      max_depth = max_depth_fn(submission, logger, is_flat, rdfsSC) 
+      
       cls_metrics = {}
       cls_metrics[:classes] = 0
       cls_metrics[:averageChildCount] = 0
