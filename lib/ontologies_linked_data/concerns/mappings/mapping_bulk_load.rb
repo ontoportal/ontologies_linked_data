@@ -50,7 +50,13 @@ module LinkedData
           if check_exist && LinkedData::Mappings.check_mapping_exist(classes, process.relation)
             raise ArgumentError, 'Mapping already exists'
           end
-          process.save
+          begin
+            process.save
+          rescue StandardError => e
+            raise IOError, "Loading mapping has failed. Message: #{e.message.to_s} : #{process.errors}"
+          end
+
+
           begin
             mapping = LinkedData::Mappings.create_rest_mapping(classes, process)
           rescue StandardError => e
