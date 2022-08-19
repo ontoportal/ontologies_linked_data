@@ -30,19 +30,18 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
     mapping_hash = {
       "classes": %w[http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Image_Algorithm
                     http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl#cno_0000202],
-      "process": {
-        "name": 'This is the mappings produced to test the bulk load',
-        "source": 'https://w3id.org/semapv/LexicalMatching',
-        "comment": 'mock data',
-        "relation": [
-          'http://www.w3.org/2002/07/owl#subClassOf'
-        ],
-        "subject_source_id": 'http://bioontology.org/ontologies/BiomedicalResources.owl',
-        "object_source_id": 'http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl',
-        "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
-        "source_contact_info": 'orcid:1234,orcid:5678',
-        "date": '2020-05-30'
-      }
+
+      "name": 'This is the mappings produced to test the bulk load',
+      "source": 'https://w3id.org/semapv/LexicalMatching',
+      "comment": 'mock data',
+      "relation": [
+        'http://www.w3.org/2002/07/owl#subClassOf'
+      ],
+      "subject_source_id": 'http://bioontology.org/ontologies/BiomedicalResources.owl',
+      "object_source_id": 'http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl',
+      "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
+      "source_contact_info": 'orcid:1234,orcid:5678',
+      "date": '2020-05-30'
     }
     commun_test(mapping_hash, ontology_id)
   end
@@ -52,20 +51,19 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
     mapping_hash = {
       "classes": %w[http://bioontology.org/ontologies/test_1
                     http://purl.org/incf/ontology/Computational_Neurosciences/test_2],
-      "process": {
-        "name": 'This is the mappings produced to test the bulk load',
-        "source": 'https://w3id.org/semapv/LexicalMatching',
-        "comment": 'mock data',
-        "relation": [
-          'http://www.w3.org/2002/07/owl#subClassOf'
-        ],
-        "subject_source_id": 'http://bioontology.org/ontologies/BiomedicalResources.owl',
-        "object_source_id": 'http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl',
-        "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
-        "source_contact_info": 'orcid:1234,orcid:5678',
-        "date": '2020-05-30'
-      }
+      "name": 'This is the mappings produced to test the bulk load',
+      "source": 'https://w3id.org/semapv/LexicalMatching',
+      "comment": 'mock data',
+      "relation": [
+        'http://www.w3.org/2002/07/owl#subClassOf'
+      ],
+      "subject_source_id": 'http://bioontology.org/ontologies/BiomedicalResources.owl',
+      "object_source_id": 'http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl',
+      "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
+      "source_contact_info": 'orcid:1234,orcid:5678',
+      "date": '2020-05-30'
     }
+
     assert_raises ArgumentError do
       mapping_load(mapping_hash, ontology_id)
     end
@@ -76,19 +74,18 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
     mapping_hash = {
       "classes": %w[http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Image_Algorithm
                     http://purl.org/incf/ontology/Computational_Neurosciences/test_2],
-      "process": {
-        "name": 'This is the mappings produced to test the bulk load',
-        "source": 'https://w3id.org/semapv/LexicalMatching',
-        "comment": 'mock data',
-        "relation": [
-          'http://www.w3.org/2002/07/owl#subClassOf'
-        ],
-        "subject_source_id": 'http://bioontology.org/ontologies/BiomedicalResources.owl',
-        "object_source_id": 'http://purl.org/incf/ontology/Computational_Neurosciences/test_2.owl',
-        "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
-        "source_contact_info": 'orcid:1234,orcid:5678',
-        "date": '2020-05-30'
-      }
+
+      "name": 'This is the mappings produced to test the bulk load',
+      "source": 'https://w3id.org/semapv/LexicalMatching',
+      "comment": 'mock data',
+      "relation": [
+        'http://www.w3.org/2002/07/owl#subClassOf'
+      ],
+      "subject_source_id": 'http://bioontology.org/ontologies/BiomedicalResources.owl',
+      "object_source_id": 'http://purl.org/incf/ontology/Computational_Neurosciences/test_2.owl',
+      "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
+      "source_contact_info": 'orcid:1234,orcid:5678',
+      "date": '2020-05-30'
     }
     mappings = mapping_load(mapping_hash, ontology_id)
     m = mappings.reject { |x| x.process.nil? }.first
@@ -105,17 +102,16 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
     mapping_hash = {
       "classes": %w[http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Image_Algorithm
                     http://purl.org/incf/ontology/Computational_Neurosciences/test_2],
-      "process": {
-        "name": 'This is the mappings produced to test the bulk load',
-        "source": 'https://w3id.org/semapv/LexicalMatching',
-        "comment": 'mock data',
-        "relation": [
-          'http://www.w3.org/2002/07/owl#subClassOf'
-        ],
-        "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
-        "source_contact_info": 'orcid:1234,orcid:5678',
-        "date": '2020-05-30'
-      }
+      "name": 'This is the mappings produced to test the bulk load',
+      "source": 'https://w3id.org/semapv/LexicalMatching',
+      "comment": 'mock data',
+      "relation": [
+        'http://www.w3.org/2002/07/owl#subClassOf'
+      ],
+      "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
+      "source_contact_info": 'orcid:1234,orcid:5678',
+      "date": '2020-05-30'
+
     }
     mappings = mapping_load(mapping_hash, ontology_id)
     m = mappings.reject { |x| x.process.nil? }.first
@@ -141,19 +137,18 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
     mapping_hash = {
       "classes": %W[http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Image_Algorithm
                     #{inter_portal_api_url}/test_2],
-      "process": {
-        "name": 'This is the mappings produced to test the bulk load',
-        "source": 'https://w3id.org/semapv/LexicalMatching',
-        "comment": 'mock data',
-        "relation": [
-          'http://www.w3.org/2002/07/owl#subClassOf'
-        ],
-        "subject_source_id": 'http://bioontology.org/ontologies/BiomedicalResources.owl',
-        "object_source_id": "#{inter_portal_api_url}/test_2.owl",
-        "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
-        "source_contact_info": 'orcid:1234,orcid:5678',
-        "date": '2020-05-30'
-      }
+      "name": 'This is the mappings produced to test the bulk load',
+      "source": 'https://w3id.org/semapv/LexicalMatching',
+      "comment": 'mock data',
+      "relation": [
+        'http://www.w3.org/2002/07/owl#subClassOf'
+      ],
+      "subject_source_id": 'http://bioontology.org/ontologies/BiomedicalResources.owl',
+      "object_source_id": "#{inter_portal_api_url}/test_2.owl",
+      "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
+      "source_contact_info": 'orcid:1234,orcid:5678',
+      "date": '2020-05-30'
+
     }
     mappings = mapping_load(mapping_hash, ontology_id)
     m = mappings.reject { |x| x.process.nil? }.first
@@ -169,17 +164,15 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
     mapping_hash = {
       "classes": %w[http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Image_Algorithm
                     http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl#cno_0000202],
-      "process": {
-        "name": 'This is the mappings produced to test the bulk load',
-        "source": 'https://w3id.org/semapv/LexicalMatching',
-        "comment": 'mock data',
-        "relation": [
-          'http://www.w3.org/2002/07/owl#subClassOf'
-        ],
-        "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
-        "source_contact_info": 'orcid:1234,orcid:5678',
-        "date": '2020-05-30'
-      }
+      "name": 'This is the mappings produced to test the bulk load',
+      "source": 'https://w3id.org/semapv/LexicalMatching',
+      "comment": 'mock data',
+      "relation": [
+        'http://www.w3.org/2002/07/owl#subClassOf'
+      ],
+      "source_name": 'https://w3id.org/sssom/mapping/tests/data/basic.tsv',
+      "source_contact_info": 'orcid:1234,orcid:5678',
+      "date": '2020-05-30'
     }
     commun_test(mapping_hash, ontology_id)
   end
