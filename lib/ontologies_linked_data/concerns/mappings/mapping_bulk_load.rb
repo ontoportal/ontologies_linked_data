@@ -67,9 +67,10 @@ module LinkedData
           relations_array = Array(mapping_process[:relation]).map { |r| RDF::URI.new(r) }
           process.relation = relations_array.first
           process.creator = user
-          process.subject_source_id =  RDF::URI.new(subject_submission.uri) || mapping_process[:subject_source_id]
-          process.object_source_id = RDF::URI.new(object_submission.uri) || mapping_process[:object_source_id]
-          process.date = DateTime.parse(mapping_process[:date]) || DateTime.now
+
+          process.subject_source_id = RDF::URI.new(subject_submission&.uri || mapping_process[:subject_source_id])
+          process.object_source_id = RDF::URI.new(object_submission&.uri || mapping_process[:object_source_id])
+          process.date = mapping_process[:date] ? DateTime.parse(mapping_process[:date]) : DateTime.now
           process_fields = %i[source source_name comment name source_contact_info]
           process_fields.each do |att|
             process.send("#{att}=", mapping_process[att]) if mapping_process[att]
