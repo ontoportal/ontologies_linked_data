@@ -20,10 +20,10 @@ module LinkedData
 
           raise ArgumentError, 'Mapping hash does not contain classes' unless mapping_hash[:classes]
           raise ArgumentError, 'Mapping hash does not contain at least 2 terms' if mapping_hash[:classes].length > 2
-          raise ArgumentError, 'Mapping hash does not contain mapping relation' unless mapping_hash[:process][:relation]
+          raise ArgumentError, 'Mapping hash does not contain mapping relation' unless mapping_hash[:relation]
 
           if mapping_hash[:relation].is_a?(Array)
-            if mapping_hash[:process][:relation].length > 5
+            if mapping_hash[:relation].length > 5
               raise ArgumentError, 'Mapping hash contains too many mapping relations (max 5)'
             end
 
@@ -35,9 +35,11 @@ module LinkedData
           end
           raise ArgumentError, 'Mapping hash does not contain user creator ID' if user_creator.nil?
 
-          mapping_process = mapping_hash[:process]
-          subject_submission = find_submission_by_ontology_id(mapping_process[:subject_source_id])
-          object_submission = find_submission_by_ontology_id(mapping_process[:object_source_id])
+          mapping_process = mapping_hash
+          subject_id = mapping_process[:subject_source_id]
+          object_id = mapping_process[:object_source_id]
+          subject_submission = find_submission_by_ontology_id(subject_id)
+          object_submission = find_submission_by_ontology_id(object_id)
 
           subject_class, subject_submission = find_class(mapping_hash[:classes].first, subject_submission)
           object_class, object_submission = find_class(mapping_hash[:classes].last, object_submission)
