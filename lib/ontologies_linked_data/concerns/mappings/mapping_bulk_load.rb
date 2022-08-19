@@ -5,13 +5,11 @@ module LinkedData
         # A method to easily add a new mapping without using ontologies_api
         # Where the mapping hash contain classes, relation, creator and comment)
 
-        def bulk_load_mappings(mappings_hash, user_creator, check_exist: true, logger: nil)
-          # TODO check_exist before loading
-          # TODO add a propper logger
-          mappings_hash&.map { |m| load_mapping(m, user_creator) }
+        def bulk_load_mappings(mappings_hash, user_creator, check_exist: true)
+          mappings_hash&.map { |m| load_mapping(m, user_creator ,check_exist: check_exist) }
         end
 
-        def load_mapping(mapping_hash, user_creator)
+        def load_mapping(mapping_hash, user_creator, check_exist: true)
 
           raise ArgumentError, 'Mapping hash does not contain classes' unless mapping_hash[:classes]
           raise ArgumentError, 'Mapping hash does not contain at least 2 terms' if mapping_hash[:classes].length > 2
@@ -40,6 +38,9 @@ module LinkedData
           classes = [subject_class, object_class]
 
           process = create_mapping_process(mapping_process, subject_submission, object_submission, user_creator)
+          if check_exist && LinkedData::Mappings.check_mapping_exist(classes, process.relation)
+            raise ArgumentError, 'Mapping already exists'
+          end
           process.save
           begin
             mapping = LinkedData::Mappings.create_rest_mapping(classes, process)

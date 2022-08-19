@@ -763,6 +763,32 @@ GROUP BY ?ontology
       # fsave.close
     end
 
-
+    def self.check_mapping_exist(cls, relations_array)
+      class_urns = generate_class_urns(cls)
+      mapping_exist = false
+      qmappings = <<-eos
+SELECT DISTINCT ?uuid ?urn1 ?urn2 ?p
+WHERE {
+  ?uuid <http://data.bioontology.org/metadata/class_urns> ?urn1 .
+  ?uuid <http://data.bioontology.org/metadata/class_urns> ?urn2 .
+  ?uuid <http://data.bioontology.org/metadata/process> ?p .
+FILTER(?urn1 = <#{class_urns[0]}>)
+FILTER(?urn2 = <#{class_urns[1]}>)
+} LIMIT 10
+      eos
+      epr = Goo.sparql_query_client(:main)
+      graphs = [LinkedData::Models::MappingProcess.type_uri]
+      epr.query(qmappings,
+                graphs: graphs).each do |sol|
+        process = LinkedData::Models::MappingProcess.find(sol[:p]).include(:relation).first
+        process_relations = process.relation.map { |r| r.to_s }
+        relations_array = relations_array.map { |r| r.to_s }
+        if process_relations.sort == relations_array.sort
+          mapping_exist = true
+          break
+        end
+      end
+      return mapping_exist
+    end
   end
 end
