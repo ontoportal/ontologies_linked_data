@@ -6,7 +6,14 @@ module LinkedData
         # A method to easily add a new mapping without using ontologies_api
         # Where the mapping hash contain classes, relation, creator and comment)
         def bulk_load_mappings(mappings_hash, user_creator, check_exist: true)
-          mappings_hash&.map { |m| load_mapping(m, user_creator, check_exist: check_exist) }
+          errors = {}
+          loaded = []
+          mappings_hash&.each_with_index do |mapping, index|
+            loaded << load_mapping(mapping, user_creator, check_exist: check_exist)
+          rescue ArgumentError => e
+            errors[index] = e.message
+          end
+          [loaded, errors]
         end
 
         def load_mapping(mapping_hash, user_creator, check_exist: true)
