@@ -69,7 +69,7 @@ module LinkedData
         if ontology =~ URI::DEFAULT_PARSER.make_regexp
           url = ontology
         else
-          "#{LinkedData.settings.interportal_hash[source]['api']}/ontologies/#{ontology}"
+          url = "#{LinkedData.settings.interportal_hash[source]['api']}/ontologies/#{ontology}"
         end
         acronym = url.split('/').last
         [url, acronym]
