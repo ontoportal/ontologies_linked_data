@@ -646,9 +646,7 @@ FILTER(?urn2 = <#{class_urns[1]}>)
         backup_mapping.delete
         raise IOError, "Inserting the mapping ID in the submission graphs has failed. Message: #{e.message.to_s}"
       end
-
-      mapping = LinkedData::Models::Mapping.new(classes, "REST", process)
-
+      mapping = LinkedData::Models::Mapping.new(classes, 'REST', process, backup_mapping.id)
       return mapping
     end
 
