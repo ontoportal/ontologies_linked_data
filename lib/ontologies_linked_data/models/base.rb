@@ -27,12 +27,10 @@ module LinkedData
       # Override find method to make sure the id matches what is in the RDF store
       # Only do this if the setting is enabled, string comparison sucks
       def self.find(id, *options)
-        if LinkedData.settings.replace_url_prefix && id.to_s.start_with?(LinkedData.settings.rest_url_prefix)
-          id = RDF::IRI.new(id.to_s.sub(LinkedData.settings.rest_url_prefix, LinkedData.settings.id_url_prefix))
-        end
+        id = replace_url_prefix_to_id(id)
 
         # Handle `+` to ` ` conversion here because Sinatra doesn't do it for URI's
-        id = id.gsub("+", " ") unless id.start_with?("http")
+        id = id.gsub('+', ' ') unless id.start_with?('http')
 
         super(id, *options)
       end
