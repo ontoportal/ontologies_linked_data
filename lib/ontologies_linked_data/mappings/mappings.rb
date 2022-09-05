@@ -437,7 +437,7 @@ eos
       graph_insert << [c.id, RDF::URI.new(rest_predicate), backup_mapping.id]
       Goo.sparql_update_client.insert_data(graph_insert, graph: sub.id)
     end
-    mapping = LinkedData::Models::Mapping.new(classes,"REST",process)
+    mapping = LinkedData::Models::Mapping.new(classes,"REST",process, backup_mapping.id)
     return mapping
   end
 
