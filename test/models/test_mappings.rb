@@ -288,6 +288,36 @@ class TestMapping < LinkedData::TestOntologyCommon
     end
     assert_equal 3, rest_mapping_count
   end
+
+  def test_get_rest_mapping
+    mapping_term_a, mapping_term_b, submissions_a, submissions_b, relations, user = rest_mapping_data
+
+    classes = get_mapping_classes(term_a:mapping_term_a[0], term_b: mapping_term_b[0],
+                                  submissions_a: submissions_a[0], submissions_b: submissions_b[0])
+
+    mappings_created = []
+    mappings_created << create_rest_mapping(relation: RDF::URI.new(relations[0]),
+                                            user: user,
+                                            classes: classes,
+                                            name: "proc#{0}")
+
+    assert_equal 1, mappings_created.size
+    created_mapping_id = mappings_created.first.id
+
+    refute_nil LinkedData::Mappings.get_rest_mapping(created_mapping_id)
+
+    old_replace = LinkedData.settings.replace_url_prefix
+    LinkedData.settings.replace_url_prefix = true
+
+    old_rest_url = LinkedData.settings.rest_url_prefix
+    LinkedData.settings.rest_url_prefix = 'data.test.org'
+
+    refute_nil LinkedData::Mappings.get_rest_mapping(LinkedData::Models::Base.replace_url_id_to_prefix(created_mapping_id))
+
+    LinkedData.settings.rest_url_prefix = old_rest_url
+    LinkedData.settings.replace_url_prefix = old_replace
+  end
+
   private
 
   def get_mapping_classes(term_a:, term_b:, submissions_a:, submissions_b:)
