@@ -137,7 +137,32 @@ module LinkedData
         included_aggregates
       end
 
+      def self.replace_url_prefix_to_id(id)
+        if replace_url_prefix?(id)
+          id = RDF::IRI.new(id.to_s.sub(LinkedData.settings.rest_url_prefix, LinkedData.settings.id_url_prefix))
+        end
+        id
+      end
+
+      def self.replace_url_id_to_prefix(id)
+        if replace_url_id?(id)
+          id.to_s.gsub(LinkedData.settings.id_url_prefix, LinkedData.settings.rest_url_prefix)
+        else
+          id
+        end
+      end
+
+      def self.replace_url_prefix?(id)
+        LinkedData.settings.replace_url_prefix && id.to_s.start_with?(LinkedData.settings.rest_url_prefix)
+      end
+
+      def self.replace_url_id?(id)
+        LinkedData.settings.replace_url_prefix && id.to_s.start_with?(LinkedData.settings.id_url_prefix)
+      end
+
       private
+
+
 
       ##
       # Looks for an object 'owner' and looks in Thread.current[:remote_user]
