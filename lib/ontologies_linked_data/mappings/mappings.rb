@@ -259,14 +259,15 @@ filter
                              .find(sol[:o]).include(:process).first
           backup_mapping.process.bring_remaining
         end
-        if backup_mapping.nil?
-          mapping = LinkedData::Models::Mapping.new(
-            classes, sol[:source].to_s)
-        else
-          mapping = LinkedData::Models::Mapping.new(
-            classes, sol[:source].to_s,
-            backup_mapping.process, backup_mapping.id)
-        end
+
+        mapping = if backup_mapping.nil?
+                    LinkedData::Models::Mapping.new(classes, sol[:source].to_s)
+                  else
+                    LinkedData::Models::Mapping.new(
+                      classes, sol[:source].to_s,
+                      backup_mapping.process, backup_mapping.id)
+                  end
+
         mappings << mapping
       end
 
@@ -354,6 +355,10 @@ filter
       return mapping
     end
 
+    def self.get_mapping_classes_instance(c1, g1, c2, g2)
+      [read_only_class(c1, g1), read_only_class(c2, g2)]
+    end
+
     def self.get_rest_mapping(mapping_id)
       backup = LinkedData::Models::RestBackupMapping.find(mapping_id).first
       return nil if backup.nil?
@@ -379,8 +384,9 @@ FILTER(?s1 != ?s2)
       mapping = nil
       epr.query(qmappings,
                 graphs: graphs).each do |sol|
-        classes = [read_only_class(sol[:c1].to_s, sol[:s1].to_s),
-                   read_only_class(sol[:c2].to_s, sol[:s2].to_s)]
+
+        classes = get_mapping_classes_instance(sol[:c1].to_s, sol[:s1].to_s, sol[:c2].to_s, sol[:s2].to_s)
+
         process = LinkedData::Models::MappingProcess.find(sol[:o]).first
         mapping = LinkedData::Models::Mapping.new(classes, 'REST',
                                                   process,
@@ -473,15 +479,14 @@ FILTER (#{procs})
       mappings = []
       epr.query(qmappings,
                 graphs: graphs, query_options: { rules: :NONE }).each do |sol|
-        classes = [read_only_class(sol[:c1].to_s, sol[:ont1].to_s),
-                   read_only_class(sol[:c2].to_s, sol[:ont2].to_s)]
+        classes = get_mapping_classes_instance(sol[:c1].to_s, sol[:ont1].to_s, sol[:c2].to_s, sol[:ont2].to_s)
         process = proc_object[sol[:o].to_s]
         mapping = LinkedData::Models::Mapping.new(classes, 'REST',
                                                   process,
                                                   sol[:uuid])
         mappings << mapping
       end
-      return mappings.sort_by { |x| x.process.date }.reverse[0..n - 1]
+      mappings.sort_by { |x| x.process.date }.reverse[0..n - 1]
     end
 
     def self.retrieve_latest_submission_ids(options = {})
