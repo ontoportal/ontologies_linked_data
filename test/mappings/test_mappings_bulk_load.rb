@@ -75,7 +75,7 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
     ontology_id = 'http://bioontology.org/ontologies/BiomedicalResources.owl'
     mapping_hash = {
       "classes": %w[http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Image_Algorithm
-                    http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl#cno_0000202],
+                    http://purl.org/incf/ontology/Computational_Neurosciences/cno_alpha.owl#test2],
 
       "name": 'This is the mappings produced to test the bulk load',
       "source": 'https://w3id.org/semapv/LexicalMatching',
@@ -88,7 +88,10 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
       "date": '2020-05-30'
 
     }
-    commun_test(mapping_hash, ontology_id)
+    assert_raises ArgumentError do
+      commun_test(mapping_hash, ontology_id)
+    end
+
   end
 
   private
@@ -141,7 +144,6 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
     latest_sub = o.nil? ? nil : o.latest_submission
     LinkedData::Mappings.mappings_ontology(latest_sub, 1, 1000)
 
-    
   end
 end
 
