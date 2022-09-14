@@ -22,26 +22,35 @@ module LinkedData
       include LinkedData::HTTPCache::CacheableResource
       cache_timeout 3600
       model :rest_backup_mapping, name_with: :uuid
-      attribute :uuid, enforce: [:existence, :unique]
-      attribute :class_urns, enforce: [:uri, :existence, :list]
-      attribute :process, enforce: [:existence, :mapping_process]
+      attribute :uuid, enforce: %i[existence unique]
+      attribute :class_urns, enforce: [:uri, :existence, :list, ->(inst, attr) { validate_size(inst, attr) }]
+      attribute :process, enforce: %i[existence mapping_process]
+
+      def self.validate_size(inst, attr)
+        inst.bring(attr) if inst.bring?(attr)
+        value = inst.send(attr)
+
+        unless value.is_a?(Array) && value.length >= 2
+          return [:relation_value_validator, 'does not contain at least 2 terms']
+        end
+
+        [:relation_value_validator, nil]
+      end
     end
 
     #only manual mappings
     class MappingProcess < LinkedData::Models::Base
       model :mapping_process,
-            :name_with => lambda { |s| process_id_generator(s) }
+            name_with: ->(s) { process_id_generator(s) }
       attribute :name, enforce: [:existence]
-      attribute :creator, enforce: [:existence, :user]
+      attribute :creator, enforce: %i[existence user]
 
       attribute :source
-      attribute :relation, enforce: [:uri]
+      attribute :relation, enforce: %i[uri existence]
       attribute :source_contact_info
       attribute :source_name
       attribute :comment
-      attribute :date, enforce: [:date_time],
-                :default => lambda { |x| DateTime.now }
-
+      attribute :date, enforce: [:date_time], default: ->(x) { DateTime.now }
       attribute :subject_source_id, enforce: [:uri]
       attribute :object_source_id, enforce: [:uri]
 
@@ -57,10 +66,10 @@ module LinkedData
     end
 
     class MappingCount < LinkedData::Models::Base
-      model :mapping_count, name_with: lambda { |x| mapping_count_id(x) }
-      attribute :ontologies, enforce: [:existence, :list]
-      attribute :count, enforce: [:existence, :integer]
-      attribute :pair_count, enforce: [:existence, :boolean]
+      model :mapping_count, name_with: ->(x) { mapping_count_id(x) }
+      attribute :ontologies, enforce: %i[existence list]
+      attribute :count, enforce: %i[existence integer]
+      attribute :pair_count, enforce: %i[existence boolean]
 
       def self.mapping_count_id(x)
         acrs = x.ontologies.sort.join('-')
