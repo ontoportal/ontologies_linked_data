@@ -5,6 +5,7 @@ module LinkedData
   module Mappings
     OUTSTANDING_LIMIT = 30
 
+    extend LinkedData::Concerns::Mappings::Creator
     extend LinkedData::Concerns::Mappings::BulkLoad
 
     def self.mapping_predicates()
@@ -314,16 +315,16 @@ filter
           backup_mapping.process.bring_remaining
         end
 
-        classes = get_mapping_classes(s1.to_s, sub1.to_s, sol[:s2].to_s, graph2, backup_mapping)
+        classes = get_mapping_classes_instance(s1.to_s, sub1.to_s, sol[:s2].to_s, graph2, backup_mapping)
 
         mapping = if backup_mapping.nil?
-                    LinkedData::Models::Mapping.new(
-                      classes, sol[:source].to_s)
+                    LinkedData::Models::Mapping.new(classes, sol[:source].to_s)
                   else
                     LinkedData::Models::Mapping.new(
                       classes, sol[:source].to_s,
                       backup_mapping.process, backup_mapping.id)
                   end
+
         mappings << mapping
       end
 
@@ -425,46 +426,8 @@ filter
       return mapping
     end
 
-    # A function only used in ncbo_cron. To make sure all triples that link mappings to class are well deleted (use of metadata/def/mappingRest predicate)
-    def self.delete_all_rest_mappings_from_sparql
-      rest_predicate = mapping_predicates()["REST"][0]
-      actual_graph = ""
-      count = 0
-      qmappings = <<-eos
-SELECT DISTINCT ?g ?class_uri ?backup_mapping
-WHERE {
-  GRAPH ?g {
-    ?class_uri <#{rest_predicate}> ?backup_mapping .
-  }
-}
-      eos
-      epr = Goo.sparql_query_client(:main)
-      epr.query(qmappings).each do |sol|
-        if actual_graph == sol[:g].to_s && count < 4000
-          # Trying to delete more than 4995 triples at the same time cause a memory error. So 4000 by 4000. Or until we met a new graph
-          graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
-        else
-          if count == 0
-          else
-            Goo.sparql_update_client.delete_data(graph_delete, graph: RDF::URI.new(actual_graph))
-          end
-          graph_delete = RDF::Graph.new
-          graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
-          count = 0
-          actual_graph = sol[:g].to_s
-        end
-        count = count + 1
-      end
-      if count > 0
-        Goo.sparql_update_client.delete_data(graph_delete, graph: RDF::URI.new(actual_graph))
-      end
-    end
-
-    def self.get_external_ont_from_urn(urn, prefix: 'ext')
-      urn.to_s[/#{prefix}:(.*):(http.*)/, 1]
-    end
     # A method that generate classes depending on the nature of the mapping : Internal, External or Interportal
-    def self.get_mapping_classes(c1, g1, c2, g2, backup)
+    def self.get_mapping_classes_instance(c1, g1, c2, g2, backup)
       external_source = nil
       external_ontology = nil
       # Generate classes if g1 is interportal or external
@@ -514,6 +477,45 @@ WHERE {
       return classes
     end
 
+    # A function only used in ncbo_cron. To make sure all triples that link mappings to class are well deleted (use of metadata/def/mappingRest predicate)
+    def self.delete_all_rest_mappings_from_sparql
+      rest_predicate = mapping_predicates()["REST"][0]
+      actual_graph = ""
+      count = 0
+      qmappings = <<-eos
+SELECT DISTINCT ?g ?class_uri ?backup_mapping
+WHERE {
+  GRAPH ?g {
+    ?class_uri <#{rest_predicate}> ?backup_mapping .
+  }
+}
+      eos
+      epr = Goo.sparql_query_client(:main)
+      epr.query(qmappings).each do |sol|
+        if actual_graph == sol[:g].to_s && count < 4000
+          # Trying to delete more than 4995 triples at the same time cause a memory error. So 4000 by 4000. Or until we met a new graph
+          graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
+        else
+          if count == 0
+          else
+            Goo.sparql_update_client.delete_data(graph_delete, graph: RDF::URI.new(actual_graph))
+          end
+          graph_delete = RDF::Graph.new
+          graph_delete << [RDF::URI.new(sol[:class_uri].to_s), RDF::URI.new(rest_predicate), RDF::URI.new(sol[:backup_mapping].to_s)]
+          count = 0
+          actual_graph = sol[:g].to_s
+        end
+        count = count + 1
+      end
+      if count > 0
+        Goo.sparql_update_client.delete_data(graph_delete, graph: RDF::URI.new(actual_graph))
+      end
+    end
+
+    def self.get_external_ont_from_urn(urn, prefix: 'ext')
+      urn.to_s[/#{prefix}:(.*):(http.*)/, 1]
+    end
+
     def self.get_rest_mapping(mapping_id)
       backup = LinkedData::Models::RestBackupMapping.find(mapping_id).include(:class_urns).first
       if backup.nil?
@@ -539,30 +541,15 @@ FILTER(?s1 != ?s2)
       mapping = nil
       epr.query(qmappings,
                 graphs: graphs).each do |sol|
-        classes = get_mapping_classes(sol[:c1].to_s, sol[:s1].to_s, sol[:c2].to_s, sol[:s2].to_s, backup)
+
+        classes = get_mapping_classes_instance(sol[:c1].to_s, sol[:s1].to_s, sol[:c2].to_s, sol[:s2].to_s, backup)
+
         process = LinkedData::Models::MappingProcess.find(sol[:o]).first
         mapping = LinkedData::Models::Mapping.new(classes, "REST",
                                                   process,
                                                   sol[:uuid])
       end
-      return mapping
-    end
-
-    # Generate URNs for class mapping (urn:ONT_ACRO:CLASS_URI)
-    def self.generate_class_urns(classes)
-      class_urns = []
-      classes.each do |c|
-        if c.instance_of? LinkedData::Models::Class
-          acronym = c.submission.id.to_s.split("/")[-3]
-          class_urns << RDF::URI.new(LinkedData::Models::Class.urn_id(acronym, c.id.to_s))
-        elsif c.is_a?(Hash)
-          # Generate classes urns using the source (e.g.: ncbo or ext), the ontology acronym and the class id
-          class_urns << RDF::URI.new("#{c[:source]}:#{c[:ontology]}:#{c[:id]}")
-        else
-          class_urns << RDF::URI.new(c.urn_id())
-        end
-      end
-      return class_urns
+      mapping
     end
 
     def self.check_mapping_exist(cls, relations_array)
@@ -593,64 +580,8 @@ FILTER(?urn2 = <#{class_urns[1]}>)
       return mapping_exist
     end
 
-    def self.create_rest_mapping(classes, process)
-      unless process.instance_of? LinkedData::Models::MappingProcess
-        raise ArgumentError, "Process should be instance of MappingProcess"
-      end
-      if classes.length != 2
-        raise ArgumentError, "Create REST is avalaible for two classes. " +
-          "Request contains #{classes.length} classes."
-      end
-      #first create back up mapping that lives across submissions
-      LinkedData.settings.interportal_hash ||= {}
-      begin
-        backup_mapping = LinkedData::Models::RestBackupMapping.new
-        backup_mapping.uuid = UUID.new.generate
-        backup_mapping.process = process
-        class_urns = generate_class_urns(classes)
-        backup_mapping.class_urns = class_urns
-        # Insert backup into 4store
-        backup_mapping.save
-      rescue => e
-        raise IOError, "Saving backup mapping has failed. Message: #{e.message.to_s}"
-      end
-
-      #second add the mapping id to current submission graphs
-      rest_predicate = mapping_predicates()["REST"][0]
-      begin
-        classes.each do |c|
-          if c.is_a?(Hash)
-            c_id = RDF::URI.new(c[:id])
-            graph_id = if LinkedData.settings.interportal_hash.has_key?(c[:source])
-                         # If it is a mapping from another Bioportal
-                         LinkedData::Models::InterportalClass.graph_uri(c[:source])
-                       else
-                         # If it is an external mapping
-                         LinkedData::Models::ExternalClass.graph_uri
-                       end
-          else
-            sub = c.submission
-            unless sub.id.to_s["latest"].nil?
-              #the submission in the class might point to latest
-              sub = LinkedData::Models::Ontology.find(c.submission.ontology.id).first.latest_submission
-            end
-            c_id = c.id
-            graph_id = sub.id
-          end
-          graph_insert = RDF::Graph.new
-          graph_insert << [c_id, RDF::URI.new(rest_predicate), backup_mapping.id]
-          Goo.sparql_update_client.insert_data(graph_insert, graph: graph_id)
-        end
-      rescue => e
-        # Remove the created backup if the following steps of the mapping fail
-        backup_mapping.delete
-        raise IOError, "Inserting the mapping ID in the submission graphs has failed. Message: #{e.message.to_s}"
-      end
-      mapping = LinkedData::Models::Mapping.new(classes, 'REST', process, backup_mapping.id)
-      return mapping
-    end
-
     def self.mappings_for_classids(class_ids, sources = ["REST", "CUI"])
+
       class_ids = class_ids.uniq
       predicates = {}
       sources.each do |t|
@@ -734,6 +665,7 @@ FILTER (#{procs})
       mappings = []
       epr.query(qmappings,
                 graphs: graphs, query_options: { rules: :NONE }).each do |sol|
+
         if sol[:ont1].nil?
           # if the 1st class is from External or Interportal we don't want it to be in the list of recent, it has to be in 2nd
           next
@@ -748,7 +680,7 @@ FILTER (#{procs})
 
         mapping_id = RDF::URI.new(sol[:uuid].to_s)
         backup = LinkedData::Models::RestBackupMapping.find(mapping_id).include(:class_urns).first
-        classes = get_mapping_classes(sol[:c1].to_s, ont1, sol[:c2].to_s, ont2, backup)
+        classes = get_mapping_classes_instance(sol[:c1].to_s, ont1, sol[:c2].to_s, ont2, backup)
 
         process = proc_object[sol[:o].to_s]
         mapping = LinkedData::Models::Mapping.new(classes, "REST",
@@ -756,7 +688,7 @@ FILTER (#{procs})
                                                   sol[:uuid])
         mappings << mapping
       end
-      return mappings.sort_by { |x| x.process.date }.reverse[0..n - 1]
+      mappings.sort_by { |x| x.process.date }.reverse[0..n - 1]
     end
 
     def self.retrieve_latest_submission_ids(options = {})

@@ -120,7 +120,7 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
     external_class = m.classes.last
     assert_instance_of LinkedData::Models::ExternalClass, external_class
     assert_equal 'http://purl.org/incf/ontology/Computational_Neurosciences/test_2', external_class.id.to_s
-    assert_equal 'ext', external_class.ontology.to_s
+    assert_equal '', external_class.ontology.to_s
   end
 
   def test_inter_portal_mapping
