@@ -5,6 +5,7 @@ module LinkedData
   module Mappings
     OUTSTANDING_LIMIT = 30
 
+    extend LinkedData::Concerns::Mappings::Creator
     extend LinkedData::Concerns::Mappings::BulkLoad
 
     def self.mapping_predicates()
@@ -385,49 +386,6 @@ FILTER(?s1 != ?s2)
                                                   process,
                                                   sol[:uuid])
       end
-      return mapping
-    end
-
-    def self.create_rest_mapping(classes, process)
-      unless process.instance_of? LinkedData::Models::MappingProcess
-        raise ArgumentError, 'Process should be instance of MappingProcess'
-      end
-
-      if classes.length != 2
-        raise ArgumentError, 'Create REST is avalaible for two classes. ' +
-          "Request contains #{classes.length} classes."
-      end
-      #first create back up mapping that lives across submissions
-      backup_mapping = LinkedData::Models::RestBackupMapping.new
-      backup_mapping.uuid = UUID.new.generate
-      backup_mapping.process = process
-      class_urns = []
-      classes.each do |c|
-        if c.instance_of? LinkedData::Models::Class
-          acronym = c.submission.id.to_s.split('/')[-3]
-          class_urns << RDF::URI.new(
-            LinkedData::Models::Class.urn_id(acronym, c.id.to_s))
-
-        else
-          class_urns << RDF::URI.new(c.urn_id())
-        end
-      end
-      backup_mapping.class_urns = class_urns
-      backup_mapping.save
-
-      #second add the mapping id to current submission graphs
-      rest_predicate = mapping_predicates()['REST'][0]
-      classes.each do |c|
-        sub = c.submission
-        unless sub.id.to_s['latest'].nil?
-          #the submission in the class might point to latest
-          sub = LinkedData::Models::Ontology.find(c.submission.ontology.id).first.latest_submission
-        end
-        graph_insert = RDF::Graph.new
-        graph_insert << [c.id, RDF::URI.new(rest_predicate), backup_mapping.id]
-        Goo.sparql_update_client.insert_data(graph_insert, graph: sub.id)
-      end
-      mapping = LinkedData::Models::Mapping.new(classes, 'REST', process, backup_mapping.id)
       return mapping
     end
 
