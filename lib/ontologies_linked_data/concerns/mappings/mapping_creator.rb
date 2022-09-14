@@ -156,8 +156,11 @@ module LinkedData
             c = LinkedData::Models::Class.find(RDF::URI.new(class_id))
                                          .in(submission)
                                          .first
-            c.submission.bring :ontology if c.submission.bring?(:ontology)
-            c.submission.ontology.bring :acronym if c.submission.ontology.bring?(:acronym)
+            if c
+              c.submission.bring :ontology if c.submission.bring?(:ontology)
+              c.submission.ontology.bring :acronym if c.submission.ontology.bring?(:acronym)
+            end
+
           end
           [c, submission]
         end
