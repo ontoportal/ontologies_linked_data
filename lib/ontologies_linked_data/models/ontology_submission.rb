@@ -852,7 +852,14 @@ module LinkedData
         end
       end
 
-      def generate_umls_metrics_file(tr_file_path = nil)
+      def generate_metrics_file2(class_count, indiv_count, prop_count, max_depth)
+        CSV.open(self.metrics_path, "wb") do |csv|
+          csv << ["Class Count", "Individual Count", "Property Count", "Max Depth"]
+          csv << [class_count, indiv_count, prop_count, max_depth]
+        end
+      end
+
+      def generate_umls_metrics_file(tr_file_path=nil)
         tr_file_path ||= self.triples_file_path
         class_count = 0
         indiv_count = 0

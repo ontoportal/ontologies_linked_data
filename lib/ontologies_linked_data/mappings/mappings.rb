@@ -541,10 +541,11 @@ FILTER(?s1 != ?s2)
       mapping = nil
       epr.query(qmappings,
                 graphs: graphs).each do |sol|
-
+        
         classes = get_mapping_classes_instance(sol[:c1].to_s, sol[:s1].to_s, sol[:c2].to_s, sol[:s2].to_s, backup)
 
         process = LinkedData::Models::MappingProcess.find(sol[:o]).first
+        process.bring_remaining unless process.nil?
         mapping = LinkedData::Models::Mapping.new(classes, "REST",
                                                   process,
                                                   sol[:uuid])
