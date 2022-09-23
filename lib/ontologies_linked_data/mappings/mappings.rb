@@ -856,6 +856,25 @@ GROUP BY ?ontology
                                           mapping_predicate[0],
                                           "BIND ('#{_source}' AS ?source)")
       end
+
+
+
+
+      class_id_subject =  class_id_subject = class_id.nil? ? '?s1' :  "<#{class_id.to_s}>"
+      source_graph = sub1.nil? ? '?g' :  "<#{sub1.to_s}>"
+      internal_mapping_predicates.each do |_source, predicate|
+        blocks << <<-eos
+        {
+          GRAPH <#{source_graph}> {
+            #{class_id_subject} <#{predicate[0]}> ?s2 .
+          }
+          BIND(<http://data.bioontology.org/metadata/ExternalMappings> AS ?g)
+          BIND(?s2 AS ?o)
+          BIND ('#{_source}' AS ?source)
+        }
+        eos
+      end
+
       filter = class_id.nil? ? "FILTER ((?s1 != ?s2) || (?source = 'SAME_URI'))" : ''
       if sub2.nil?
         ont_id = sub1.to_s.split("/")[0..-3].join("/")
@@ -863,6 +882,7 @@ GROUP BY ?ontology
         #no need since now we delete older graphs
 
         filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}') || (?source = 'SAME_URI')"
+        filter += " || " + internal_mapping_predicates.keys.map{|x| "(?source = '#{x}')"}.join('||')
         filter += ")"
       end
 
