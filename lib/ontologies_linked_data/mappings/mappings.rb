@@ -379,11 +379,16 @@ module LinkedData
         classes = [read_only_class(c1, g1),
                    LinkedData::Models::InterportalClass.new(c2, external_ontology, external_source)]
       elsif g2 == LinkedData::Models::ExternalClass.graph_uri.to_s
-        backup.class_urns.each do |class_urn|
-          unless class_urn.start_with?("urn:")
-            external_ontology = get_external_ont_from_urn(class_urn)
+        if backup.nil?
+          external_ontology = c2.split('/')[0..-2].join('/')
+        else
+          backup.class_urns.each do |class_urn|
+            unless class_urn.start_with?("urn:")
+              external_ontology = get_external_ont_from_urn(class_urn)
+            end
           end
         end
+
         classes = [read_only_class(c1, g1),
                    LinkedData::Models::ExternalClass.new(c2, external_ontology)]
 
@@ -860,12 +865,12 @@ GROUP BY ?ontology
 
 
 
-      class_id_subject =  class_id_subject = class_id.nil? ? '?s1' :  "<#{class_id.to_s}>"
+      class_id_subject = class_id.nil? ? '?s1' :  "<#{class_id.to_s}>"
       source_graph = sub1.nil? ? '?g' :  "<#{sub1.to_s}>"
       internal_mapping_predicates.each do |_source, predicate|
         blocks << <<-eos
         {
-          GRAPH <#{source_graph}> {
+          GRAPH #{source_graph} {
             #{class_id_subject} <#{predicate[0]}> ?s2 .
           }
           BIND(<http://data.bioontology.org/metadata/ExternalMappings> AS ?g)
