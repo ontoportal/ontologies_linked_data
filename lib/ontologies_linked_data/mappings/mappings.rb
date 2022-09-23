@@ -8,7 +8,7 @@ module LinkedData
     extend LinkedData::Concerns::Mappings::Creator
     extend LinkedData::Concerns::Mappings::BulkLoad
 
-    def self.mapping_predicates()
+    def self.mapping_predicates
       predicates = {}
       predicates["CUI"] = ["http://bioportal.bioontology.org/ontologies/umls/cui"]
       predicates["SAME_URI"] =
@@ -189,126 +189,34 @@ module LinkedData
     end
 
     def self.mappings_ontologies(sub1, sub2, page, size, classId = nil, reload_cache = false)
-      if sub1.respond_to?(:id)
-        # Case where sub1 is a Submission
-        sub1 = sub1.id
-        acr1 = sub1.to_s.split("/")[-3]
-      else
-        acr1 = sub1.to_s
-      end
-      if sub2.nil?
-        acr2 = nil
-      elsif sub2.respond_to?(:id)
-        # Case where sub2 is a Submission
-        sub2 = sub2.id
-        acr2 = sub2.to_s.split("/")[-3]
-      else
-        acr2 = sub2.to_s
-      end
+      sub1, acr1 = extract_acronym(sub1)
+      sub2, acr2 = extract_acronym(sub2)
 
-      union_template = <<-eos
-{
-  GRAPH <#{sub1.to_s}> {
-      classId <predicate> ?o .
-  }
-  GRAPH graph {
-      ?s2 <predicate> ?o .
-  }
-  bind
-}
-      eos
-      blocks = []
+
       mappings = []
       persistent_count = 0
 
       if classId.nil?
-        pcount = LinkedData::Models::MappingCount.where(ontologies: acr1)
-        pcount = pcount.and(ontologies: acr2) unless acr2.nil?
-        f = Goo::Filter.new(:pair_count) == (not acr2.nil?)
-        pcount = pcount.filter(f)
-        pcount = pcount.include(:count)
-        pcount_arr = pcount.all
-        persistent_count = pcount_arr.length == 0 ? 0 : pcount_arr.first.count
-
+        persistent_count = count_mappings(acr1, acr2)
         return LinkedData::Mappings.empty_page(page, size) if persistent_count == 0
       end
 
-      union_template = if classId.nil?
-                         union_template.gsub("classId", "?s1")
-                       else
-                         union_template.gsub("classId", "<#{classId.to_s}>")
-                       end
-      # latest_sub_ids = self.retrieve_latest_submission_ids
-
-      mapping_predicates().each do |_source, mapping_predicate|
-        union_block = union_template.gsub("predicate", mapping_predicate[0])
-        union_block = union_block.gsub("bind", "BIND ('#{_source}' AS ?source)")
-
-        union_block = if sub2.nil?
-                        union_block.gsub("graph", "?g")
-                      else
-                        union_block.gsub("graph", "<#{sub2.to_s}>")
-                      end
-        blocks << union_block
-      end
-      unions = blocks.join("\nUNION\n")
-
-      mappings_in_ontology = <<-eos
-SELECT DISTINCT variables
-WHERE {
-unions
-filter
-} page_group
-      eos
-      query = mappings_in_ontology.gsub("unions", unions)
-      variables = "?s2 graph ?source ?o"
-      variables = "?s1 " + variables if classId.nil?
-      query = query.gsub("variables", variables)
-      filter = classId.nil? ? "FILTER ((?s1 != ?s2) || (?source = 'SAME_URI'))" : ''
-
-      if sub2.nil?
-        query = query.gsub("graph", "?g")
-        ont_id = sub1.to_s.split("/")[0..-3].join("/")
-        #STRSTARTS is used to not count older graphs
-        #no need since now we delete older graphs
-        filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}'))"
-      else
-        query = query.gsub("graph", "")
-      end
-      query = query.gsub("filter", filter)
-
-      if size > 0
-        pagination = "OFFSET offset LIMIT limit"
-        query = query.gsub("page_group", pagination)
-        limit = size
-        offset = (page - 1) * size
-        query = query.gsub("limit", "#{limit}").gsub("offset", "#{offset}")
-      else
-        query = query.gsub("page_group", "")
-      end
+      query = mappings_ont_build_query(classId, page, size, sub1, sub2)
       epr = Goo.sparql_query_client(:main)
       graphs = [sub1]
       unless sub2.nil?
         graphs << sub2
       end
       solutions = epr.query(query, graphs: graphs, reload_cache: reload_cache)
+
       s1 = nil
-      unless classId.nil?
-        s1 = RDF::URI.new(classId.to_s)
-      end
+      s1 = RDF::URI.new(classId.to_s) unless classId.nil?
+
       solutions.each do |sol|
-        graph2 = nil
-        graph2 = if sub2.nil?
-                   sol[:g]
-                 else
-                   sub2
-                 end
-        if classId.nil?
-          s1 = sol[:s1]
-        end
+        graph2 = sub2.nil? ? sol[:g] : sub2
+        s1 = sol[:s1]  if classId.nil?
 
         backup_mapping = nil
-        mapping = nil
         if sol[:source].to_s == "REST"
           backup_mapping = LinkedData::Models::RestBackupMapping
                              .find(sol[:o]).include(:process, :class_urns).first
@@ -331,8 +239,7 @@ filter
       if size == 0
         return mappings
       end
-      page = Goo::Base::Page.new(page, size, nil, mappings)
-      page.aggregate = persistent_count
+      page = Goo::Base::Page.new(page, size, persistent_count, mappings)
       return page
     end
 
@@ -541,7 +448,7 @@ FILTER(?s1 != ?s2)
       mapping = nil
       epr.query(qmappings,
                 graphs: graphs).each do |sol|
-        
+
         classes = get_mapping_classes_instance(sol[:c1].to_s, sol[:s1].to_s, sol[:c2].to_s, sol[:s2].to_s, backup)
 
         process = LinkedData::Models::MappingProcess.find(sol[:o]).first
@@ -928,6 +835,91 @@ GROUP BY ?ontology
         sleep(5)
       end
       # fsave.close
+    end
+
+    private
+    def self.mappings_ont_build_query(class_id, page, size, sub1, sub2)
+      blocks = []
+      mapping_predicates.each do |_source, mapping_predicate|
+        blocks << mappings_union_template(class_id, sub1, sub2,
+                                          mapping_predicate[0],
+                                          "BIND ('#{_source}' AS ?source)")
+      end
+      filter = class_id.nil? ? "FILTER ((?s1 != ?s2) || (?source = 'SAME_URI'))" : ''
+      if sub2.nil?
+        ont_id = sub1.to_s.split("/")[0..-3].join("/")
+        #STRSTARTS is used to not count older graphs
+        #no need since now we delete older graphs
+
+        filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}') || (?source = 'SAME_URI')"
+        filter += ")"
+      end
+
+
+
+      variables = "?s2 #{sub2.nil? ? '?g' : ''} ?source ?o"
+      variables = "?s1 " + variables if class_id.nil?
+
+
+
+
+      pagination = ''
+      if size > 0
+        limit = size
+        offset = (page - 1) * size
+        pagination = "OFFSET #{offset} LIMIT #{limit}"
+      end
+
+      query = <<-eos
+SELECT DISTINCT #{variables}
+WHERE {
+   #{blocks.join("\nUNION\n")}
+   #{filter}
+} #{pagination}
+      eos
+
+      query
+    end
+
+    def self.mappings_union_template(class_id, sub1, sub2, predicate, bind)
+      class_id_subject = class_id.nil? ? '?s1' :  "<#{class_id.to_s}>"
+      target_graph = sub2.nil? ? '?g' :  "<#{sub2.to_s}>"
+      union_template = <<-eos
+{
+  GRAPH <#{sub1.to_s}> {
+      #{class_id_subject} <#{predicate}> ?o .
+  }
+  GRAPH #{target_graph} {
+      ?s2 <#{predicate}> ?o .
+  }
+  #{bind}
+}
+      eos
+    end
+
+    def self.count_mappings(acr1, acr2)
+      count = LinkedData::Models::MappingCount.where(ontologies: acr1)
+      count = count.and(ontologies: acr2) unless acr2.nil?
+      f = Goo::Filter.new(:pair_count) == (not acr2.nil?)
+      count = count.filter(f)
+      count = count.include(:count)
+      pcount_arr = count.all
+      pcount_arr.length == 0 ? 0 : pcount_arr.first.count
+    end
+
+    def self.extract_acronym(submission)
+      sub = submission
+      if submission.nil?
+        acr = nil
+      elsif submission.respond_to?(:id)
+        # Case where sub2 is a Submission
+        sub = submission.id
+        acr= sub.to_s.split("/")[-3]
+      else
+        acr = sub.to_s
+      end
+
+      return sub, acr
     end
 
   end
