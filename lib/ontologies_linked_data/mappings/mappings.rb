@@ -719,10 +719,15 @@ GROUP BY ?ontology
 
 
 
-      class_id_subject = class_id.nil? ? '?s1' :  "<#{class_id.to_s}>"
-      source_graph = sub1.nil? ? '?g' :  "<#{sub1.to_s}>"
-      internal_mapping_predicates.each do |_source, predicate|
-        blocks << <<-eos
+
+
+      filter = class_id.nil? ? "FILTER ((?s1 != ?s2) || (?source = 'SAME_URI'))" : ''
+      if sub2.nil?
+        
+        class_id_subject = class_id.nil? ? '?s1' :  "<#{class_id.to_s}>"
+        source_graph = sub1.nil? ? '?g' :  "<#{sub1.to_s}>"
+        internal_mapping_predicates.each do |_source, predicate|
+          blocks << <<-eos
         {
           GRAPH #{source_graph} {
             #{class_id_subject} <#{predicate[0]}> ?s2 .
@@ -731,11 +736,9 @@ GROUP BY ?ontology
           BIND(?s2 AS ?o)
           BIND ('#{_source}' AS ?source)
         }
-        eos
-      end
+          eos
+        end
 
-      filter = class_id.nil? ? "FILTER ((?s1 != ?s2) || (?source = 'SAME_URI'))" : ''
-      if sub2.nil?
         ont_id = sub1.to_s.split("/")[0..-3].join("/")
         #STRSTARTS is used to not count older graphs
         #no need since now we delete older graphs
