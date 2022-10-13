@@ -85,12 +85,6 @@ module LinkedData
 
         Notifier.notify_support_grouped subject, body
       end
-      if !LinkedData.settings.admin_emails.nil? && LinkedData.settings.admin_emails.kind_of?(Array)
-        LinkedData.settings.admin_emails.each do |admin_email|
-          recipients << admin_email
-        end
-      end
-
       def self.new_ontology(ont)
         ont.bring_remaining
 

@@ -320,9 +320,7 @@ module LinkedData
         end
 
         if single_load.length > 0
-          self.in(submission)
-                .models(single_load)
-                .include(ld << {children: [:prefLabel]}).all
+          self.in(submission).models(single_load).include({children: [:prefLabel]}).all
         end
       end
 
