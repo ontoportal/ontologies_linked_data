@@ -2223,7 +2223,7 @@ eos
 
 
         if skos
-          classes = skos_roots(page, paged, pagesize)
+          classes = skos_roots(concept_schemes, page, paged, pagesize)
           extra_include += [:inScheme, :isInScheme]
         else
           self.ontology.bring(:flat)
