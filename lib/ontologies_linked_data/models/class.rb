@@ -79,11 +79,13 @@ module LinkedData
 
       attribute :notes,
             inverse: { on: :note, attribute: :relatedClass }
+      attribute :inScheme, enforce: [:list, :uri], namespace: :skos
+
 
       # Hypermedia settings
       embed :children, :ancestors, :descendants, :parents
       serialize_default :prefLabel, :synonym, :definition, :cui, :semanticType, :obsolete, :matchType, :ontologyType, :provisional # an attribute used in Search (not shown out of context)
-      serialize_methods :properties, :childrenCount, :hasChildren
+      serialize_methods :properties, :childrenCount, :hasChildren, :isInScheme
       serialize_never :submissionAcronym, :submissionId, :submission, :descendants
       aggregates childrenCount: [:count, :children]
       links_load submission: [ontology: [:acronym]]
@@ -460,7 +462,21 @@ module LinkedData
           raise ArgumentError, "HasChildren not loaded for #{self.id.to_ntriples}"
         end
         return @intlHasChildren
-     end
+      end
+
+      def inScheme?(scheme)
+        self.inScheme.include?(scheme)
+      end
+
+      def isInScheme
+        @isInScheme
+      end
+
+      def load_is_in_scheme(schemes = [])
+        included = schemes.select {|s| inScheme?(s)} || []
+        @isInScheme = included
+      end
+
 
      def load_has_children()
         if !instance_variable_get("@intlHasChildren").nil?
