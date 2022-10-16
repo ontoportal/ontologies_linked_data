@@ -2218,7 +2218,7 @@ eos
           paged = true
         end
 
-        skos = self.hasOntologyLanguage&.skos?
+        skos = self.skos?
         classes = []
 
 
@@ -2292,6 +2292,11 @@ eos
         }
 
         classes
+      end
+
+      def skos?
+        self.bring :hasOntologyLanguage if bring? :hasOntologyLanguage
+        self.hasOntologyLanguage&.skos?
       end
 
       def ontology_uri
