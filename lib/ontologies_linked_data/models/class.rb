@@ -12,6 +12,7 @@ module LinkedData
 
     class Class < LinkedData::Models::Base
       include ResourceIndex::Class
+      include LinkedData::Concerns::Concept::Tree
 
       model :class, name_with: :id, collection: :submission,
             namespace: :owl, :schemaless => :true,
@@ -283,17 +284,6 @@ module LinkedData
         properties
       end
 
-      def paths_to_root()
-        self.bring(parents: [:prefLabel, :synonym, :definition]) if self.bring?(:parents)
-        return [] if self.parents.nil? or self.parents.length == 0
-        paths = [[self]]
-        traverse_path_to_root(self.parents.dup, paths, 0)
-        paths.each do |p|
-          p.reverse!
-        end
-        paths
-      end
-
       def self.partially_load_children(models, threshold, submission)
         ld = [:prefLabel, :definition, :synonym, :inScheme]
         ld << :subClassOf if submission.hasOntologyLanguage.obo?
@@ -323,103 +313,7 @@ module LinkedData
         self.in(submission).models(single_load).include({children: ld}).all   if single_load.length > 0
       end
 
-      def tree(concept_schemes: [])
-        self.bring(parents: [:prefLabel]) if self.bring?(:parents)
-        return self if self.parents.nil? or self.parents.length == 0
-        paths = [[self]]
-        traverse_path_to_root(self.parents.dup, paths, 0, tree=true)
-        roots = self.submission.roots(extra_include=[:hasChildren], concept_schemes:concept_schemes)
-        threshhold = 99
 
-        #select one path that gets to root
-        path = nil
-        paths.each do |p|
-          if (p.map { |x| x.id.to_s } & roots.map { |x| x.id.to_s }).length > 0
-            path = p
-            break
-          end
-        end
-
-        if path.nil?
-          # do one more check for root classes that don't get returned by the submission.roots call
-          paths.each do |p|
-            root_node = p.last
-            root_parents = root_node.parents
-
-            if root_parents.empty?
-              path = p
-              break
-            end
-          end
-          return self if path.nil?
-        end
-
-        items_hash = {}
-        path.each do |t|
-          items_hash[t.id.to_s] = t
-        end
-
-        attrs_to_load = [:prefLabel,:synonym,:obsolete]
-        attrs_to_load << :subClassOf if submission.hasOntologyLanguage.obo?
-        self.class.in(submission)
-              .models(items_hash.values)
-              .include(attrs_to_load).all
-
-        LinkedData::Models::Class
-          .partially_load_children(items_hash.values,threshhold,self.submission)
-
-        path.reverse!
-        path.last.instance_variable_set("@children",[])
-        childrens_hash = {}
-        path.each do |m|
-          next if m.id.to_s["#Thing"]
-          m.children.each do |c|
-            childrens_hash[c.id.to_s] = c
-          end
-        end
-
-        LinkedData::Models::Class.partially_load_children(childrens_hash.values,threshhold, self.submission)
-
-        #build the tree
-        root_node = path.first
-        tree_node = path.first
-        path.delete_at(0)
-        while tree_node &&
-              !tree_node.id.to_s["#Thing"] &&
-              tree_node.children.length > 0 and path.length > 0 do
-
-          next_tree_node = nil
-          tree_node.load_has_children
-          tree_node.children.each_index do |i|
-            if tree_node.children[i].id.to_s == path.first.id.to_s
-              next_tree_node = path.first
-              children = tree_node.children.dup
-              children[i] = path.first
-              tree_node.instance_variable_set("@children",children)
-              children.each do |c|
-                  c.load_has_children
-              end
-            else
-              tree_node.children[i].instance_variable_set("@children",[])
-            end
-          end
-
-          if path.length > 0 && next_tree_node.nil?
-            tree_node.children << path.shift
-          end
-
-          tree_node = next_tree_node
-          path.delete_at(0)
-        end
-
-        root_node
-      end
-
-      def tree_sorted()
-        tr = tree
-        self.class.sort_tree_children(tr)
-        tr
-      end
 
       def retrieve_ancestors()
         ids = retrieve_hierarchy_ids(:ancestors)

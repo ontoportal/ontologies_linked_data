@@ -1,0 +1,135 @@
+module LinkedData
+  module Concerns
+    module Concept
+      module Tree
+        def tree(concept_schemes: [])
+          bring(parents: [:prefLabel]) if bring?(:parents)
+          return self if parents.nil? || parents.empty?
+
+          roots = self.submission.roots(extra_include=[:hasChildren], concept_schemes:concept_schemes)
+          path = path_to_root(roots)
+          threshold = 99
+
+          return self if path.nil?
+
+
+          attrs_to_load = %i[prefLabel synonym obsolete inScheme]
+          attrs_to_load << :subClassOf if submission.hasOntologyLanguage.obo?
+          self.class.in(submission)
+              .models(path)
+              .include(attrs_to_load).all
+          load_children(path, threshold: threshold)
+
+          path.reverse!
+          path.last.instance_variable_set("@children", [])
+
+          childrens_hash = {}
+          path.each do |m|
+            next if m.id.to_s["#Thing"]
+            m.children.each do |c|
+              childrens_hash[c.id.to_s] = c
+              c.load_is_in_scheme(concept_schemes)
+            end
+            m.load_is_in_scheme(concept_schemes)
+          end
+
+          load_children(childrens_hash.values, threshold: threshold)
+
+          build_tree(path)
+        end
+
+        def tree_sorted(concept_schemes: [])
+          tr = tree(concept_schemes: concept_schemes)
+          self.class.sort_tree_children(tr)
+          tr
+        end
+
+        def paths_to_root(tree: false)
+          bring(parents: [:prefLabel, :synonym, :definition]) if bring?(:parents)
+          return [] if parents.nil? || parents.empty?
+
+          paths = [[self]]
+          traverse_path_to_root(self.parents.dup, paths, 0, tree)
+          paths.each do |p|
+            p.reverse!
+          end
+          paths
+        end
+
+        def path_to_root(roots)
+          paths = [[self]]
+          traverse_path_to_root(self.parents.dup, paths, 0, true)
+          paths = paths_to_root(tree: true)
+
+          #select one path that gets to root
+          path = nil
+          paths.each do |p|
+            p.reverse!
+            unless (p.map { |x| x.id.to_s } & roots.map { |x| x.id.to_s }).empty?
+              path = p
+              break
+            end
+          end
+
+          if path.nil?
+            # do one more check for root classes that don't get returned by the submission.roots call
+            paths.each do |p|
+              root_node = p.last
+              root_parents = root_node.parents
+
+              if root_parents.empty?
+                path = p
+                break
+              end
+            end
+          end
+
+          path
+        end
+
+        private
+
+        def load_children(concepts, threshold: 99)
+          LinkedData::Models::Class
+            .partially_load_children(concepts, threshold, submission)
+        end
+
+        def build_tree(path)
+          root_node = path.first
+          tree_node = path.first
+          path.delete_at(0)
+          while tree_node &&
+            !tree_node.id.to_s["#Thing"] &&
+            !tree_node.children.empty? && (!path.empty?) do
+            next_tree_node = nil
+            tree_node.load_has_children
+            tree_node.children.each_index do |i|
+              if tree_node.children[i].id.to_s == path.first.id.to_s
+                next_tree_node = path.first
+                children = tree_node.children.dup
+                children[i] = path.first
+                tree_node.instance_variable_set("@children", children)
+                children.each do |c|
+                  c.load_has_children
+                end
+              else
+                tree_node.children[i].instance_variable_set("@children", [])
+              end
+            end
+
+            if !path.empty? && next_tree_node.nil?
+              tree_node.children << path.shift
+            end
+            tree_node = next_tree_node
+            path.delete_at(0)
+          end
+
+          root_node
+        end
+
+      end
+    end
+
+  end
+end
+
