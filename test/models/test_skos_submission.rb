@@ -55,7 +55,7 @@ SELECT ?children WHERE {
 
     roots = sub.roots(concept_schemes: ['http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view_2'])
     roots = roots.map { |r| r.id.to_s } unless roots.nil?
-    assert_equal 2, roots.size
+    assert_equal 6, roots.size
     assert_includes roots, 'http://www.ebi.ac.uk/efo/EFO_0000311'
     assert_includes roots, 'http://www.ebi.ac.uk/efo/EFO_0000324'
   end

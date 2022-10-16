@@ -2206,7 +2206,7 @@ eos
 
 
 
-      def roots(extra_include = nil, page = nil, pagesize = nil, concept_schemes: [])
+      def roots(extra_include = [], page = nil, pagesize = nil, concept_schemes: [])
         self.bring(:ontology) unless self.loaded_attributes.include?(:ontology)
         self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
         paged = false
