@@ -2224,6 +2224,7 @@ eos
 
         if skos
           classes = skos_roots(page, paged, pagesize)
+          extra_include += [:inScheme, :isInScheme]
         else
           self.ontology.bring(:flat)
           data_query = nil
@@ -2288,9 +2289,9 @@ eos
         classes.delete_if { |c|
           obs = !c.obsolete.nil? && c.obsolete == true
           c.load_has_children if extra_include&.include?(:hasChildren) && !obs
+          c.load_is_in_scheme(current_schemes(concept_schemes)) if extra_include&.include?(:isInScheme) && !obs && skos
           obs
         }
-
         classes
       end
 
@@ -2305,7 +2306,7 @@ eos
       end
 
       def roots_sorted(extra_include = nil, concept_schemes: [])
-        classes = roots(extra_include, concept_scheme)
+        classes = roots(extra_include, concept_schemes: concept_schemes)
         LinkedData::Models::Class.sort_classes(classes)
       end
 

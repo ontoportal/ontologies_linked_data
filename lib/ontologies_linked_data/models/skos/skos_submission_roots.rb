@@ -70,6 +70,14 @@ module LinkedData
           concept_schemes.empty? ? '' : "FILTER (?x IN (#{concept_schemes.join(',')}))"
         end
 
+        def current_schemes(concept_schemes)
+          if concept_schemes.nil? || concept_schemes.empty?
+            main_concept_scheme = get_main_concept_scheme
+            concept_schemes = main_concept_scheme ? [main_concept_scheme] : []
+          end
+          concept_schemes
+        end
+
       end
     end
   end
