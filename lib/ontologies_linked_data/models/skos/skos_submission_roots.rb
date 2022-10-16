@@ -5,11 +5,11 @@ module LinkedData
 
         private
 
-        def skos_roots(concept_schemes, page, paged, pagesize)
+        def skos_roots(page, paged, pagesize)
           classes = []
           query_body = <<-eos
             ?x #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
-            #{concept_schemes_filter(concept_schemes)}
+            #{concept_schemes_filter}
           eos
 
           root_skos = <<-eos
@@ -62,11 +62,9 @@ module LinkedData
           count
         end
 
-        def concept_schemes_filter(concept_schemes)
-          if concept_schemes.nil? || concept_schemes.empty?
-            main_concept_scheme = get_main_concept_scheme
-            concept_schemes = main_concept_scheme ? [main_concept_scheme] : []
-          end
+        def concept_schemes_filter
+          main_concept_scheme = get_main_concept_scheme
+          concept_schemes = main_concept_scheme ? [main_concept_scheme] : []
 
           concept_schemes = concept_schemes.map { |x| RDF::URI.new(x.to_s).to_ntriples }
           concept_schemes.empty? ? '' : "FILTER (?x IN (#{concept_schemes.join(',')}))"

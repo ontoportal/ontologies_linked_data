@@ -2223,7 +2223,7 @@ eos
 
 
         if skos
-          classes = skos_roots(concept_schemes, page, paged, pagesize)
+          classes = skos_roots(page, paged, pagesize)
         else
           self.ontology.bring(:flat)
           data_query = nil
