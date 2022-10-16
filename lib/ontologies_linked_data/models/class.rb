@@ -295,11 +295,10 @@ module LinkedData
       end
 
       def self.partially_load_children(models, threshold, submission)
-        ld = [:prefLabel, :definition, :synonym]
+        ld = [:prefLabel, :definition, :synonym, :inScheme]
         ld << :subClassOf if submission.hasOntologyLanguage.obo?
         single_load = []
-        query = self.in(submission)
-              .models(models)
+        query = self.in(submission).models(models)
         query.aggregate(:count, :children).all
 
         models.each do |cls|
@@ -308,9 +307,6 @@ module LinkedData
           end
           if cls.aggregates.first.value > threshold
             #too many load a page
-            self.in(submission)
-                .models(single_load)
-                .include(children: [:prefLabel]).all
             page_children = LinkedData::Models::Class
                                      .where(parents: cls)
                                      .include(ld)
@@ -323,9 +319,8 @@ module LinkedData
           end
         end
 
-        if single_load.length > 0
-          self.in(submission).models(single_load).include({children: [:prefLabel]}).all
-        end
+
+        self.in(submission).models(single_load).include({children: ld}).all   if single_load.length > 0
       end
 
       def tree(concept_schemes: [])
@@ -581,9 +576,9 @@ eos
 
       def traverse_path_to_root(parents, paths, path_i, tree=false)
         return if (tree and parents.length == 0)
+
         recursions = [path_i]
         recurse_on_path = [false]
-
         if parents.length > 1 and not tree
           (parents.length-1).times do
             paths << paths[path_i].clone
@@ -608,7 +603,7 @@ eos
           next if p.id.to_s["umls/OrphanClass"]
 
           if p.bring?(:parents)
-            p.bring(parents: [:prefLabel, :synonym, :definition, parents: [:prefLabel, :synonym, :definition]])
+            p.bring(parents: [:prefLabel, :synonym, :definition, :inScheme, parents: [:prefLabel, :synonym, :definition, :inScheme]])
           end
 
           if !p.loaded_attributes.include?(:parents)
