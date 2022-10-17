@@ -197,7 +197,7 @@ eos
     unions = blocks.join("\nUNION\n")
 
     mappings_in_ontology = <<-eos
-SELECT DISTINCT variables
+SELECT DISTINCT query_variables
 WHERE {
 unions
 filter
@@ -206,7 +206,7 @@ eos
     query = mappings_in_ontology.gsub("unions", unions)
     variables = "?s2 graph ?source ?o"
     variables = "?s1 " + variables if classId.nil?
-    query = query.gsub("variables", variables)
+    query = query.gsub("query_variables", variables)
     filter = classId.nil? ? "FILTER ((?s1 != ?s2) || (?source = 'SAME_URI'))" : ''
 
     if sub2.nil?
