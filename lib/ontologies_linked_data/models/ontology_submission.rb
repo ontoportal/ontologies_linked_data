@@ -479,7 +479,13 @@ module LinkedData
           end
           logger.flush
         end
-        delete_and_append(triples_file_path, logger, mime_type)
+
+        begin
+          delete_and_append(triples_file_path, logger, mime_type)
+        rescue => e
+          logger.error("Error sending data to triple store - #{e.response.code} #{e.class}: #{e.response.body}") if e.response&.body
+          raise e
+        end
         version_info = extract_version()
 
         if version_info
