@@ -467,8 +467,8 @@ eos
         path << r
       end
 
-      def traverse_path_to_root(parents, paths, path_i, tree=false)
-        return if (tree and parents.length == 0)
+      def traverse_path_to_root(parents, paths, path_i, tree = false, roots = nil)
+        return if (tree && parents.length == 0)
 
         recursions = [path_i]
         recurse_on_path = [false]
@@ -495,23 +495,28 @@ eos
           p = path.last
           next if p.id.to_s["umls/OrphanClass"]
 
-          if p.bring?(:parents)
-            p.bring(parents: [:prefLabel, :synonym, :definition, :inScheme, parents: [:prefLabel, :synonym, :definition, :inScheme]])
+          if !tree_root?(p, roots) && recurse_on_path[i]
+            if p.bring?(:parents)
+              p.bring(parents: [:prefLabel, :synonym, :definition, :inScheme, parents: [:prefLabel, :synonym, :definition, :inScheme]])
+            end
+
+            if !p.loaded_attributes.include?(:parents)
+              # fail safely
+              logger = LinkedData::Parser.logger || Logger.new($stderr)
+              logger.error("Class #{p.id.to_s} from #{p.submission.id} cannot load parents")
+              return
+            end
+
+            traverse_path_to_root(p.parents.dup, paths, rec_i, tree=tree, roots=roots)
           end
 
-          if !p.loaded_attributes.include?(:parents)
-            # fail safely
-            logger = LinkedData::Parser.logger || Logger.new($stderr)
-            logger.error("Class #{p.id.to_s} from #{p.submission.id} cannot load parents")
-            return
-          end
 
-          if !p.id.to_s["#Thing"] &&\
-              (recurse_on_path[i] && p.parents && p.parents.length > 0)
-            traverse_path_to_root(p.parents.dup, paths, rec_i, tree=tree)
-          end
+
+
         end
       end
+
+
 
     end
   end
