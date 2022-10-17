@@ -2,16 +2,15 @@ module LinkedData
   module Concerns
     module Concept
       module Tree
-        def tree(concept_schemes: [])
+        def tree(concept_schemes: [], roots: nil)
           bring(parents: [:prefLabel]) if bring?(:parents)
           return self if parents.nil? || parents.empty?
 
-          roots = self.submission.roots(extra_include=[:hasChildren], concept_schemes:concept_schemes)
+          roots = self.submission.roots(extra_include=[:hasChildren], concept_schemes:concept_schemes) if roots.nil?
           path = path_to_root(roots)
           threshold = 99
 
           return self if path.nil?
-
 
           attrs_to_load = %i[prefLabel synonym obsolete inScheme]
           attrs_to_load << :subClassOf if submission.hasOntologyLanguage.obo?
@@ -38,18 +37,18 @@ module LinkedData
           build_tree(path)
         end
 
-        def tree_sorted(concept_schemes: [])
-          tr = tree(concept_schemes: concept_schemes)
+        def tree_sorted(concept_schemes: [], roots: nil)
+          tr = tree(concept_schemes: concept_schemes, roots: roots)
           self.class.sort_tree_children(tr)
           tr
         end
 
-        def paths_to_root(tree: false)
+        def paths_to_root(tree: false, roots: nil)
           bring(parents: [:prefLabel, :synonym, :definition]) if bring?(:parents)
           return [] if parents.nil? || parents.empty?
 
           paths = [[self]]
-          traverse_path_to_root(self.parents.dup, paths, 0, tree)
+          traverse_path_to_root(self.parents.dup, paths, 0, tree, roots) unless tree_root?(self, roots)
           paths.each do |p|
             p.reverse!
           end
@@ -58,9 +57,7 @@ module LinkedData
 
         def path_to_root(roots)
           paths = [[self]]
-          traverse_path_to_root(self.parents.dup, paths, 0, true)
-          paths = paths_to_root(tree: true)
-
+          paths = paths_to_root(tree: true, roots: roots)
           #select one path that gets to root
           path = nil
           paths.each do |p|
@@ -87,6 +84,10 @@ module LinkedData
           path
         end
 
+        def tree_root?(concept, roots)
+          roots&.map{|r| r.id}.include?(concept.id) || concept.id.to_s["#Thing"]
+        end
+        
         private
 
         def load_children(concepts, threshold: 99)
