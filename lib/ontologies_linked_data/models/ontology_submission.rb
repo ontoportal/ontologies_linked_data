@@ -7,8 +7,6 @@ require 'benchmark'
 require 'csv'
 require 'fileutils'
 
-require 'ontologies_linked_data/models/skos/skos_submission_schemes'
-require 'ontologies_linked_data/models/skos/skos_submission_roots'
 
 module LinkedData
   module Models
