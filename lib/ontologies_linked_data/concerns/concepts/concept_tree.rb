@@ -85,7 +85,7 @@ module LinkedData
         end
 
         def tree_root?(concept, roots)
-          roots&.map{|r| r.id}.include?(concept.id) || concept.id.to_s["#Thing"]
+          (roots &&roots.map{|r| r.id}.include?(concept.id)) || concept.id.to_s["#Thing"]
         end
         
         private
