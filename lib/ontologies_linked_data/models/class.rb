@@ -85,7 +85,7 @@ module LinkedData
       # Hypermedia settings
       embed :children, :ancestors, :descendants, :parents
       serialize_default :prefLabel, :synonym, :definition, :cui, :semanticType, :obsolete, :matchType, :ontologyType, :provisional # an attribute used in Search (not shown out of context)
-      serialize_methods :properties, :childrenCount, :hasChildren, :isInScheme
+      serialize_methods :properties, :childrenCount, :hasChildren, :isInActiveScheme
       serialize_never :submissionAcronym, :submissionId, :submission, :descendants
       aggregates childrenCount: [:count, :children]
       links_load submission: [ontology: [:acronym]]
@@ -356,8 +356,8 @@ module LinkedData
         self.inScheme.include?(scheme)
       end
 
-      def isInScheme
-        @isInScheme
+      def isInActiveScheme
+        @isInActiveScheme
       end
 
       def load_is_in_scheme(schemes = [])
