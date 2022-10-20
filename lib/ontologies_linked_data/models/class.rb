@@ -12,6 +12,7 @@ module LinkedData
     class Class < LinkedData::Models::Base
       include LinkedData::Concerns::Concept::Sort
       include LinkedData::Concerns::Concept::Tree
+      include LinkedData::Concerns::Concept::InScheme
 
       model :class, name_with: :id, collection: :submission,
             namespace: :owl, :schemaless => :true,
@@ -352,19 +353,6 @@ module LinkedData
         return @intlHasChildren
       end
 
-      def inScheme?(scheme)
-        self.inScheme.include?(scheme)
-      end
-
-      def isInActiveScheme
-        @isInActiveScheme
-      end
-
-      def load_is_in_scheme(schemes = [])
-        included = schemes.select {|s| inScheme?(s)}
-        included =  [self.submission.get_main_concept_scheme] if included.empty?
-        @isInActiveScheme = included
-      end
 
 
      def load_has_children()
