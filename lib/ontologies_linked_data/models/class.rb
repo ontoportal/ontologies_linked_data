@@ -12,6 +12,8 @@ module LinkedData
     class Class < LinkedData::Models::Base
       include LinkedData::Concerns::Concept::Sort
       include LinkedData::Concerns::Concept::Tree
+      include LinkedData::Concerns::Concept::InScheme
+      include LinkedData::Concerns::Concept::InCollection
 
       model :class, name_with: :id, collection: :submission,
             namespace: :owl, :schemaless => :true,
@@ -80,17 +82,17 @@ module LinkedData
       attribute :notes,
             inverse: { on: :note, attribute: :relatedClass }
       attribute :inScheme, enforce: [:list, :uri], namespace: :skos
-
+      attribute :inCollection, inverse: { on: :collection , :attribute => :member }
 
       # Hypermedia settings
       embed :children, :ancestors, :descendants, :parents
       serialize_default :prefLabel, :synonym, :definition, :cui, :semanticType, :obsolete, :matchType, :ontologyType, :provisional # an attribute used in Search (not shown out of context)
-      serialize_methods :properties, :childrenCount, :hasChildren, :isInScheme
+      serialize_methods :properties, :childrenCount, :hasChildren
       serialize_never :submissionAcronym, :submissionId, :submission, :descendants
       aggregates childrenCount: [:count, :children]
       links_load submission: [ontology: [:acronym]]
       do_not_load :descendants, :ancestors
-      prevent_serialize_when_nested :properties, :parents, :children, :ancestors, :descendants
+      prevent_serialize_when_nested :properties, :parents, :children, :ancestors, :descendants, :inCollection
       link_to LinkedData::Hypermedia::Link.new("self", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}"}, self.uri_type),
               LinkedData::Hypermedia::Link.new("ontology", lambda {|s| "ontologies/#{s.submission.ontology.acronym}"}, Goo.vocabulary["Ontology"]),
               LinkedData::Hypermedia::Link.new("children", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}/children"}, self.uri_type),
@@ -284,8 +286,10 @@ module LinkedData
       end
 
       def self.partially_load_children(models, threshold, submission)
-        ld = [:prefLabel, :definition, :synonym, :inScheme]
+        ld = [:prefLabel, :definition, :synonym]
         ld << :subClassOf if submission.hasOntologyLanguage.obo?
+        ld += LinkedData::Models::Class.concept_is_in_attributes if submission.skos?
+
         single_load = []
         query = self.in(submission).models(models)
         query.aggregate(:count, :children).all
@@ -312,6 +316,15 @@ module LinkedData
         self.in(submission).models(single_load).include({children: ld}).all   if single_load.length > 0
       end
 
+      def load_computed_attributes(to_load:, options:)
+        self.load_has_children if to_load.include?(:hasChildren)
+        self.load_is_in_scheme(options[:schemes]) if to_load.include?(:isInActiveScheme)
+        self.load_is_in_collection(options[:collections]) if to_load.include?(:isInActiveCollection)
+      end
+
+      def self.concept_is_in_attributes
+        [:inScheme, :isInActiveScheme, :inCollection, :isInActiveCollection]
+      end
 
 
       def retrieve_ancestors()
@@ -352,18 +365,6 @@ module LinkedData
         return @intlHasChildren
       end
 
-      def inScheme?(scheme)
-        self.inScheme.include?(scheme)
-      end
-
-      def isInScheme
-        @isInScheme
-      end
-
-      def load_is_in_scheme(schemes = [])
-        included = schemes.select {|s| inScheme?(s)} || []
-        @isInScheme = included
-      end
 
 
      def load_has_children()

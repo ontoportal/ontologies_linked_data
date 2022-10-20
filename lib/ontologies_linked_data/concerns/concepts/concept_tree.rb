@@ -2,18 +2,19 @@ module LinkedData
   module Concerns
     module Concept
       module Tree
-        def tree(concept_schemes: [], roots: nil)
+        def tree(concept_schemes: [], concept_collections: [], roots: nil)
           bring(parents: [:prefLabel]) if bring?(:parents)
           return self if parents.nil? || parents.empty?
-
-          roots = self.submission.roots(extra_include=[:hasChildren], concept_schemes:concept_schemes) if roots.nil?
+          extra_include = [:hasChildren, :isInActiveScheme, :isInActiveCollection]
+          roots = self.submission.roots( extra_include, concept_schemes:concept_schemes) if roots.nil?
           path = path_to_root(roots)
           threshold = 99
 
           return self if path.nil?
 
-          attrs_to_load = %i[prefLabel synonym obsolete inScheme]
+          attrs_to_load = %i[prefLabel synonym obsolete]
           attrs_to_load << :subClassOf if submission.hasOntologyLanguage.obo?
+          attrs_to_load += self.class.concept_is_in_attributes if submission.skos?
           self.class.in(submission)
               .models(path)
               .include(attrs_to_load).all
@@ -27,9 +28,11 @@ module LinkedData
             next if m.id.to_s["#Thing"]
             m.children.each do |c|
               childrens_hash[c.id.to_s] = c
-              c.load_is_in_scheme(concept_schemes)
+              c.load_computed_attributes(to_load:extra_include ,
+                                         options: {schemes: concept_schemes, collections: concept_collections})
             end
-            m.load_is_in_scheme(concept_schemes)
+            m.load_computed_attributes(to_load:extra_include ,
+                                       options: {schemes: concept_schemes, collections: concept_collections})
           end
 
           load_children(childrens_hash.values, threshold: threshold)
@@ -37,8 +40,8 @@ module LinkedData
           build_tree(path)
         end
 
-        def tree_sorted(concept_schemes: [], roots: nil)
-          tr = tree(concept_schemes: concept_schemes, roots: roots)
+        def tree_sorted(concept_schemes: [], concept_collections: [], roots: nil)
+          tr = tree(concept_schemes: concept_schemes, concept_collections: concept_collections, roots: roots)
           self.class.sort_tree_children(tr)
           tr
         end
