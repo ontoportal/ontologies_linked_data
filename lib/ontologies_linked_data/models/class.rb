@@ -286,8 +286,10 @@ module LinkedData
       end
 
       def self.partially_load_children(models, threshold, submission)
-        ld = [:prefLabel, :definition, :synonym, :inScheme]
+        ld = [:prefLabel, :definition, :synonym]
         ld << :subClassOf if submission.hasOntologyLanguage.obo?
+        ld += LinkedData::Models::Class.concept_is_in_attributes if submission.skos?
+
         single_load = []
         query = self.in(submission).models(models)
         query.aggregate(:count, :children).all
@@ -314,6 +316,15 @@ module LinkedData
         self.in(submission).models(single_load).include({children: ld}).all   if single_load.length > 0
       end
 
+      def load_computed_attributes(to_load:, options:)
+        self.load_has_children if to_load.include?(:hasChildren)
+        self.load_is_in_scheme(options[:schemes]) if to_load.include?(:isInActiveScheme)
+        self.load_is_in_collection(options[:collections]) if to_load.include?(:isInActiveCollection)
+      end
+
+      def self.concept_is_in_attributes
+        [:inScheme, :isInActiveScheme, :inCollection, :isInActiveCollection]
+      end
 
 
       def retrieve_ancestors()

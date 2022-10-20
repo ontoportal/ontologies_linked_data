@@ -7,7 +7,6 @@ require 'benchmark'
 require 'csv'
 require 'fileutils'
 
-
 module LinkedData
   module Models
 
@@ -2202,9 +2201,7 @@ eos
         FileUtils.remove_dir(self.data_folder) if Dir.exist?(self.data_folder)
       end
 
-
-
-      def roots(extra_include = [], page = nil, pagesize = nil, concept_schemes: [])
+      def roots(extra_include = [], page = nil, pagesize = nil, concept_schemes: [], concept_collections: [])
         self.bring(:ontology) unless self.loaded_attributes.include?(:ontology)
         self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
         paged = false
@@ -2219,10 +2216,9 @@ eos
         skos = self.skos?
         classes = []
 
-
         if skos
           classes = skos_roots(concept_schemes, page, paged, pagesize)
-          extra_include += [:inScheme, :isInActiveScheme]
+          extra_include += LinkedData::Models::Class.concept_is_in_attributes
         else
           self.ontology.bring(:flat)
           data_query = nil
@@ -2286,8 +2282,10 @@ eos
 
         classes.delete_if { |c|
           obs = !c.obsolete.nil? && c.obsolete == true
-          c.load_has_children if extra_include&.include?(:hasChildren) && !obs
-          c.load_is_in_scheme(current_schemes(concept_schemes)) if extra_include&.include?(:isInActiveScheme) && !obs && skos
+          if !obs
+            c.load_computed_attributes(to_load: extra_include,
+                                       options: { schemes: current_schemes(concept_schemes), collections: concept_collections })
+          end
           obs
         }
         classes
