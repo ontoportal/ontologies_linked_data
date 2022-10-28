@@ -16,7 +16,7 @@ module LinkedData
 
         def load_is_in_scheme(schemes = [])
           included = schemes.select { |s| inScheme?(s) }
-          included = [self.submission.get_main_concept_scheme] if included.empty?
+          included = [self.submission.get_main_concept_scheme] if included.empty? && schemes&.empty?
           @isInActiveScheme = included
         end
 
