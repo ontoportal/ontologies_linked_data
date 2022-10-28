@@ -45,6 +45,9 @@ module LinkedData
 
       attribute :label, namespace: :rdfs, enforce: [:list]
       attribute :prefLabel, namespace: :skos, enforce: [:existence], alias: true
+      attribute :prefLabelXl, property: :prefLabel, namespace: :skosxl, enforce: [:label, :list], alias: true
+      attribute :altLabelXl, property: :altLabel, namespace: :skosxl, enforce: [:label, :list], alias: true
+      attribute :hiddenLabelXl, property: :hiddenLabel, namespace: :skosxl, enforce: [:label, :list], alias: true
       attribute :synonym, namespace: :skos, enforce: [:list], property: :altLabel, alias: true
       attribute :definition, namespace: :skos, enforce: [:list], alias: true
       attribute :obsolete, namespace: :owl, property: :deprecated, alias: true
@@ -85,7 +88,7 @@ module LinkedData
       attribute :inCollection, inverse: { on: :collection , :attribute => :member }
 
       # Hypermedia settings
-      embed :children, :ancestors, :descendants, :parents
+      embed :children, :ancestors, :descendants, :parents, :prefLabelXl, :altLabelXl, :hiddenLabelXl
       serialize_default :prefLabel, :synonym, :definition, :cui, :semanticType, :obsolete, :matchType, :ontologyType, :provisional # an attribute used in Search (not shown out of context)
       serialize_methods :properties, :childrenCount, :hasChildren
       serialize_never :submissionAcronym, :submissionId, :submission, :descendants
