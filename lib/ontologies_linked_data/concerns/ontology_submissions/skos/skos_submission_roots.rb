@@ -3,26 +3,32 @@ module LinkedData
     module SKOS
       module RootsFetcher
 
-        private
-
         def skos_roots(concept_schemes, page, paged, pagesize)
           classes = []
-          query_body = <<-eos
-            ?x #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
-            #{concept_schemes_filter(concept_schemes)}
-          eos
+          class_ids, count = roots_by_has_top_concept(concept_schemes, page, paged, pagesize)
 
+          class_ids, count = roots_by_top_concept_of(concept_schemes, page, paged, pagesize) if class_ids.empty?
+
+          class_ids.each do |id|
+            classes << LinkedData::Models::Class.find(id).in(self).disable_rules.first
+          end
+
+          classes = Goo::Base::Page.new(page, pagesize, count, classes) if paged
+          classes
+        end
+
+        private
+
+        def roots_by_query(query_body, page, paged, pagesize)
           root_skos = <<-eos
               SELECT DISTINCT ?root WHERE {
               GRAPH #{self.id.to_ntriples} {
-                #{query_body} 
+                #{query_body}
               }}
           eos
           count = 0
 
-          if paged
-            count, root_skos = add_pagination(query_body, page, pagesize, root_skos)
-          end
+          count, root_skos = add_pagination(query_body, page, pagesize, root_skos) if paged
 
           #needs to get cached
           class_ids = []
@@ -31,12 +37,23 @@ module LinkedData
             class_ids << s[:root]
           end
 
-          class_ids.each do |id|
-            classes << LinkedData::Models::Class.find(id).in(self).disable_rules.first
-          end
+          [class_ids, count]
+        end
 
-          classes = Goo::Base::Page.new(page, pagesize, count, classes) if paged
-          classes
+        def roots_by_has_top_concept(concept_schemes, page, paged, pagesize)
+          query_body = <<-eos
+            ?x #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
+            #{concept_schemes_filter(concept_schemes)}
+          eos
+          roots_by_query query_body, page, paged, pagesize
+        end
+
+        def roots_by_top_concept_of(concept_schemes, page, paged, pagesize)
+          query_body = <<-eos
+            ?root #{RDF::SKOS[:topConceptOf].to_ntriples}  ?x.
+            #{concept_schemes_filter(concept_schemes)}
+          eos
+          roots_by_query query_body, page, paged, pagesize
         end
 
         def add_pagination(query_body, page, pagesize, root_skos)
