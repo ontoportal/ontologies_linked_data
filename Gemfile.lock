@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 7fe22f03b56a944822c986269076a2e2aa64d6a2
+  revision: 091e0ca001244a7dbaed0644b0b1087a3a24d16a
   branch: develop
   specs:
     goo (0.0.2)
@@ -151,7 +151,7 @@ GEM
       rubocop-ast (>= 1.20.1, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 1.4.0, < 3.0)
-    rubocop-ast (1.21.0)
+    rubocop-ast (1.22.0)
       parser (>= 3.1.1.0)
     ruby-progressbar (1.11.0)
     ruby2_keywords (0.0.5)

@@ -127,7 +127,7 @@ module LinkedData
 
       def has_children_query(class_id, submission_id)
         property_tree = RDF::RDFS[:subPropertyOf]
-        safe_class_id_uri = class_id.to_s.gsub(' ', '%20').gsub('<', '%3C').gsub('>', '%3E')
+        safe_class_id_uri = class_id.to_s.gsub(' ', '%20').gsub('<', '%3C').gsub('>', '%3E').gsub('[', '%5B').gsub(']', '%5D')
         pattern = "?c <#{property_tree.to_s}> <#{safe_class_id_uri}> . "
         query = <<eos
 SELECT ?c WHERE {
