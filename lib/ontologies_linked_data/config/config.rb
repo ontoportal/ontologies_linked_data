@@ -107,7 +107,7 @@ module LinkedData
     # Check to make sure url prefix has trailing slash
     @settings.rest_url_prefix = "#{@settings.rest_url_prefix}/" unless @settings.rest_url_prefix[-1].eql?('/')
 
-    puts "(LD) >> Using rdf store #{@settings.goo_host}:#{@settings.goo_port}"
+    puts "(LD) >> Using rdf store #{@settings.goo_host}:#{@settings.goo_port}#{@settings.goo_path_query}"
     puts "(LD) >> Using term search server at #{@settings.search_server_url}"
     puts "(LD) >> Using property search server at #{@settings.property_search_server_url}"
     puts "(LD) >> Using HTTP Redis instance at #{@settings.http_redis_host}:#{@settings.http_redis_port}"
@@ -195,9 +195,10 @@ module LinkedData
       conf.add_namespace(:cclicense, RDF::Vocabulary.new("http://creativecommons.org/licenses/"))
       conf.add_namespace(:nkos, RDF::Vocabulary.new("http://w3id.org/nkos#"))
       conf.add_namespace(:skosxl, RDF::Vocabulary.new("http://www.w3.org/2008/05/skos-xl#"))
-
+      conf.add_namespace(:dcterms, RDF::Vocabulary.new("http://purl.org/dc/terms/"))
 
       conf.id_prefix = DEFAULT_PREFIX
+      
       conf.pluralize_models(true)
     end
   end

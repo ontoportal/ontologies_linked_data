@@ -86,10 +86,12 @@ module LinkedData
             inverse: { on: :note, attribute: :relatedClass }
       attribute :inScheme, enforce: [:list, :uri], namespace: :skos
       attribute :inCollection, inverse: { on: :collection , :attribute => :member }
+      attribute :created, namespace:  :dcterms
+      attribute :modified, namespace:  :dcterms
 
       # Hypermedia settings
       embed :children, :ancestors, :descendants, :parents, :prefLabelXl, :altLabelXl, :hiddenLabelXl
-      serialize_default :prefLabel, :synonym, :definition, :cui, :semanticType, :obsolete, :matchType, :ontologyType, :provisional # an attribute used in Search (not shown out of context)
+      serialize_default :prefLabel, :synonym, :definition, :cui, :semanticType, :obsolete, :matchType, :ontologyType, :provisional, :created, :modified # an attribute used in Search (not shown out of context)
       serialize_methods :properties, :childrenCount, :hasChildren
       serialize_never :submissionAcronym, :submissionId, :submission, :descendants
       aggregates childrenCount: [:count, :children]
