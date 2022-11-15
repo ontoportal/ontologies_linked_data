@@ -12,7 +12,7 @@ module LinkedData
         serialize_never :submission, :id
         serialize_methods :properties
 
-        cache_timeout 14400
+        link_to LinkedData::Hypermedia::Link.new('self', ->(s) { "ontologies/#{s.submission.ontology.acronym}/skos_xl_labels/#{CGI.escape(s.id)}"}, self.uri_type)
 
         def properties
           self.unmapped
