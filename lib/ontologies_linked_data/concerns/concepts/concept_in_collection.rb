@@ -15,7 +15,7 @@ module LinkedData
         end
 
         def load_is_in_collection(collections = [])
-          included = collections.select { |s| incollection?(s) }
+          included = collections.select { |s| inCollection?(s) }
           @isInActiveCollection = included
         end
 
