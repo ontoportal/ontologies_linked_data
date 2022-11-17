@@ -51,7 +51,7 @@ module LinkedData
           proc = hashed_obj
         end
 
-        collection = hashed_obj.collection
+        collection = hashed_obj.respond_to?(:collection) ? hashed_obj.collection : nil
         if collection
           proc.type_uri(collection).to_s
         else
