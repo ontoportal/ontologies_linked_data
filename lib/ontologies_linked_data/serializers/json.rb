@@ -16,7 +16,7 @@ module LinkedData
           end
 
           # Add the type
-          hash["@type"] = type(current_cls, hash, hashed_obj)
+          hash["@type"] = type(current_cls, hash, hashed_obj) if  hash["@id"]
 
           # Generate links
           # NOTE: If this logic changes, also change in xml.rb
@@ -43,10 +43,10 @@ module LinkedData
       private
 
       def self.type(current_cls, hash, hashed_obj)
-        if hash["@id"] && current_cls.respond_to?(:type_uri)
+        if current_cls.respond_to?(:type_uri)
           # For internal class
           proc = current_cls
-        elsif hash["@id"] && hashed_obj.respond_to?(:type_uri)
+        elsif hashed_obj.respond_to?(:type_uri)
           # For External and Interportal class
           proc = hashed_obj
         end
