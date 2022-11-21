@@ -194,6 +194,7 @@ module LinkedData
 
       conf.add_namespace(:cclicense, RDF::Vocabulary.new("http://creativecommons.org/licenses/"))
       conf.add_namespace(:nkos, RDF::Vocabulary.new("http://w3id.org/nkos#"))
+      conf.add_namespace(:uneskos, RDF::Vocabulary.new("http://purl.org/umu/uneskos#"))
 
 
       conf.id_prefix = DEFAULT_PREFIX
