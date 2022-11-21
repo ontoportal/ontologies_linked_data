@@ -85,7 +85,7 @@ module LinkedData
       attribute :notes,
             inverse: { on: :note, attribute: :relatedClass }
       attribute :inScheme, enforce: [:list, :uri], namespace: :skos
-      attribute :inCollection, inverse: { on: :collection , :attribute => :member }
+      attribute :memberOf, namespace: :uneskos, inverse: { on: :collection , :attribute => :member }
       attribute :created, namespace:  :dcterms
       attribute :modified, namespace:  :dcterms
 
@@ -97,7 +97,7 @@ module LinkedData
       aggregates childrenCount: [:count, :children]
       links_load submission: [ontology: [:acronym]]
       do_not_load :descendants, :ancestors
-      prevent_serialize_when_nested :properties, :parents, :children, :ancestors, :descendants, :inCollection
+      prevent_serialize_when_nested :properties, :parents, :children, :ancestors, :descendants, :memberOf
       link_to LinkedData::Hypermedia::Link.new("self", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}"}, self.uri_type),
               LinkedData::Hypermedia::Link.new("ontology", lambda {|s| "ontologies/#{s.submission.ontology.acronym}"}, Goo.vocabulary["Ontology"]),
               LinkedData::Hypermedia::Link.new("children", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}/children"}, self.uri_type),
@@ -328,7 +328,7 @@ module LinkedData
       end
 
       def self.concept_is_in_attributes
-        [:inScheme, :isInActiveScheme, :inCollection, :isInActiveCollection]
+        [:inScheme, :isInActiveScheme, :memberOf, :isInActiveCollection]
       end
 
 

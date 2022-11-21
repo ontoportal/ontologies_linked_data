@@ -196,6 +196,7 @@ module LinkedData
       conf.add_namespace(:nkos, RDF::Vocabulary.new("http://w3id.org/nkos#"))
       conf.add_namespace(:skosxl, RDF::Vocabulary.new("http://www.w3.org/2008/05/skos-xl#"))
       conf.add_namespace(:dcterms, RDF::Vocabulary.new("http://purl.org/dc/terms/"))
+      conf.add_namespace(:uneskos, RDF::Vocabulary.new("http://purl.org/umu/uneskos#"))
 
 
       conf.id_prefix = DEFAULT_PREFIX
