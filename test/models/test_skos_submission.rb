@@ -103,5 +103,33 @@ SELECT ?children WHERE {
                           'http://www.ebi.ac.uk/efo/EFO_0000635',
                           'http://www.ebi.ac.uk/efo/EFO_0000324'].sort
   end
+
+  def test_roots_of_scheme_collection
+    sub = before_suite
+
+    concept_schemes = ['http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view']
+    concept_collection = ['http://www.ebi.ac.uk/efo/skos/collection_1']
+    roots = sub.roots(concept_schemes: concept_schemes, concept_collections: concept_collection)
+    assert_equal 4, roots.size
+
+    roots.each do |r|
+      assert_equal r.isInActiveCollection, concept_collection if r.memberOf.include?(concept_collection.first)
+    end
+  end
+
+  def test_roots_of_scheme_collections
+    sub = before_suite
+
+    concept_schemes = ['http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view']
+    concept_collection = ['http://www.ebi.ac.uk/efo/skos/collection_1',
+                          'http://www.ebi.ac.uk/efo/skos/collection_2']
+    roots = sub.roots(concept_schemes: concept_schemes, concept_collections: concept_collection)
+    assert_equal 4, roots.size
+
+    roots.each do |r|
+      selected_collections = r.memberOf.select { |c| concept_collection.include?(c)}
+      assert_equal r.isInActiveCollection, selected_collections unless selected_collections.empty?
+    end
+  end
 end
 
