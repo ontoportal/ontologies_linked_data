@@ -322,9 +322,9 @@ module LinkedData
       end
 
       def load_computed_attributes(to_load:, options:)
-        self.load_has_children if to_load.include?(:hasChildren)
-        self.load_is_in_scheme(options[:schemes]) if to_load.include?(:isInActiveScheme)
-        self.load_is_in_collection(options[:collections]) if to_load.include?(:isInActiveCollection)
+        self.load_has_children if to_load&.include?(:hasChildren)
+        self.load_is_in_scheme(options[:schemes]) if to_load&.include?(:isInActiveScheme)
+        self.load_is_in_collection(options[:collections]) if to_load&.include?(:isInActiveCollection)
       end
 
       def self.concept_is_in_attributes
