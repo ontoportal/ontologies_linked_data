@@ -11,15 +11,27 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
                      process_rdf: true, index_search: false,
                      run_metrics: false, reasoning: true)
 
-    LinkedData::Models::OntologySubmission.where(ontology: [acronym: 'SKOS-TEST'],
-                                                 submissionId: 987)
-                                          .first
+    sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: 'SKOS-TEST'],
+                                                       submissionId: 987)
+                                                .first
+    sub.bring_remaining
+    sub.uri = 'http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view'
+    sub.save
+    sub
   end
 
-  def test_skos_ontology
+  def test_get_main_concept_scheme
+    sub = before_suite
+    assert_equal sub.uri, sub.get_main_concept_scheme.to_s
+  end
+
+  def test_roots_no_main_scheme
 
     sub = before_suite
-    assert_nil sub.get_main_concept_scheme # no concept scheme as owl:ontology found
+    sub.uri = nil # no concept scheme as owl:ontology found
+    sub.save
+    assert_nil sub.get_main_concept_scheme
+    # if no main scheme found get all roots (topConcepts)
     assert sub.roots.map { |x| x.id.to_s }.sort == ['http://www.ebi.ac.uk/efo/EFO_0000311',
                                                     'http://www.ebi.ac.uk/efo/EFO_0001444',
                                                     'http://www.ifomis.org/bfo/1.1/snap#Disposition',
@@ -41,38 +53,55 @@ SELECT ?children WHERE {
     end
   end
 
-  def test_get_main_concept_scheme
+  def test_roots_main_scheme
     sub = before_suite
-    sub.bring_remaining
-    sub.uri = 'http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view'
-    sub.save
-    assert_equal sub.uri, sub.get_main_concept_scheme.to_s
+
+    roots = sub.roots
+    assert_equal 4, roots.size
+    roots.each do |r|
+      assert_equal r.isInActiveScheme, [sub.get_main_concept_scheme.to_s]
+      assert_equal r.isInActiveCollection, []
+    end
+    roots = roots.map { |r| r.id.to_s } unless roots.nil?
+    refute_includes roots, 'http://www.ebi.ac.uk/efo/EFO_0000311'
+    refute_includes roots, 'http://www.ebi.ac.uk/efo/EFO_0000324'
   end
 
   def test_roots_of_a_scheme
     sub = before_suite
-
-    roots = sub.roots(concept_schemes: ['http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view_2'])
-    roots = roots.map { |r| r.id.to_s } unless roots.nil?
+    concept_schemes = ['http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view_2']
+    roots = sub.roots(concept_schemes: concept_schemes)
     assert_equal 2, roots.size
+    roots.each do |r|
+      assert_includes r.inScheme, concept_schemes.first
+      assert_equal r.isInActiveScheme, concept_schemes
+      assert_equal r.isInActiveCollection, []
+    end
+    roots = roots.map { |r| r.id.to_s } unless roots.nil?
     assert_includes roots, 'http://www.ebi.ac.uk/efo/EFO_0000311'
     assert_includes roots, 'http://www.ebi.ac.uk/efo/EFO_0000324'
   end
 
-  def test_roots_of_miltiple_scheme
+  def test_roots_of_multiple_scheme
     sub = before_suite
 
     concept_schemes = ['http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view_2',
                        'http://www.ebi.ac.uk/efo/skos/EFO_GWAS_view']
     roots = sub.roots(concept_schemes: concept_schemes)
-    roots = roots.map { |r| r.id.to_s } unless roots.nil?
     assert_equal 6, roots.size
+    roots.each do |r|
+      selected_schemes = r.inScheme.select { |s| concept_schemes.include?(s) }
+      refute_empty selected_schemes
+      assert_equal r.isInActiveScheme, selected_schemes
+      assert_equal r.isInActiveCollection, []
+    end
+    roots = roots.map { |r| r.id.to_s } unless roots.nil?
     assert roots.sort == ['http://www.ebi.ac.uk/efo/EFO_0000311',
-                                                    'http://www.ebi.ac.uk/efo/EFO_0001444',
-                                                    'http://www.ifomis.org/bfo/1.1/snap#Disposition',
-                                                    'http://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:37577',
-                                                    'http://www.ebi.ac.uk/efo/EFO_0000635',
-                                                    'http://www.ebi.ac.uk/efo/EFO_0000324'].sort
+                          'http://www.ebi.ac.uk/efo/EFO_0001444',
+                          'http://www.ifomis.org/bfo/1.1/snap#Disposition',
+                          'http://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:37577',
+                          'http://www.ebi.ac.uk/efo/EFO_0000635',
+                          'http://www.ebi.ac.uk/efo/EFO_0000324'].sort
   end
 end
 
