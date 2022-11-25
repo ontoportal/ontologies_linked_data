@@ -8,6 +8,7 @@ LinkedData.config do |config|
   config.enable_security   = false
   config.java_max_heap_size         = '10240M'
   #PURL server config parameters
+
   config.enable_purl            = false
   config.purl_host              = "purl.bioontology.org"
   config.purl_port              = 80
@@ -15,10 +16,8 @@ LinkedData.config do |config|
   config.purl_password          = ""
   config.purl_maintainers       = ""
   config.purl_target_url_prefix = "http://bioportal.bioontology.org"
-   Goo.configure do |conf|
-      conf.main_languages = ['en']
-   end
-end
 
-#sometimes tmp by default cannot allocate large files
-$TMP_SORT_FOLDER = "SOME TMP FOLDER"
+  Goo.configure do |conf|
+    conf.main_languages = ['en']
+  end
+end
