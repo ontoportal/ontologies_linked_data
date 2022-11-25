@@ -11,7 +11,7 @@ module LinkedData
         end
 
         def inCollection?(collection)
-          self.inCollection.include?(collection)
+          self.memberOf.include?(collection)
         end
 
         def load_is_in_collection(collections = [])
