@@ -1,6 +1,14 @@
 require_relative './test_ontology_common'
 class TestClassMainLang < LinkedData::TestOntologyCommon
 
+  def self.before_suite
+    @@old_main_languages = Goo.main_languages
+  end
+
+  def self.after_suite
+    Goo.main_languages = @@old_main_languages
+  end
+
   def test_map_attribute_found
     cls = parse_and_get_class lang: ['fr']
     cls.bring :unmapped
