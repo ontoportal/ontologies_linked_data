@@ -40,6 +40,11 @@ class TestMapping < LinkedData::TestOntologyCommon
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
   end
 
+  def delete_all_rest_mappings
+    LinkedData::Models::RestBackupMapping.all.each do |m|
+      LinkedData::Mappings.delete_rest_mapping(m.id)
+    end
+  end
   def test_mapping_count_models
     LinkedData::Models::MappingCount.where.all do |x|
       x.delete
@@ -107,9 +112,7 @@ class TestMapping < LinkedData::TestOntologyCommon
   end
 
   def test_mappings_ontology
-    LinkedData::Models::RestBackupMapping.all.each do |m|
-      LinkedData::Mappings.delete_rest_mapping(m.id)
-    end
+    delete_all_rest_mappings
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
     assert LinkedData::Models::MappingCount.where.all.length > 2
     #bro
@@ -226,6 +229,7 @@ class TestMapping < LinkedData::TestOntologyCommon
   end
 
   def test_mappings_rest
+    delete_all_rest_mappings
     mapping_term_a, mapping_term_b, submissions_a, submissions_b, relations, user = rest_mapping_data
 
     mappings_created = []
