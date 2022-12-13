@@ -12,7 +12,7 @@ module LinkedData
 
         embed :member
         serialize_default :prefLabel, :memberCount
-        serialize_never :submission, :id
+        serialize_never :submission, :id, :member
         serialize_methods :properties, :memberCount
         aggregates memberCount: [:count, :member]
 
