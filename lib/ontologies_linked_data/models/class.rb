@@ -86,7 +86,7 @@ module LinkedData
 
       # Hypermedia settings
       embed :children, :ancestors, :descendants, :parents
-      serialize_default :prefLabel, :synonym, :definition, :cui, :semanticType, :obsolete, :matchType, :ontologyType, :provisional # an attribute used in Search (not shown out of context)
+      serialize_default :prefLabel, :synonym, :definition, :cui, :semanticType, :obsolete, :matchType, :ontologyType, :provisional, :memberOf, :inScheme # an attribute used in Search (not shown out of context)
       serialize_methods :properties, :childrenCount, :hasChildren
       serialize_never :submissionAcronym, :submissionId, :submission, :descendants
       aggregates childrenCount: [:count, :children]
