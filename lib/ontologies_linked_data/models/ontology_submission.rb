@@ -420,6 +420,13 @@ module LinkedData
         end
       end
 
+      def generate_metrics_file2(class_count, indiv_count, prop_count, max_depth)
+        CSV.open(self.metrics_path, "wb") do |csv|
+          csv << ["Class Count", "Individual Count", "Property Count", "Max Depth"]
+          csv << [class_count, indiv_count, prop_count, max_depth]
+        end
+      end
+
       def generate_umls_metrics_file(tr_file_path=nil)
         tr_file_path ||= self.triples_file_path
         class_count = 0
@@ -475,7 +482,13 @@ module LinkedData
           end
           logger.flush
         end
-        delete_and_append(triples_file_path, logger, mime_type)
+
+        begin
+          delete_and_append(triples_file_path, logger, mime_type)
+        rescue => e
+          logger.error("Error sending data to triple store - #{e.response.code} #{e.class}: #{e.response.body}") if e.response&.body
+          raise e
+        end
         version_info = extract_version()
 
         if version_info
