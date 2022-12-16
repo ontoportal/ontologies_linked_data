@@ -13,5 +13,7 @@ test/solr/generate_ncbo_configsets.sh
 # build docker containers
 #$DC up --build -d
 #$DC run --rm ruby wait-for-it solr-ut:8983 -- bundle exec rake test TESTOPTS='-v' TEST='./test/models/test_mappings.rb'
-$DC run --rm ruby wait-for-it solr-term-ut:8983 -- bundle exec rake test TESTOPTS='-v'
+$DC run --rm ruby bundle exec rake test TESTOPTS='-v'
+# run unit test with AG backend
+#$DC run --rm ruby-agraph bundle exec rake test TESTOPTS='-v'
 #$DC down
