@@ -719,12 +719,12 @@ GROUP BY ?ontology
 
 
 
-      class_id_subject =  class_id_subject = class_id.nil? ? '?s1' :  "<#{class_id.to_s}>"
+      class_id_subject = class_id.nil? ? '?s1' :  "<#{class_id.to_s}>"
       source_graph = sub1.nil? ? '?g' :  "<#{sub1.to_s}>"
       internal_mapping_predicates.each do |_source, predicate|
         blocks << <<-eos
         {
-          GRAPH <#{source_graph}> {
+          GRAPH #{source_graph} {
             #{class_id_subject} <#{predicate[0]}> ?s2 .
           }
           BIND(<http://data.bioontology.org/metadata/ExternalMappings> AS ?g)
