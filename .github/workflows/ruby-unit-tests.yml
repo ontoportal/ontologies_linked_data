@@ -13,11 +13,20 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up solr configsets
-      run: test/solr/generate_ncbo_configsets.sh
+      run: ./test/solr/generate_ncbo_configsets.sh
     - name: create config.rb file
-      run: cp config/config.rb.sample config/config.rb
+      run: cp config/config.test.rb config/config.rb
     - name: Build docker-compose
-      run: docker-compose build
+      run: docker-compose --profile 4store build #profile flag is set in order to build all containers in this step
     - name: Run unit tests
-      run: docker-compose up --exit-code-from unit-test
-
+      # unit tests are run inside a container
+      # http://docs.codecov.io/docs/testing-with-docker
+      run: |
+        ci_env=`bash <(curl -s https://codecov.io/env)`
+        docker-compose run $ci_env -e CI --rm ${{ matrix.backend }} wait-for-it solr-ut:8983 -- bundle exec rake test TESTOPTS='-v'
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        flags: unittests
+        verbose: true
+        fail_ci_if_error: false # optional (default = false)
