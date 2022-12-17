@@ -45,7 +45,7 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
 
     owl, rad, user, contact = submission_dependent_objects("OWL", acronym, "test_linked_models", name)
 
-    ont_submision = LinkedData::Models::OntologySubmission.new({ :submissionId => id, })
+    ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => id,})
     uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id, ontologyFile)
     ont_submision.contact = [contact]
     ont_submision.released = DateTime.now - 4
@@ -89,7 +89,7 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
     id = 10
 
     owl, dup, user, contact = submission_dependent_objects("OWL", acronym, "test_linked_models", name)
-    ont_submision = LinkedData::Models::OntologySubmission.new({ :submissionId => 1, })
+    ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => 1,})
     uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id, ontologyFile)
     ont_submision.contact = [contact]
     ont_submision.released = DateTime.now - 4
@@ -100,7 +100,37 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
     assert_instance_of String, ont_submision.errors[:uploadFilePath][0]
   end
 
+  def test_skos_ontology
+    submission_parse("SKOS-TEST",
+                     "SKOS TEST Bla",
+                     "./test/data/ontology_files/efo_gwas.skos.owl", 987,
+                     process_rdf: true, index_search: false,
+                     run_metrics: false, reasoning: true)
 
+    sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: "SKOS-TEST"],
+                                                       submissionId: 987)
+                                                     .include(:version)
+                                                     .first
+    assert sub.roots.map { |x| x.id.to_s}.sort == ["http://www.ebi.ac.uk/efo/EFO_0000311",
+       "http://www.ebi.ac.uk/efo/EFO_0001444",
+        "http://www.ifomis.org/bfo/1.1/snap#Disposition",
+         "http://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:37577",
+          "http://www.ebi.ac.uk/efo/EFO_0000635",
+           "http://www.ebi.ac.uk/efo/EFO_0000324"].sort
+    roots = sub.roots
+    LinkedData::Models::Class.in(sub).models(roots).include(:children).all
+    roots.each do |root|
+q_broader = <<-eos
+SELECT ?children WHERE {
+  ?children #{RDF::SKOS[:broader].to_ntriples} #{root.id.to_ntriples} }
+eos
+    children_query = []
+    Goo.sparql_query_client.query(q_broader).each_solution do |sol|
+      children_query << sol[:children].to_s
+    end
+    assert root.children.map { |x| x.id.to_s }.sort == children_query.sort
+    end
+  end
 
   def test_multiple_syn_multiple_predicate
     submission_parse("HP-TEST", "HP TEST Bla", "./test/data/ontology_files/hp.obo", 55,
@@ -110,17 +140,17 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
     #test for version info
     sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: "HP-TEST"],
                                                        submissionId: 55)
-                                                .include(:version)
-                                                .first
+                                                     .include(:version)
+                                                     .first
 
-    paging = LinkedData::Models::Class.in(sub).page(1, 100)
-                                      .include(:unmapped)
+    paging = LinkedData::Models::Class.in(sub).page(1,100)
+                                              .include(:unmapped)
     found = false
 
     begin
       page = paging.all
       page.each do |c|
-        LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
+        LinkedData::Models::Class.map_attributes(c,paging.equivalent_predicates)
         assert_instance_of(String, c.prefLabel)
         if c.id.to_s['00006']
           assert c.synonym.length == 3
@@ -128,7 +158,7 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
         end
       end
       paging.page(page.next_page) if page.next?
-    end while (page.next?)
+    end while(page.next?)
     assert found
   end
 
@@ -145,7 +175,7 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT DISTINCT * WHERE {
   <http://purl.obolibrary.org/obo/TAO_0001044> rdfs:subClassOf ?x . }
-    eos
+eos
     count = 0
     Goo.sparql_query_client.query(qthing).each_solution do |sol|
       count += 1
@@ -156,7 +186,7 @@ SELECT DISTINCT * WHERE {
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
   SELECT DISTINCT * WHERE {
   <http://purl.obolibrary.org/obo/TAO_0001044> <http://data.bioontology.org/metadata/treeView> ?x . }
-    eos
+eos
     count = 0
     Goo.sparql_query_client.query(qthing).each_solution do |sol|
       count += 1
@@ -169,7 +199,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT DISTINCT * WHERE {
 <http://purl.obolibrary.org/obo/TAO_0001044>
   <http://data.bioontology.org/metadata/obo/part_of> ?x . }
-    eos
+eos
     count = 0
     Goo.sparql_query_client.query(qcount).each_solution do |sol|
       count += 1
@@ -182,25 +212,25 @@ SELECT DISTINCT * WHERE {
 
     #strict comparison to be sure the merge with the tree_view branch goes fine
 
-    LinkedData::Models::Class.where.in(sub).include(:prefLabel, :synonym, :notation).each do |cls|
-      assert_instance_of String, cls.prefLabel
-      if cls.notation.nil?
-        assert false, "notation empty"
-      end
-      assert_instance_of String, cls.notation
-      assert cls.notation[-6..-1] == cls.id.to_s[-6..-1]
-      #NCBO-1007 - hasNarrowSynonym
-      if cls.id.to_s["CL_0000003"]
-        assert cls.synonym[0] == "cell in vivo"
-      end
-      #NCBO-1007 - hasBroadSynonym
-      if cls.id.to_s["CL_0000137"]
-        assert cls.synonym[0] == "bone cell"
-      end
-      #NCBO-1007 - hasRelatedSynonym
-      if cls.id.to_s["TAO_0000223"]
-        assert cls.synonym.length == 6
-      end
+    LinkedData::Models::Class.where.in(sub).include(:prefLabel,:synonym,:notation).each do |cls|
+        assert_instance_of String,cls.prefLabel
+        if cls.notation.nil?
+          assert false,"notation empty"
+        end
+        assert_instance_of String,cls.notation
+        assert cls.notation[-6..-1] == cls.id.to_s[-6..-1]
+        #NCBO-1007 - hasNarrowSynonym
+        if cls.id.to_s["CL_0000003"]
+          assert cls.synonym[0] == "cell in vivo"
+        end
+        #NCBO-1007 - hasBroadSynonym
+        if cls.id.to_s["CL_0000137"]
+          assert cls.synonym[0] == "bone cell"
+        end
+        #NCBO-1007 - hasRelatedSynonym
+        if cls.id.to_s["TAO_0000223"]
+          assert cls.synonym.length == 6
+        end
     end
 
     # This is testing that treeView is used to traverse the hierarchy
@@ -208,17 +238,17 @@ SELECT DISTINCT * WHERE {
     assert sub.hasOntologyLanguage.tree_property == Goo.vocabulary(:metadata)[:treeView]
 
     bm = LinkedData::Models::Class
-           .find(RDF::URI.new("http://purl.obolibrary.org/obo/GO_0070977"))
-           .in(sub)
-           .include(:prefLabel, :children, :parents)
-           .first
+               .find(RDF::URI.new("http://purl.obolibrary.org/obo/GO_0070977"))
+               .in(sub)
+               .include(:prefLabel,:children,:parents)
+               .first
     assert bm.children.first.id == RDF::URI.new("http://purl.obolibrary.org/obo/GO_0043931")
     assert_equal 2, bm.parents.length
     roots = sub.roots
     assert roots.map { |x| x.id.to_s }.sort ==
-             ["http://purl.obolibrary.org/obo/PATO_0000001",
-              "http://purl.obolibrary.org/obo/CARO_0000000",
-              "http://purl.obolibrary.org/obo/GO_0008150"].sort
+      ["http://purl.obolibrary.org/obo/PATO_0000001",
+      "http://purl.obolibrary.org/obo/CARO_0000000",
+      "http://purl.obolibrary.org/obo/GO_0008150"].sort
   end
 
   def test_submission_parse_subfolders_zip
@@ -241,14 +271,14 @@ SELECT DISTINCT * WHERE {
     # This one has some nasty looking IRIS with slashes in the anchor
     unless ENV["BP_SKIP_HEAVY_TESTS"] == "1"
       submission_parse("MCCLTEST", "MCCLS TEST",
-                       "./test/data/ontology_files/CellLine_OWL_BioPortal_v1.0.owl", 11,
+                 "./test/data/ontology_files/CellLine_OWL_BioPortal_v1.0.owl", 11,
                        process_rdf: true, index_search: true,
                        run_metrics: false, reasoning: true)
 
       sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: "MCCLTEST"],
                                                          submissionId: 11)
-                                                  .include(:version)
-                                                  .first
+                                                       .include(:version)
+                                                       .first
       assert sub.version == "3.0"
     end
 
@@ -261,8 +291,8 @@ SELECT DISTINCT * WHERE {
 
     sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: "ONTOMATEST"],
                                                        submissionId: 15)
-                                                .include(:version)
-                                                .first
+                                                     .include(:version)
+                                                     .first
     assert sub.version["Version 1.1"]
     assert sub.version["Date: 11-2011"]
   end
@@ -287,10 +317,10 @@ SELECT DISTINCT * WHERE {
     bro = onts.first
     bro.bring(:submissions)
     submissions = bro.submissions
-    submissions.each { |s| s.bring(:submissionId, :diffFilePath) }
+    submissions.each {|s| s.bring(:submissionId, :diffFilePath)}
     # Sort submissions in descending order of submissionId, extract last two submissions
-    recent_submissions = submissions.sort { |a, b| b.submissionId <=> a.submissionId }[0..1]
-    sub1 = recent_submissions.last # descending order, so last is older submission
+    recent_submissions = submissions.sort {|a,b| b.submissionId <=> a.submissionId}[0..1]
+    sub1 = recent_submissions.last  # descending order, so last is older submission
     sub2 = recent_submissions.first # descending order, so first is latest submission
     assert(sub1.submissionId < sub2.submissionId, 'submissionId is in the wrong order')
     assert(sub1.diffFilePath == nil, 'Should not create diff for older submission.')
@@ -311,7 +341,7 @@ SELECT DISTINCT * WHERE {
     assert_equal 2, ontologies.first.submissions.count
 
     # Sort submissions in descending order.
-    sorted_submissions = ontologies.first.submissions.sort { |a, b| b.submissionId <=> a.submissionId }
+    sorted_submissions = ontologies.first.submissions.sort { |a,b| b.submissionId <=> a.submissionId }
 
     # Process latest submission.  No files should be deleted.
     latest_sub = sorted_submissions.first
@@ -319,16 +349,16 @@ SELECT DISTINCT * WHERE {
     assert latest_sub.archived?
 
     assert File.file?(File.join(latest_sub.data_folder, 'labels.ttl')),
-           %-Missing ontology submission file: 'labels.ttl'-
+      %-Missing ontology submission file: 'labels.ttl'-
 
     assert File.file?(File.join(latest_sub.data_folder, 'owlapi.xrdf')),
-           %-Missing ontology submission file: 'owlapi.xrdf'-
+      %-Missing ontology submission file: 'owlapi.xrdf'-
 
     assert File.file?(latest_sub.csv_path),
-           %-Missing ontology submission file: '#{latest_sub.csv_path}'-
+      %-Missing ontology submission file: '#{latest_sub.csv_path}'-
 
     assert File.file?(latest_sub.parsing_log_path),
-           %-Missing ontology submission file: '#{latest_sub.parsing_log_path}'-
+      %-Missing ontology submission file: '#{latest_sub.parsing_log_path}'-
 
     # Process one prior to latest submission.  Some files should be deleted.
     old_sub = sorted_submissions.last
@@ -336,22 +366,22 @@ SELECT DISTINCT * WHERE {
     assert old_sub.archived?
 
     assert_equal false, File.file?(File.join(old_sub.data_folder, 'labels.ttl')),
-                 %-File deletion failed for 'labels.ttl'-
+      %-File deletion failed for 'labels.ttl'-
 
     assert_equal false, File.file?(File.join(old_sub.data_folder, 'mappings.ttl')),
-                 %-File deletion failed for 'mappings.ttl'-
+      %-File deletion failed for 'mappings.ttl'-
 
     assert_equal false, File.file?(File.join(old_sub.data_folder, 'obsolete.ttl')),
-                 %-File deletion failed for 'obsolete.ttl'-
+      %-File deletion failed for 'obsolete.ttl'-
 
     assert_equal false, File.file?(File.join(old_sub.data_folder, 'owlapi.xrdf')),
-                 %-File deletion failed for 'owlapi.xrdf'-
+      %-File deletion failed for 'owlapi.xrdf'-
 
     assert_equal false, File.file?(old_sub.csv_path),
-                 %-File deletion failed for '#{old_sub.csv_path}'-
+      %-File deletion failed for '#{old_sub.csv_path}'-
 
     assert_equal false, File.file?(old_sub.parsing_log_path),
-                 %-File deletion failed for '#{old_sub.parsing_log_path}'-
+      %-File deletion failed for '#{old_sub.parsing_log_path}'-
   end
 
   def test_submission_diff_across_ontologies
@@ -383,13 +413,13 @@ SELECT DISTINCT * WHERE {
     submission_parse("BRO", "BRO Ontology",
                      "./test/data/ontology_files/BRO_v3.5.owl", 1,
                      process_rdf: true, reasoning: false, index_properties: true)
-    res = LinkedData::Models::Class.search("*:*", { :fq => "submissionAcronym:\"BRO\"", :start => 0, :rows => 80 }, :property)
+    res = LinkedData::Models::Class.search("*:*", {:fq => "submissionAcronym:\"BRO\"", :start => 0, :rows => 80}, :property)
     assert_equal 81, res["response"]["numFound"]
     found = 0
 
     res["response"]["docs"].each do |doc|
       if doc["resource_id"] == "http://www.w3.org/2004/02/skos/core#broaderTransitive"
-        found += 1
+        found +=1
         assert_equal "ONTOLOGY", doc["ontologyType"]
         assert_equal "OBJECT", doc["propertyType"]
         assert_equal "BRO", doc["submissionAcronym"]
@@ -397,7 +427,7 @@ SELECT DISTINCT * WHERE {
         assert_equal ["broadertransitive", "broader transitive"], doc["labelGenerated"]
         assert_equal 1, doc["submissionId"]
       elsif doc["resource_id"] == "http://bioontology.org/ontologies/biositemap.owl#contact_person_email"
-        found += 1
+        found +=1
         assert_equal "DATATYPE", doc["propertyType"]
         assert_equal "BRO", doc["submissionAcronym"]
         assert_nil doc["label"]
@@ -412,7 +442,7 @@ SELECT DISTINCT * WHERE {
     ont = LinkedData::Models::Ontology.find('BRO').first
     ont.unindex_properties(true)
 
-    res = LinkedData::Models::Class.search("*:*", { :fq => "submissionAcronym:\"BRO\"" }, :property)
+    res = LinkedData::Models::Class.search("*:*", {:fq => "submissionAcronym:\"BRO\""}, :property)
     assert_equal 0, res["response"]["numFound"]
   end
 
@@ -430,10 +460,10 @@ SELECT DISTINCT * WHERE {
 
     LinkedData::TestCase.backend_4s_delete
 
-    ont_submision = LinkedData::Models::OntologySubmission.new({ :submissionId => id, })
+    ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => id,})
     assert (not ont_submision.valid?)
     assert_equal 4, ont_submision.errors.length
-    uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id, ontologyFile)
+    uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id,ontologyFile)
     ont_submision.uploadFilePath = uploadFilePath
     owl, bro, user, contact = submission_dependent_objects("OWL", acronym, "test_linked_models", name)
     ont_submision.released = DateTime.now - 4
@@ -443,7 +473,7 @@ SELECT DISTINCT * WHERE {
     ont_submision.contact = [contact]
     assert (ont_submision.valid?)
     ont_submision.save
-    parse_options = { process_rdf: true, reasoning: true, index_search: false, run_metrics: false, diff: false }
+    parse_options = {process_rdf: true, reasoning: true, index_search: false, run_metrics: false, diff: false}
     begin
       tmp_log = Logger.new(TestLogFile.new)
       ont_submision.process_submission(tmp_log, parse_options)
@@ -452,7 +482,7 @@ SELECT DISTINCT * WHERE {
       raise e
     end
 
-    assert ont_submision.ready?({ status: [:uploaded, :rdf, :rdf_labels] })
+    assert ont_submision.ready?({status: [:uploaded, :rdf, :rdf_labels]})
     read_only_classes = LinkedData::Models::Class.in(ont_submision).include(:prefLabel).read_only
     ctr = 0
 
@@ -477,15 +507,15 @@ SELECT DISTINCT * WHERE {
       server_url = 'http://localhost:' + server_port.to_s
       server_thread = Thread.new do
         Rack::Server.start(
-          app: lambda do |e|
-            [200, { 'Content-Type' => 'text/plain' }, ['test file']]
-          end,
-          Port: server_port
+            app: lambda do |e|
+              [200, {'Content-Type' => 'text/plain'}, ['test file']]
+            end,
+            Port: server_port
         )
       end
       Thread.pass
-      sleep 3 # Allow the server to startup
-      assert(server_thread.alive?, msg = "Rack::Server thread should be alive, it's not!")
+      sleep 3  # Allow the server to startup
+      assert(server_thread.alive?, msg="Rack::Server thread should be alive, it's not!")
       ont_count, ont_names, ont_models = create_ontologies_and_submissions(ont_count: 1, submission_count: 1)
       ont = ont_models.first
       assert(ont.instance_of?(LinkedData::Models::Ontology), "ont is not an ontology: #{ont}")
@@ -500,9 +530,9 @@ SELECT DISTINCT * WHERE {
       assert file.read.eql?("test file"), "Test file content error: #{file.read}"
     ensure
       LinkedData::TestCase.backend_4s_delete
-      Thread.kill(server_thread) # this will shutdown Rack::Server also
+      Thread.kill(server_thread)  # this will shutdown Rack::Server also
       sleep 3
-      assert_equal(server_thread.alive?, false, msg = "Rack::Server thread should be dead, it's not!")
+      assert_equal(server_thread.alive?, false, msg="Rack::Server thread should be dead, it's not!")
     end
   end
 
@@ -618,7 +648,7 @@ SELECT DISTINCT * WHERE {
     ont_sub = oss[0]
     ont_sub.bring_remaining
     assert ont_sub.ready?
-    LinkedData::Models::Class.in(ont_sub).include(:prefLabel, :synonym).read_only.each do |c|
+    LinkedData::Models::Class.in(ont_sub).include(:prefLabel,:synonym).read_only.each do |c|
       assert (not c.prefLabel.nil?)
       assert_instance_of String, c.prefLabel
       if c.id.to_s.include? "class6"
@@ -637,8 +667,8 @@ SELECT DISTINCT * WHERE {
   def test_submission_root_classes
     acr = "CSTPROPS"
     init_test_ontology_msotest acr
-    os = LinkedData::Models::OntologySubmission.where(ontology: [acronym: acr], submissionId: 1)
-                                               .include(LinkedData::Models::OntologySubmission.attributes).all
+    os = LinkedData::Models::OntologySubmission.where(ontology: [ acronym: acr ], submissionId: 1)
+          .include(LinkedData::Models::OntologySubmission.attributes).all
     assert(os.length == 1)
     os = os[0]
     roots = os.roots
@@ -695,8 +725,8 @@ SELECT DISTINCT * WHERE {
 
     LinkedData::TestCase.backend_4s_delete
 
-    ont_submision = LinkedData::Models::OntologySubmission.new({ :submissionId => id, })
-    uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id, ontologyFile)
+    ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => id,})
+    uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id,ontologyFile)
     ont_submision.uploadFilePath = uploadFilePath
     owl, sbo, user, contact = submission_dependent_objects("OBO", acronym, "test_linked_models", name)
     ont_submision.released = DateTime.now - 4
@@ -705,11 +735,11 @@ SELECT DISTINCT * WHERE {
     ont_submision.ontology = sbo
     assert (ont_submision.valid?)
     ont_submision.save
-    assert_equal true, ont_submision.exist?(reload = true)
+    assert_equal true, ont_submision.exist?(reload=true)
 
-    sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: acronym], submissionId: id).all
+    sub = LinkedData::Models::OntologySubmission.where(ontology: [ acronym: acronym ], submissionId: id).all
     sub = sub[0]
-    parse_options = { process_rdf: true, index_search: false, run_metrics: false, reasoning: true }
+    parse_options = {process_rdf: true, index_search: false, run_metrics: false, reasoning: true}
     begin
       tmp_log = Logger.new(TestLogFile.new)
       sub.process_submission(tmp_log, parse_options)
@@ -717,10 +747,10 @@ SELECT DISTINCT * WHERE {
       puts "Error, logged in #{tmp_log.instance_variable_get("@logdev").dev.path}"
       raise e
     end
-    assert sub.ready?({ status: [:uploaded, :rdf, :rdf_labels] })
+    assert sub.ready?({status: [:uploaded, :rdf, :rdf_labels]})
     page_classes = LinkedData::Models::Class.in(sub)
-                                            .page(1, 1000)
-                                            .include(:prefLabel, :synonym).all
+                                             .page(1,1000)
+                                             .include(:prefLabel, :synonym).all
     page_classes.each do |c|
       if c.id.to_s == "http://purl.obolibrary.org/obo/SBO_0000004"
         assert c.prefLabel == "modelling framework"
@@ -750,8 +780,8 @@ SELECT DISTINCT * WHERE {
 
     LinkedData::TestCase.backend_4s_delete
 
-    ont_submision = LinkedData::Models::OntologySubmission.new({ :submissionId => id, })
-    uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id, ontologyFile)
+    ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => id,})
+    uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id,ontologyFile)
     ont_submision.uploadFilePath = uploadFilePath
     owl, cno, user, contact = submission_dependent_objects("OWL", acronym, "test_linked_models", name)
     ont_submision.released = DateTime.now - 4
@@ -761,10 +791,10 @@ SELECT DISTINCT * WHERE {
     assert (ont_submision.valid?)
     ont_submision.save
 
-    sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: acronym], submissionId: id).all
+    sub = LinkedData::Models::OntologySubmission.where(ontology: [ acronym: acronym ], submissionId: id).all
     sub = sub[0]
     #this is the only ontology that indexes and tests for no error
-    parse_options = { process_rdf: true, index_search: true, run_metrics: false, reasoning: true }
+    parse_options = {process_rdf: true, index_search: true, run_metrics: false, reasoning: true}
     begin
       tmp_log = Logger.new(TestLogFile.new)
       sub.process_submission(tmp_log, parse_options)
@@ -772,13 +802,13 @@ SELECT DISTINCT * WHERE {
       puts "Error, logged in #{tmp_log.instance_variable_get("@logdev").dev.path}"
       raise e
     end
-    assert sub.ready?({ status: [:uploaded, :rdf, :rdf_labels] })
+    assert sub.ready?({status: [:uploaded, :rdf, :rdf_labels]})
 
     #make sure no errors in statuses
     sub.submissionStatus.select { |x| x.id.to_s["ERROR"] }.length == 0
 
     LinkedData::Models::Class.where.in(sub)
-                             .include(:prefLabel, :notation, :prefixIRI).each do |cls|
+      .include(:prefLabel, :notation, :prefixIRI).each do |cls|
       assert !cls.notation.nil? || !cls.prefixIRI.nil?
       assert !cls.id.to_s.start_with?(":")
     end
@@ -797,12 +827,12 @@ SELECT DISTINCT * WHERE {
 
     LinkedData::TestCase.backend_4s_delete
 
-    ont_submision = LinkedData::Models::OntologySubmission.new({ :submissionId => id, })
-    uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id, ontologyFile)
+    ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => id,})
+    uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id,ontologyFile)
     ont_submision.uploadFilePath = uploadFilePath
     owl, aero, user, contact = submission_dependent_objects("OWL", acronym, "test_linked_models", name)
     ont_submision.released = DateTime.now - 4
-    ont_submision.prefLabelProperty = RDF::URI.new "http://www.w3.org/2000/01/rdf-schema#label"
+    ont_submision.prefLabelProperty =  RDF::URI.new "http://www.w3.org/2000/01/rdf-schema#label"
     ont_submision.synonymProperty = RDF::URI.new "http://purl.obolibrary.org/obo/IAO_0000118"
     ont_submision.definitionProperty = RDF::URI.new "http://purl.obolibrary.org/obo/IAO_0000115"
     ont_submision.authorProperty = RDF::URI.new "http://purl.obolibrary.org/obo/IAO_0000117"
@@ -811,11 +841,11 @@ SELECT DISTINCT * WHERE {
     ont_submision.ontology = aero
     assert (ont_submision.valid?)
     ont_submision.save
-    assert_equal true, ont_submision.exist?(reload = true)
+    assert_equal true, ont_submision.exist?(reload=true)
 
-    sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: acronym], submissionId: id).all
+    sub = LinkedData::Models::OntologySubmission.where(ontology: [ acronym: acronym ], submissionId: id).all
     sub = sub[0]
-    parse_options = { process_rdf: true, index_search: false, run_metrics: false, reasoning: true }
+    parse_options = {process_rdf: true, index_search: false, run_metrics: false, reasoning: true}
     begin
       tmp_log = Logger.new(TestLogFile.new)
       sub.process_submission(tmp_log, parse_options)
@@ -823,7 +853,7 @@ SELECT DISTINCT * WHERE {
       puts "Error, logged in #{tmp_log.instance_variable_get("@logdev").dev.path}"
       raise e
     end
-    assert sub.ready?({ status: [:uploaded, :rdf, :rdf_labels] })
+    assert sub.ready?({status: [:uploaded, :rdf, :rdf_labels]})
     sparql_query = <<eos
 SELECT * WHERE {
 GRAPH <http://data.bioontology.org/ontologies/AERO-TST/submissions/10>
@@ -865,9 +895,9 @@ eos
     assert count_headers > 2
 
     page_classes = LinkedData::Models::Class.in(sub)
-                                            .page(1, 1000)
-                                            .read_only
-                                            .include(:prefLabel, :synonym, :definition).all
+                                             .page(1,1000)
+                                             .read_only
+                                             .include(:prefLabel, :synonym, :definition).all
     page_classes.each do |c|
       if c.id.to_s == "http://purl.obolibrary.org/obo/AERO_0000040"
         assert c.prefLabel == "shaking finding"
@@ -886,21 +916,21 @@ eos
     end
 
     #for indexing in search
-    paging = LinkedData::Models::Class.in(sub).page(1, 100)
-                                      .include(:unmapped)
+    paging = LinkedData::Models::Class.in(sub).page(1,100)
+                                              .include(:unmapped)
     page = nil
     defs = 0
     syns = 0
     begin
       page = paging.all
       page.each do |c|
-        LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
+        LinkedData::Models::Class.map_attributes(c,paging.equivalent_predicates)
         assert_instance_of(String, c.prefLabel)
         syns += c.synonym.length
         defs += c.definition.length
       end
       paging.page(page.next_page) if page.next?
-    end while (page.next?)
+    end while(page.next?)
     assert syns == 5
     assert defs == 49
     LinkedData::TestCase.backend_4s_delete
@@ -943,7 +973,7 @@ eos
       assert cls.prefixIRI.is_a?(String)
       assert (!cls.prefixIRI.start_with?(":")) || (cls.prefixIRI[":"] != nil)
       cindex = (cls.prefixIRI.index ":") || 0
-      assert cls.id.end_with?(cls.prefixIRI[cindex + 1..-1])
+      assert cls.id.end_with?(cls.prefixIRI[cindex+1..-1])
     end
 
     metrics = sub.metrics

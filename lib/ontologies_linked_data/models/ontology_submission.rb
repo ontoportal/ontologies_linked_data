@@ -1838,6 +1838,7 @@ eos
         else
           self.ontology.bring(:flat)
           data_query = nil
+
           if self.ontology.flat
             data_query = LinkedData::Models::Class.in(self)
 
