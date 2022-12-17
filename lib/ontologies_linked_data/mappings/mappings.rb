@@ -693,7 +693,7 @@ GROUP BY ?ontology
     private
 
     def self.get_mapping_classes_instance(s1, graph1, s2, graph2)
-      [read_only_class(s1.to_s, graph1.id.to_s),
+      [read_only_class(s1.to_s, graph1.to_s),
        read_only_class(s2.to_s, graph2.to_s)]
     end
 
