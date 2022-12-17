@@ -229,6 +229,7 @@ class TestMapping < LinkedData::TestOntologyCommon
   end
 
   def test_mappings_rest
+    delete_all_rest_mappings
     mapping_term_a, mapping_term_b, submissions_a, submissions_b, relations, user = rest_mapping_data
 
     mappings_created = []
@@ -360,7 +361,7 @@ class TestMapping < LinkedData::TestOntologyCommon
   def create_rest_mapping(relation:, user:, name:, classes:)
     process = LinkedData::Models::MappingProcess.new
     process.name = name
-    process.relation = [relation]
+    process.relation = relation
     process.creator = user
     process.save
     LinkedData::Mappings.create_rest_mapping(classes, process)
