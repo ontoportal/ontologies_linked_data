@@ -31,5 +31,5 @@ LinkedData.config do |config|
   config.ontology_analytics_redis_port = REDIS_PORT.to_i
   config.search_server_url             = SOLR_TERM_SEARCH_URL.to_s
   config.property_search_server_url    = SOLR_PROP_SEARCH_URL.to_s
-#  config.enable_notifications          = false
+  #  config.enable_notifications          = false
 end

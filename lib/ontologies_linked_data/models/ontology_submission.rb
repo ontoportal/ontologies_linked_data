@@ -14,6 +14,9 @@ module LinkedData
 
       include LinkedData::Concerns::OntologySubmission::MetadataExtractor
 
+      include SKOS::ConceptSchemes
+      include SKOS::RootsFetcher
+
       FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
       FLAT_ROOTS_LIMIT = 1000
 
@@ -1814,9 +1817,7 @@ eos
         FileUtils.remove_dir(self.data_folder) if Dir.exist?(self.data_folder)
       end
 
-
-
-      def roots(extra_include = nil, page = nil, pagesize = nil, concept_schemes: [])
+      def roots(extra_include = [], page = nil, pagesize = nil, concept_schemes: [], concept_collections: [])
         self.bring(:ontology) unless self.loaded_attributes.include?(:ontology)
         self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
         paged = false
@@ -1828,47 +1829,12 @@ eos
           paged = true
         end
 
-        skos = self.hasOntologyLanguage&.skos?
+        skos = self.skos?
         classes = []
 
-
         if skos
-          root_skos = <<eos
-SELECT DISTINCT ?root WHERE {
-GRAPH #{self.id.to_ntriples} {
-  ?x #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
-}}
-eos
-          count = 0
-
-          if paged
-            query = <<eos
-SELECT (COUNT(?x) as ?count) WHERE {
-GRAPH #{self.id.to_ntriples} {
-  ?x #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
-}}
-eos
-            rs = Goo.sparql_query_client.query(query)
-            rs.each do |sol|
-              count = sol[:count].object
-            end
-
-            offset = (page - 1) * pagesize
-            root_skos = "#{root_skos} LIMIT #{pagesize} OFFSET #{offset}"
-          end
-
-          #needs to get cached
-          class_ids = []
-
-          Goo.sparql_query_client.query(root_skos, { :graphs => [self.id] }).each_solution do |s|
-            class_ids << s[:root]
-          end
-
-          class_ids.each do |id|
-            classes << LinkedData::Models::Class.find(id).in(self).disable_rules.first
-          end
-
-          classes = Goo::Base::Page.new(page, pagesize, count, classes) if paged
+          classes = skos_roots(concept_schemes, page, paged, pagesize)
+          extra_include += LinkedData::Models::Class.concept_is_in_attributes
         else
           self.ontology.bring(:flat)
           data_query = nil
@@ -1933,11 +1899,18 @@ eos
 
         classes.delete_if { |c|
           obs = !c.obsolete.nil? && c.obsolete == true
-          c.load_has_children if extra_include&.include?(:hasChildren) && !obs
+          if !obs
+            c.load_computed_attributes(to_load: extra_include,
+                                       options: { schemes: current_schemes(concept_schemes), collections: concept_collections })
+          end
           obs
         }
-
         classes
+      end
+
+      def skos?
+        self.bring :hasOntologyLanguage if bring? :hasOntologyLanguage
+        self.hasOntologyLanguage&.skos?
       end
 
       def ontology_uri
@@ -1953,8 +1926,8 @@ eos
         self.URI = uri
       end
 
-      def roots_sorted(extra_include = nil)
-        classes = roots(extra_include)
+      def roots_sorted(extra_include = nil, concept_schemes: [])
+        classes = roots(extra_include, concept_schemes: concept_schemes)
         LinkedData::Models::Class.sort_classes(classes)
       end
 

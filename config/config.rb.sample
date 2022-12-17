@@ -15,6 +15,9 @@ LinkedData.config do |config|
   config.purl_password          = ""
   config.purl_maintainers       = ""
   config.purl_target_url_prefix = "http://bioportal.bioontology.org"
+  Goo.configure do |conf|
+      conf.main_languages = ['en']
+  end
 end
 
 #sometimes tmp by default cannot allocate large files
