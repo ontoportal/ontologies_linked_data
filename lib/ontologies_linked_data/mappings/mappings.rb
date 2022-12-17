@@ -297,7 +297,7 @@ WHERE {
   GRAPH ?s2 {
     ?c2 <#{rest_predicate}> ?uuid .
   }
-FILTER(?uuid = <#{mapping_id}>)
+FILTER(?uuid = <#{LinkedData::Models::Base.replace_url_prefix_to_id(mapping_id)}>)
 FILTER(?s1 != ?s2)
 } LIMIT 1
 eos
