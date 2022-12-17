@@ -711,7 +711,7 @@ GROUP BY ?ontology
         #STRSTARTS is used to not count older graphs
         #no need since now we delete older graphs
 
-        filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}') || (?source = 'SAME_URI')"
+        filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}')"
         filter += ")"
       end
 
