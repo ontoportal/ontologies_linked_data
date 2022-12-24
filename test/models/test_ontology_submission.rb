@@ -1041,7 +1041,7 @@ eos
     assert_equal "Vincent Emonet, Anne Toulet, Benjamine Dessay, Léontine Dessaiterm, Augustine Doap", sub.hasContributor
     assert_equal [RDF::URI.new("http://lirmm.fr/2015/ontology/door-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/dc-relation.owl"),
                   RDF::URI.new("http://lirmm.fr/2015/ontology/dcterms-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/voaf-relation.owl")].sort, sub.ontologyRelatedTo.sort
-    assert_equal 13, sub.numberOfClasses
+    assert_equal 18, sub.numberOfClasses
   end
 
   def test_submission_delete_remove_files
