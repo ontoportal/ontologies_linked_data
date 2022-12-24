@@ -869,7 +869,6 @@ GROUP BY ?ontology
 
       filter = class_id.nil? ? "FILTER ((?s1 != ?s2) || (?source = 'SAME_URI'))" : ''
       if sub2.nil?
-        
         class_id_subject = class_id.nil? ? '?s1' :  "<#{class_id.to_s}>"
         source_graph = sub1.nil? ? '?g' :  "<#{sub1.to_s}>"
         internal_mapping_predicates.each do |_source, predicate|
@@ -889,7 +888,7 @@ GROUP BY ?ontology
         #STRSTARTS is used to not count older graphs
         #no need since now we delete older graphs
 
-        filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}') || (?source = 'SAME_URI')"
+        filter += "\nFILTER (!STRSTARTS(str(?g),'#{ont_id}')"
         filter += " || " + internal_mapping_predicates.keys.map{|x| "(?source = '#{x}')"}.join('||')
         filter += ")"
       end
