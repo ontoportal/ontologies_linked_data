@@ -264,67 +264,62 @@ eos
           # This hash will contain the "literal" metadata for each object (uri or literal) pointed by the metadata predicate
           hash_results = {}
           Goo.sparql_query_client.query(query_metadata).each_solution do |sol|
-
-            if LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:uri)
+            value = sol[:extractedObject]
+            if enforce?(attr, :uri)
               # If the attr is enforced as URI then it directly takes the URI
-              if sol[:extractedObject].is_a?(RDF::URI)
-                hash_results[sol[:extractedObject]] = sol[:extractedObject]
-              end
-
-            elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:date_time)
+              hash_results[value] = value if value.is_a?(RDF::URI)
+            elsif enforce?(attr, :date_time)
               begin
-                hash_results[sol[:extractedObject]] = DateTime.iso8601(sol[:extractedObject].to_s)
+                hash_results[value] = DateTime.iso8601(value.to_s)
               rescue StandardError => e
-                logger.error("Impossible to extract DateTime metadata for #{attr.to_s}: #{sol[:extractedObject].to_s}. It should follow iso8601 standards. Error message: #{e}")
+                logger.error("Impossible to extract DateTime metadata for #{attr}: #{value}. It should follow iso8601 standards. Error message: #{e}")
               end
-
-            elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:integer)
+            elsif enforce?(attr, :integer)
               begin
-                hash_results[sol[:extractedObject]] = sol[:extractedObject].to_s.to_i
+                hash_results[value] = value.to_s.to_i
               rescue StandardError => e
-                logger.error("Impossible to extract integer metadata for #{attr.to_s}: #{sol[:extractedObject].to_s}. Error message: #{e}")
+                logger.error("Impossible to extract integer metadata for #{attr}: #{value}. Error message: #{e}")
               end
-
-            elsif LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(:boolean)
-              begin
-                if (sol[:extractedObject].to_s.downcase.eql?('true'))
-                  hash_results[sol[:extractedObject]] = true
-                elsif (sol[:extractedObject].to_s.downcase.eql?('false'))
-                  hash_results[sol[:extractedObject]] = false
-                end
-              rescue StandardError => e
-                logger.error("Impossible to extract boolean metadata for #{attr.to_s}: #{sol[:extractedObject].to_s}. Error message: #{e}")
-              end
-
-            else
-              if sol[:extractedObject].is_a?(RDF::URI)
-                # if the object is an URI but we are requesting a String
-                # TODO: ATTENTION on veut pas forcément TOUT le temps recump omvname, etc... Voir si on change ce comportement
-                if !sol[:omvname].nil?
-                  hash_results = select_metadata_literal(sol[:extractedObject],sol[:omvname], hash_results)
-                elsif !sol[:rdfslabel].nil?
-                  hash_results = select_metadata_literal(sol[:extractedObject],sol[:rdfslabel], hash_results)
-                elsif !sol[:omvfirstname].nil?
-                  hash_results = select_metadata_literal(sol[:extractedObject],sol[:omvfirstname], hash_results)
-                  # if first and last name are defined (for omv:Person)
-                  if !sol[:omvlastname].nil?
-                    hash_results[sol[:extractedObject]] = hash_results[sol[:extractedObject]].to_s + ' ' + sol[:omvlastname].to_s
-                  end
-                elsif !sol[:omvlastname].nil?
-                  # if only last name is defined
-                  hash_results = select_metadata_literal(sol[:extractedObject],sol[:omvlastname], hash_results)
-                else
-                  hash_results[sol[:extractedObject]] = sol[:extractedObject].to_s
-                end
-
+            elsif enforce?(attr, :boolean)
+              case value.to_s.downcase
+              when 'true'
+                hash_results[value] = true
+              when 'false'
+                hash_results[value] = false
               else
-                # If this is directly a literal
-                hash_results = select_metadata_literal(sol[:extractedObject],sol[:extractedObject], hash_results)
+                logger.error("Impossible to extract boolean metadata for #{attr}: #{value}. Error message: #{e}")
               end
+            elsif value.is_a?(RDF::URI)
+              hash_results = find_object_label(hash_results, sol, value)
+            else
+              # If this is directly a literal
+              hash_results = select_metadata_literal(value, value, hash_results)
             end
           end
-
           hash_results
+        end
+
+        def find_object_label(hash_results, sol, value)
+          if !sol[:omvname].nil?
+            hash_results = select_metadata_literal(value, sol[:omvname], hash_results)
+          elsif !sol[:rdfslabel].nil?
+            hash_results = select_metadata_literal(value, sol[:rdfslabel], hash_results)
+          elsif !sol[:omvfirstname].nil?
+            hash_results = select_metadata_literal(value, sol[:omvfirstname], hash_results)
+            # if first and last name are defined (for omv:Person)
+            hash_results[value] = "#{hash_results[value]} #{sol[:omvlastname]}" unless sol[:omvlastname].nil?
+          elsif !sol[:omvlastname].nil?
+            # if only last name is defined
+            hash_results = select_metadata_literal(value, sol[:omvlastname], hash_results)
+          else
+            # if the object is an URI but we are requesting a String
+            hash_results[value] = value.to_s
+          end
+          hash_results
+        end
+
+        def enforce?(attr, type)
+          LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(type)
         end
 
       end
