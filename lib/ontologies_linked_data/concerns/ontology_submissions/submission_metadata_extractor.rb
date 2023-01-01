@@ -35,7 +35,7 @@ module LinkedData
         def extract_version
 
           query = Goo.sparql_query_client.select(:versionInfo).distinct
-                     .from(self.id)
+                     .from(id)
                      .where([RDF::URI.new('http://bioportal.bioontology.org/ontologies/versionSubject'),
                              RDF::URI.new('http://www.w3.org/2002/07/owl#versionInfo'),
                              :versionInfo])
@@ -46,7 +46,7 @@ module LinkedData
 
         def extract_ontology_iri
           query = Goo.sparql_query_client.select(:uri).distinct
-                     .from(self.id)
+                     .from(id)
                      .where([:uri,
                              RDF::URI.new('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
                              RDF::URI.new('http://www.w3.org/2002/07/owl#Ontology')])
@@ -54,16 +54,14 @@ module LinkedData
           sol[:uri]&.to_s
         end
 
-
         private
 
         # Extract additional metadata about the ontology
         # First it extracts the main metadata, then the mapped metadata
         def extract_ontology_metadata(logger, user_params)
           user_params = {} if user_params.nil?
-          ontology_uri = self.uri
+          ontology_uri = uri
           logger.info("Extraction metadata from ontology #{ontology_uri}")
-
 
           # go through all OntologySubmission attributes. Returns symbols
           LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
@@ -152,41 +150,28 @@ module LinkedData
         end
 
         # Set some metadata to default values if nothing extracted
-        def set_default_metadata(logger)
-          if self.identifier.nil?
-            self.identifier = self.uri.to_s
-          end
+        def set_default_metadata
 
-          if self.deprecated.nil?
-            if self.status.eql?('retired')
-              self.deprecated = true
-            else
-              self.deprecated = false
-            end
-          end
+          self.identifier = uri.to_s if identifier.nil?
+
+          self.deprecated = status.eql?('retired') if deprecated.nil?
 
           # Add the ontology hasDomain to the submission hasDomain metadata value
           ontology_domain_list = []
-          self.ontology.bring(:hasDomain).hasDomain.each do |domain|
+          ontology.bring(:hasDomain).hasDomain.each do |domain|
             ontology_domain_list << domain.id
           end
-          if (ontology_domain_list.length > 0 && self.hasDomain.nil?)
-            self.hasDomain = ''
-          end
-          if !self.hasDomain.nil?
-            self.hasDomain << ontology_domain_list.join(', ')
-          end
+
+          self.hasDomain = '' if !ontology_domain_list.empty? && hasDomain.nil?
+
+          self.hasDomain << ontology_domain_list.join(', ') unless hasDomain.nil?
 
           # Only get the first view because the attribute is not a list
-          ontology_view = self.ontology.bring(:views).views.first
-          if (self.hasPart.nil? && !ontology_view.nil?)
-            self.hasPart = ontology_view.id
-          end
+          ontology_view = ontology.bring(:views).views.first
+          self.hasPart = ontology_view.id if hasPart.nil? && !ontology_view.nil?
 
           # If no example identifier extracted: take the first class
-          if self.exampleIdentifier.nil?
-            self.exampleIdentifier = LinkedData::Models::Class.in(self).first.id
-          end
+          self.exampleIdentifier = LinkedData::Models::Class.in(self).first.id if exampleIdentifier.nil?
 
           # Metadata specific to BioPortal that have been removed:
           #if self.hostedBy.nil?
@@ -194,26 +179,26 @@ module LinkedData
           #end
 
           # Add the search endpoint URL
-          if self.openSearchDescription.nil?
-            self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}&q=")
+          if openSearchDescription.nil?
+            self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{ontology.acronym}&q=")
           end
 
           # Search allow to search by URI too
-          if self.uriLookupEndpoint.nil?
-            self.uriLookupEndpoint = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{self.ontology.acronym}&require_exact_match=true&q=")
+          if uriLookupEndpoint.nil?
+            self.uriLookupEndpoint = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{ontology.acronym}&require_exact_match=true&q=")
           end
 
           # Add the dataDump URL
-          if self.dataDump.nil?
-            self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download?download_format=rdf")
+          if dataDump.nil?
+            self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{ontology.acronym}/download?download_format=rdf")
           end
 
-          if self.csvDump.nil?
-            self.csvDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/download?download_format=csv")
+          if csvDump.nil?
+            self.csvDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{ontology.acronym}/download?download_format=csv")
           end
 
           # Add the previous submission as a prior version
-          if self.submissionId > 1
+          if submissionId > 1
 =begin
           if prior_versions.nil?
             prior_versions = []
@@ -223,34 +208,26 @@ module LinkedData
           prior_versions.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}"))
           self.hasPriorVersion = prior_versions
 =end
-            self.hasPriorVersion = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}")
+            self.hasPriorVersion = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{ontology.acronym}/submissions/#{submissionId - 1}")
           end
 
-          if self.hasOntologyLanguage.umls?
+          if hasOntologyLanguage.umls?
             self.hasOntologySyntax = 'http://www.w3.org/ns/formats/Turtle'
-          elsif self.hasOntologyLanguage.obo?
+          elsif hasOntologyLanguage.obo?
             self.hasOntologySyntax = 'http://purl.obolibrary.org/obo/oboformat/spec.html'
           end
 
           # Define default properties for prefLabel, synonyms, definition, author:
-          if self.hasOntologyLanguage.owl?
-            if self.prefLabelProperty.nil?
-              self.prefLabelProperty = Goo.vocabulary(:skos)[:prefLabel]
-            end
-            if self.synonymProperty.nil?
-              self.synonymProperty = Goo.vocabulary(:skos)[:altLabel]
-            end
-            if self.definitionProperty.nil?
-              self.definitionProperty = Goo.vocabulary(:rdfs)[:comment]
-            end
-            if self.authorProperty.nil?
-              self.authorProperty = Goo.vocabulary(:dc)[:creator]
-            end
+          if hasOntologyLanguage.owl?
+            self.prefLabelProperty = Goo.vocabulary(:skos)[:prefLabel] if prefLabelProperty.nil?
+            self.synonymProperty = Goo.vocabulary(:skos)[:altLabel] if synonymProperty.nil?
+            self.definitionProperty = Goo.vocabulary(:rdfs)[:comment] if definitionProperty.nil?
+            self.authorProperty = Goo.vocabulary(:dc)[:creator] if authorProperty.nil?
             # Add also hierarchyProperty? Could not find any use of it
           end
 
           # Add the sparql endpoint URL
-          if self.endpoint.nil? && LinkedData.settings.sparql_endpoint_url
+          if endpoint.nil? && LinkedData.settings.sparql_endpoint_url
             self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
           end
 
@@ -304,7 +281,7 @@ module LinkedData
           query_metadata = <<eos
 
 SELECT DISTINCT ?extractedObject ?omvname ?omvfirstname ?omvlastname ?rdfslabel
-FROM #{self.id.to_ntriples}
+FROM #{id.to_ntriples}
 WHERE {
   <#{ontology_uri}> #{prop_to_extract} ?extractedObject .
   OPTIONAL { ?extractedObject omv:name ?omvname } .
@@ -313,7 +290,7 @@ WHERE {
   OPTIONAL { ?extractedObject rdfs:label ?rdfslabel } .
 }
 eos
-          Goo.namespaces.each do |prefix,uri|
+          Goo.namespaces.each do |prefix, uri|
             query_metadata = "PREFIX #{prefix}: <#{uri}>\n" + query_metadata
           end
 
