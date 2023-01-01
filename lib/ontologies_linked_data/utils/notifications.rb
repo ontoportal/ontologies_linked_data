@@ -20,7 +20,7 @@ module LinkedData
                        .gsub("%ontologies%", ontologies)
                        .gsub("%note_subject%", note.subject || "")
                        .gsub("%note_body%", note.body || "")
-                       .gsub("%note_url%",  note_url)
+                       .gsub("%note_url%", note_url)
                        .gsub('%ui_name%', LinkedData.settings.ui_name)
 
         note.relatedOntology.each do |ont|
@@ -85,6 +85,7 @@ module LinkedData
 
         Notifier.notify_support_grouped subject, body
       end
+
       def self.new_ontology(ont)
         ont.bring_remaining
 
@@ -105,18 +106,11 @@ module LinkedData
         subject = "[#{ui_name}] User #{user.username} password reset"
         password_url = "https://#{LinkedData.settings.ui_host}/reset_password?tk=#{token}&em=#{CGI.escape(user.email)}&un=#{CGI.escape(user.username)}"
 
-        body = <<~HTML
-          Someone has requested a password reset for user #{user.username}. If this was 
-          you, please click on the link below to reset your password. Otherwise, please 
-          ignore this email.<br/><br/>
+        body =  REST_PASSWORD.gsub('%ui_name%', ui_name)
+                             .gsub('%username%', user.username.to_s)
+                             .gsub('%password_url%', password_url.to_s)
 
-          <a href="#{password_url}">#{password_url}</a><br/><br/>
-
-          Thanks,<br/>
-          BioPortal Team
-          #{ui_name} Team
-        HTML
-        Notifier.notify_mails_separately subject, body, [user.mail]
+        Notifier.notify_mails_separately subject, body, [user.email]
       end
 
       def self.obofoundry_sync(missing_onts, obsolete_onts)
@@ -205,6 +199,17 @@ At <a href="%ont_url%">%ont_url%</a>
 <br><br>
 The %ui_name% Team
 EOS
+
+      REST_PASSWORD = <<~HTML
+        Someone has requested a password reset for user %username% . If this was 
+        you, please click on the link below to reset your password. Otherwise, please 
+        ignore this email.<br/><br/>
+
+        <a href="%password_url%">%password_url%</a><br/><br/>
+
+        Thanks,<br/>
+        %ui_name% Team
+HTML
 
     end
   end
