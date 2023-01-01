@@ -22,13 +22,11 @@ module LinkedData
 
           begin
             # Set default metadata
-            set_default_metadata(logger)
+            set_default_metadata
             logger.info('Default metadata set.')
           rescue StandardError => e
             logger.error("Error while setting default metadata: #{e}")
           end
-
-
 
         end
 
