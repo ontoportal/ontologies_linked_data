@@ -202,40 +202,40 @@ module LinkedData
         # Return a hash with the best literal value for an URI
         # it selects the literal according to their language: no language > english > french > other languages
         def select_metadata_literal(metadata_uri, metadata_literal, hash)
-          if metadata_literal.is_a?(RDF::Literal)
-            if hash.has_key?(metadata_uri)
-              if metadata_literal.has_language?
-                if !hash[metadata_uri].has_language?
+          return unless metadata_literal.is_a?(RDF::Literal)
+
+          if hash.key?(metadata_uri)
+            if metadata_literal.has_language?
+              if !hash[metadata_uri].has_language?
+                return hash
+              else
+                case metadata_literal.language
+                when :en, :eng
+                  # Take the value with english language over other languages
+                  hash[metadata_uri] = metadata_literal
                   return hash
-                else
-                  if metadata_literal.language == :en || metadata_literal.language == :eng
-                    # Take the value with english language over other languages
+                when :fr, :fre
+                  # If no english, take french
+                  if hash[metadata_uri].language == :en || hash[metadata_uri].language == :eng
+                    return hash
+                  else
                     hash[metadata_uri] = metadata_literal
                     return hash
-                  elsif metadata_literal.language == :fr || metadata_literal.language == :fre
-                    # If no english, take french
-                    if hash[metadata_uri].language == :en || hash[metadata_uri].language == :eng
-                      return hash
-                    else
-                      hash[metadata_uri] = metadata_literal
-                      return hash
-                    end
-                  else
-                    return hash
                   end
+                else
+                  return hash
                 end
-              else
-                # Take the value with no language in priority (considered as a default)
-                hash[metadata_uri] = metadata_literal
-                return hash
               end
             else
+              # Take the value with no language in priority (considered as a default)
               hash[metadata_uri] = metadata_literal
               return hash
             end
+          else
+            hash[metadata_uri] = metadata_literal
+            hash
           end
         end
-
 
         # A function to extract additional metadata
         # Take the literal data if the property is pointing to a literal
