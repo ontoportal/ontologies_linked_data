@@ -1035,6 +1035,7 @@ eos
     sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission()
     sub.bring_remaining
     assert_equal false, sub.deprecated
+    assert_equal  " AGROOE is an ontology used to test the metadata extraction,  AGROOE is an ontology to illustrate how to describe their ontologies", sub.description
     assert_equal " LIRMM (default name) ", sub.publisher
     assert_equal " URI DC terms identifiers ", sub.identifier
     assert_equal ["http://lexvo.org/id/iso639-3/fra", "http://lexvo.org/id/iso639-3/eng"].sort, sub.naturalLanguage.sort
