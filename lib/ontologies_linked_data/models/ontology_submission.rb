@@ -1311,6 +1311,7 @@ eos
         # Wrap the whole process so we can email results
         begin
           process_rdf = false
+          extract_metadata = false
           index_search = false
           index_properties = false
           index_commit = false
@@ -1321,6 +1322,7 @@ eos
 
           if options.empty?
             process_rdf = true
+            extract_metadata = true
             index_search = true
             index_properties = true
             index_commit = true
@@ -1330,6 +1332,7 @@ eos
             archive = false
           else
             process_rdf = options[:process_rdf] == true ? true : false
+            extract_metadata = options[:extract_metadata] == true ? true : false
             index_search = options[:index_search] == true ? true : false
             index_properties = options[:index_properties] == true ? true : false
             index_commit = options[:index_commit] == true ? true : false
@@ -1397,7 +1400,7 @@ eos
                 remove_submission_status(status) #remove RDF status before starting
 
                 generate_rdf(logger, reasoning: reasoning)
-                extract_metadata(logger, options[:params])
+
                 add_submission_status(status)
                 self.save
               rescue Exception => e
@@ -1409,7 +1412,11 @@ eos
                 # If RDF generation fails, no point of continuing
                 raise e
               end
+            end
 
+            extract_metadata(logger, options[:params]) if extract_metadata || process_rdf
+
+            if process_rdf
               file_path = self.uploadFilePath
               callbacks = {
                 missing_labels: {

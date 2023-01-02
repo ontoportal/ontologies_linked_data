@@ -255,7 +255,7 @@
 	<prov:wasGeneratedBy rdf:resource="http://lirmm.fr/2015/wasGeneratedBy.owl"/>
 	<prov:wasInvalidatedBy rdf:resource="http://lirmm.fr/2015/wasInvalidatedBy.owl"/>
 
-	
+    <owl:imports rdf:resource="http://www.w3.org/2004/02/skos/core"/>
 </rdf:Description>
 
 <!-- DESCRIPTION OF RESOURCES INVOLVED IN METADATA DESCRIPTION -->
