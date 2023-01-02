@@ -66,7 +66,7 @@ module LinkedData
             # for attribute with the :extractedMetadata setting on, and that have not been defined by the user
             attr_settings = LinkedData::Models::OntologySubmission.attribute_settings(attr)
 
-            attr_not_excluded = !(user_params.key?(attr) && !user_params[attr].nil? && !user_params[attr].empty?)
+            attr_not_excluded = user_params && !(user_params.key?(attr) && !user_params[attr].nil? && !user_params[attr].empty?)
 
             next unless attr_settings[:extractedMetadata] && attr_not_excluded
 
