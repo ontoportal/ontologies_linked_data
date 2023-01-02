@@ -57,7 +57,7 @@ module LinkedData
         # Extract additional metadata about the ontology
         # First it extracts the main metadata, then the mapped metadata
         def extract_ontology_metadata(logger, user_params)
-          user_params = {} if user_params.nil?
+          user_params = {} if user_params.nil? || !user_params
           ontology_uri = uri
           logger.info("Extraction metadata from ontology #{ontology_uri}")
 
