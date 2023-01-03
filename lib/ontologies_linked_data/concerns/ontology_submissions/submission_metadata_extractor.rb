@@ -184,13 +184,13 @@ module LinkedData
 
             metadata_values.push(*value.values)
 
-            send("#{attr}=", metadata_values)
+            send("#{attr}=", metadata_values.uniq)
           elsif enforce?(attr, :concatenate)
             # if multiple value for this attribute, then we concatenate it
             # Add the concat at the very end, to easily join the content of the array
             metadata_values = send(attr.to_s) || ''
             metadata_values = metadata_values.split(', ')
-            send("#{attr}=", (metadata_values + value.values.map(&:to_s)).join(', '))
+            send("#{attr}=", (metadata_values + value.values.map(&:to_s)).uniq.join(', '))
           else
             # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
             send("#{attr}=", value.values.first)
