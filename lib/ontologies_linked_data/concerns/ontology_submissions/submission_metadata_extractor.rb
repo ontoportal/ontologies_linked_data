@@ -28,6 +28,7 @@ module LinkedData
             logger.error("Error while setting default metadata: #{e}")
           end
 
+          self.save
         end
 
         def extract_version
@@ -86,7 +87,7 @@ module LinkedData
               break if single_extracted
 
               hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
-              send_value(attr, hash_mapping_results) unless hash_mapping_results.empty?
+              single_extracted = send_value(attr, hash_mapping_results) unless hash_mapping_results.empty?
             end
 
           end
