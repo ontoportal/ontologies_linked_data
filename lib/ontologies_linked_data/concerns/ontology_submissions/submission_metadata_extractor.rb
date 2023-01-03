@@ -28,6 +28,7 @@ module LinkedData
             logger.error("Error while setting default metadata: #{e}")
           end
 
+          self.save
         end
 
         def extract_version
@@ -86,7 +87,7 @@ module LinkedData
               break if single_extracted
 
               hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
-              send_value(attr, hash_mapping_results) unless hash_mapping_results.empty?
+              single_extracted = send_value(attr, hash_mapping_results) unless hash_mapping_results.empty?
             end
 
           end
@@ -184,13 +185,13 @@ module LinkedData
 
             metadata_values.push(*value.values)
 
-            send("#{attr}=", metadata_values)
+            send("#{attr}=", metadata_values.uniq)
           elsif enforce?(attr, :concatenate)
             # if multiple value for this attribute, then we concatenate it
             # Add the concat at the very end, to easily join the content of the array
             metadata_values = send(attr.to_s) || ''
             metadata_values = metadata_values.split(', ')
-            send("#{attr}=", (metadata_values + value.values.map(&:to_s)).join(', '))
+            send("#{attr}=", (metadata_values + value.values.map(&:to_s)).uniq.join(', '))
           else
             # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
             send("#{attr}=", value.values.first)
