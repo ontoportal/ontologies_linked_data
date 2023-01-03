@@ -191,7 +191,8 @@ module LinkedData
             # Add the concat at the very end, to easily join the content of the array
             metadata_values = send(attr.to_s) || ''
             metadata_values = metadata_values.split(', ')
-            send("#{attr}=", (metadata_values + value.values.map(&:to_s)).uniq.join(', '))
+            new_values = value.values.map{|x| x.to_s.split(', ')}.flatten
+            send("#{attr}=", (metadata_values + new_values).uniq.join(', '))
           else
             # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
             send("#{attr}=", value.values.first)
