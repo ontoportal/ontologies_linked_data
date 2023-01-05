@@ -73,6 +73,8 @@ module LinkedData
 
             # a boolean to check if a value that should be single have already been extracted
             single_extracted = false
+            type = enforce?(attr, :list) ? :list : :string
+            old_value = value(attr, type)
 
             unless attr_settings[:namespace].nil?
               property_to_extract = "#{attr_settings[:namespace].to_s}:#{attr.to_s}"
@@ -89,6 +91,9 @@ module LinkedData
               hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
               single_extracted = send_value(attr, hash_mapping_results) unless hash_mapping_results.empty?
             end
+
+            new_value = value(attr, type)
+            send_value(attr, old_value) if empty_value?(new_value) && !empty_value?(old_value)
 
           end
         end
@@ -175,6 +180,10 @@ module LinkedData
             self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
           end
 
+        end
+
+        def empty_value?(value)
+          value.nil? || (value.is_a?(Array) && value.empty?) || value.to_s.strip.empty?
         end
 
         def value(attr, type)
