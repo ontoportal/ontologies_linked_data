@@ -177,10 +177,16 @@ module LinkedData
 
         end
 
+        def value(attr, type)
+          val = send(attr.to_s)
+          type.eql?(:list) ? Array(val) || [] : val || ''
+        end
+
         def send_value(attr, value)
+
           if enforce?(attr, :list)
             # Add the retrieved value(s) to the attribute if the attribute take a list of objects
-            metadata_values = send(attr.to_s) || []
+            metadata_values = value(attr, :list)
             metadata_values = metadata_values.dup
 
             metadata_values.push(*value.values)
@@ -189,9 +195,9 @@ module LinkedData
           elsif enforce?(attr, :concatenate)
             # if multiple value for this attribute, then we concatenate it
             # Add the concat at the very end, to easily join the content of the array
-            metadata_values = send(attr.to_s) || ''
+            metadata_values = value(attr, :string)
             metadata_values = metadata_values.split(', ')
-            new_values = value.values.map{|x| x.to_s.split(', ')}.flatten
+            new_values = value.values.map { |x| x.to_s.split(', ') }.flatten
             send("#{attr}=", (metadata_values + new_values).uniq.join(', '))
           else
             # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
