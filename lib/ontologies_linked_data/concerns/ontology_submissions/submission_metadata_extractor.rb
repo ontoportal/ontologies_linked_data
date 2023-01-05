@@ -73,6 +73,8 @@ module LinkedData
 
             # a boolean to check if a value that should be single have already been extracted
             single_extracted = false
+            type = enforce?(attr, :list) ? :list : :string
+            old_value = value(attr, type)
 
             unless attr_settings[:namespace].nil?
               property_to_extract = "#{attr_settings[:namespace].to_s}:#{attr.to_s}"
@@ -89,6 +91,9 @@ module LinkedData
               hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
               single_extracted = send_value(attr, hash_mapping_results) unless hash_mapping_results.empty?
             end
+
+            new_value = value(attr, type)
+            send_value(attr, old_value) if empty_value?(new_value) && !empty_value?(old_value)
 
           end
         end
@@ -177,10 +182,20 @@ module LinkedData
 
         end
 
+        def empty_value?(value)
+          value.nil? || (value.is_a?(Array) && value.empty?) || value.to_s.strip.empty?
+        end
+
+        def value(attr, type)
+          val = send(attr.to_s)
+          type.eql?(:list) ? Array(val) || [] : val || ''
+        end
+
         def send_value(attr, value)
+
           if enforce?(attr, :list)
             # Add the retrieved value(s) to the attribute if the attribute take a list of objects
-            metadata_values = send(attr.to_s) || []
+            metadata_values = value(attr, :list)
             metadata_values = metadata_values.dup
 
             metadata_values.push(*value.values)
@@ -189,9 +204,9 @@ module LinkedData
           elsif enforce?(attr, :concatenate)
             # if multiple value for this attribute, then we concatenate it
             # Add the concat at the very end, to easily join the content of the array
-            metadata_values = send(attr.to_s) || ''
+            metadata_values = value(attr, :string)
             metadata_values = metadata_values.split(', ')
-            new_values = value.values.map{|x| x.to_s.split(', ')}.flatten
+            new_values = value.values.map { |x| x.to_s.split(', ') }.flatten
             send("#{attr}=", (metadata_values + new_values).uniq.join(', '))
           else
             # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
