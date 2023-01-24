@@ -377,7 +377,7 @@ module LinkedData
         end
         metrics
       end
-
+      
 
       def add_submission_status(status)
         valid = status.is_a?(LinkedData::Models::SubmissionStatus)

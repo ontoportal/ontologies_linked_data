@@ -41,7 +41,7 @@ module Mappings
     epr = Goo.sparql_query_client(:main)
 
     latest.each do |acro, sub|
-      self.handle_triple_store_downtime(logger)
+      self.handle_triple_store_downtime(logger) if LinkedData.settings.goo_backend_name === '4store'
       t0 = Time.now
       s_counts = self.mapping_ontologies_count(sub, nil, reload_cache=reload_cache)
       s_total = 0
@@ -197,7 +197,7 @@ eos
     unions = blocks.join("\nUNION\n")
 
     mappings_in_ontology = <<-eos
-SELECT DISTINCT variables
+SELECT DISTINCT query_variables
 WHERE {
 unions
 filter
@@ -206,7 +206,7 @@ eos
     query = mappings_in_ontology.gsub("unions", unions)
     variables = "?s2 graph ?source ?o"
     variables = "?s1 " + variables if classId.nil?
-    query = query.gsub("variables", variables)
+    query = query.gsub("query_variables", variables)
     filter = classId.nil? ? "FILTER ((?s1 != ?s2) || (?source = 'SAME_URI'))" : ''
 
     if sub2.nil?
@@ -689,7 +689,7 @@ GROUP BY ?ontology
     # fsave = File.open(temp_file_path, "a")
 
     latest_submissions.each do |acr, sub|
-      self.handle_triple_store_downtime(logger)
+      self.handle_triple_store_downtime(logger) if LinkedData.settings.goo_backend_name === '4store'
       new_counts = nil
       time = Benchmark.realtime do
         new_counts = self.mapping_ontologies_count(sub, nil, reload_cache=true)
