@@ -62,12 +62,21 @@ def main
       exec_cmd1 = "docker exec #{@options[:backend]}-#{@options[:backend_version]}-#{@options[:backend_port]} 4s-backend-setup --segments 4 #{JOB_NAME}"
       exec_cmd2 = "docker exec #{@options[:backend]}-#{@options[:backend_version]}-#{@options[:backend_port]} 4s-admin start-stores #{JOB_NAME}"
       exec_cmd3 = "docker exec #{@options[:backend]}-#{@options[:backend_version]}-#{@options[:backend_port]} 4s-httpd -s-1 -p#{@options[:backend_port]} #{JOB_NAME}"
-      puts "\n#{run_cmd}\n\n"
+
+      puts "\n#{run_cmd}"
       system("#{run_cmd}")
+      puts
+      puts "#{exec_cmd1}"
       system("#{exec_cmd1}")
+      puts
+      puts "#{exec_cmd2}"
       system("#{exec_cmd2}")
+      puts
       sleep(5)
+      puts "#{exec_cmd3}"
       system("#{exec_cmd3}")
+      puts
+      puts
       sleep(1)
     end
 
@@ -128,10 +137,11 @@ def main
   img_name_mgrep = "ncbo-mgrep-#{@options[:mgrep_version]}"
 
   rm_cmd = "docker rm -f -v #{img_name}; docker rm -f -v #{img_name_redis};  docker rm -f -v #{img_name_mgrep};"
-  puts "\nRemoving Backend Docker Image: #{img_name}\n"
+  puts "\n#{rm_cmd}"
+  puts "Removing Backend Docker Image: #{img_name}\n"
   puts "Removing Redis Docker Image: #{img_name_redis}\n"
   puts "Removing NCBO mgrep Docker Image: #{img_name_mgrep}\n"
-  %x(#{rm_cmd})
+  # %x(#{rm_cmd})
   exit(1) unless resp
 end
 

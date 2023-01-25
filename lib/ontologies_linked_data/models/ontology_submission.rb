@@ -618,6 +618,7 @@ eos
             cls_count += page_classes.length unless cls_count_set
 
             page = page_classes.next? ? page + 1 : nil
+            # page = nil if page > 2 # uncomment for testing fewer pages
           end while !page.nil?
 
           callbacks.each { |_, callback| callback[:artifacts][:count_classes] = cls_count }
@@ -641,6 +642,10 @@ eos
         file_path = artifacts[:file_path]
         artifacts[:save_in_file] = File.join(File.dirname(file_path), "labels.ttl")
         artifacts[:save_in_file_mappings] = File.join(File.dirname(file_path), "mappings.ttl")
+        # troubleshooting code to output the class ids used in pagination
+        # class_list_file = File.join(File.dirname(file_path), "class_ids.ttl")
+        # f_class_list = File.open(class_list_file, "w")
+        # artifacts[:class_list] = f_class_list
         property_triples = LinkedData::Utils::Triples.rdf_for_custom_properties(self)
         Goo.sparql_data_client.append_triples(self.id, property_triples, mime_type="application/x-turtle")
         fsave = File.open(artifacts[:save_in_file], "w")
@@ -657,6 +662,9 @@ eos
 
       def generate_missing_labels_each(artifacts={}, logger, paging, page_classes, page, c)
         prefLabel = nil
+        # troubleshooting code to output the class ids used in pagination
+        # logger.info("Generated label for class: #{c.id.to_s}")
+        # artifacts[:class_list].write(c.id.to_s + "\n")
 
         if c.prefLabel.nil?
           rdfs_labels = c.label
@@ -675,7 +683,8 @@ eos
           label = nil
 
           if rdfs_labels && rdfs_labels.length > 0
-            label = rdfs_labels[0]
+            # this sort is needed for a predictable label selection
+            label = rdfs_labels.sort[0]
           else
             label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
           end
@@ -738,6 +747,8 @@ eos
         logger.info("Saved generated labels in #{artifacts[:save_in_file]}")
         artifacts[:fsave].close()
         artifacts[:fsave_mappings].close()
+        # troubleshooting code to output the class ids used in pagination
+        # artifacts[:class_list].close()
         logger.flush
       end
 
