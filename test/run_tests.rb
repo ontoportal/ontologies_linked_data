@@ -42,7 +42,7 @@ def main
       run_cmd = "docker run -d --rm -e AGRAPH_SUPER_USER=#{AG_USERNAME} -e AGRAPH_SUPER_PASSWORD=#{AG_PASSWORD} -p #{@options[:backend_port]}:#{DEF_AG_PORT} --shm-size 1g --name #{container_name} franzinc/agraph:#{@options[:backend_version]}"
       puts "\n#{run_cmd}\n\n"
       system("#{run_cmd}")
-      sleep(5)
+      sleep(15)
 
       # If you need to upload a patch to the AG container, uncomment this code
       # tmp_cmd = "docker cp /Users/mdorf/Downloads/patch-spr45071-bug26235.cl #{container_name}:agraph/lib/patches/patch-spr45071-bug26235.cl"
@@ -54,9 +54,19 @@ def main
       # system("#{tmp_cmd}")
       # sleep(5)
 
-      ag_rest_call("/repositories/#{JOB_NAME}", 'PUT')
-      ag_rest_call('/users/anonymous', 'PUT')
-      ag_rest_call("/users/anonymous/access?read=true&write=true&repositories=#{JOB_NAME}", 'PUT')
+      # Replaced AG REST calls with equivalent native docker commands
+      # ag_rest_call("/repositories/#{JOB_NAME}", 'PUT')
+      # ag_rest_call('/users/anonymous', 'PUT')
+      # ag_rest_call("/users/anonymous/access?read=true&write=true&repositories=#{JOB_NAME}", 'PUT')
+      run_cmd = "docker exec #{container_name} agtool repos create #{JOB_NAME}"
+      puts "\n#{run_cmd}"
+      system("#{run_cmd}")
+      run_cmd = "docker exec #{container_name} agtool users add anonymous"
+      puts "#{run_cmd}"
+      system("#{run_cmd}")
+      run_cmd = "docker exec #{container_name} agtool users grant anonymous root:#{JOB_NAME}:rw"
+      puts "#{run_cmd}\n\n"
+      system("#{run_cmd}")
     elsif @options[:backend] == BACKEND_4STORE
       run_cmd = "docker run -d --rm -p #{@options[:backend_port]}:#{@options[:backend_port]} --name #{@options[:backend]}-#{@options[:backend_version]}-#{@options[:backend_port]} bde2020/4store:#{@options[:backend_version]}"
       exec_cmd1 = "docker exec #{@options[:backend]}-#{@options[:backend_version]}-#{@options[:backend_port]} 4s-backend-setup --segments 4 #{JOB_NAME}"
@@ -141,7 +151,7 @@ def main
   puts "Removing Backend Docker Image: #{img_name}\n"
   puts "Removing Redis Docker Image: #{img_name_redis}\n"
   puts "Removing NCBO mgrep Docker Image: #{img_name_mgrep}\n"
-  # %x(#{rm_cmd})
+  %x(#{rm_cmd})
   exit(1) unless resp
 end
 
@@ -155,7 +165,7 @@ def ag_rest_call(path, method)
       :password => AG_PASSWORD,
       :headers => { :accept => :json, :content_type => :json }
   ).execute
-  data = JSON.parse(response.to_str) if ['get', 'post'].include?(method.downcase)
+  data = JSON.parse(request.to_str) if ['get', 'post'].include?(method.downcase)
   data
 end
 
