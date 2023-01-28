@@ -116,7 +116,7 @@ services:
       retries: 5
 
   agraph-ut:
-    image: franzinc/agraph:v7.3.0
+    image: franzinc/agraph:v7.3.1
     environment:
       - AGRAPH_SUPER_USER=test
       - AGRAPH_SUPER_PASSWORD=xyzzy
