@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 15023141f6051d4fa6cba6081d082c720327b0c9
-  branch: develop
+  revision: 919c20dec58375eb8a4dd1aed47864e2ad7bacfa
+  branch: master
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
@@ -196,6 +196,7 @@ GEM
       macaddr (~> 1.0)
 
 PLATFORMS
+  x86_64-darwin-18
   x86_64-darwin-21
   x86_64-linux
 
@@ -230,4 +231,4 @@ DEPENDENCIES
   thin
 
 BUNDLED WITH
-   2.3.22
+   2.3.15
