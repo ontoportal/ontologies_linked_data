@@ -894,6 +894,7 @@ eos
       ################################################################
       # Possible options with their defaults:
       #   process_rdf       = false
+      #   generate_labels   = true
       #   index_search      = false
       #   index_properties  = false
       #   index_commit      = false
@@ -907,6 +908,7 @@ eos
         # Wrap the whole process so we can email results
         begin
           process_rdf = false
+          generate_labels = true
           index_search = false
           index_properties = false
           index_commit = false
@@ -926,6 +928,7 @@ eos
             archive = false
           else
             process_rdf = options[:process_rdf] == true ? true : false
+            generate_labels = options[:generate_labels] == false ? false : true
             index_search = options[:index_search] == true ? true : false
             index_properties = options[:index_properties] == true ? true : false
             index_commit = options[:index_commit] == true ? true : false
@@ -1006,25 +1009,6 @@ eos
                 raise e
               end
 
-              callbacks = {
-                  missing_labels: {
-                      op_name: "Missing Labels Generation",
-                      required: true,
-                      status: LinkedData::Models::SubmissionStatus.find("RDF_LABELS").first,
-                      artifacts: {
-                          file_path: file_path
-                      },
-                      caller_on_pre: :generate_missing_labels_pre,
-                      caller_on_pre_page: :generate_missing_labels_pre_page,
-                      caller_on_each: :generate_missing_labels_each,
-                      caller_on_post_page: :generate_missing_labels_post_page,
-                      caller_on_post: :generate_missing_labels_post
-                  }
-              }
-
-              raw_paging = LinkedData::Models::Class.in(self).include(:prefLabel, :synonym, :label)
-              loop_classes(logger, raw_paging, callbacks)
-
               status = LinkedData::Models::SubmissionStatus.find("OBSOLETE").first
               begin
                 generate_obsolete_classes(logger, file_path)
@@ -1037,6 +1021,38 @@ eos
                 self.save
                 # if obsolete fails the parsing fails
                 raise e
+              end
+            end
+
+            if generate_labels
+              parsed_rdf = ready?(status: [:rdf])
+              raise Exception, "Labels for submission #{self.ontology.acronym}/submissions/#{self.submissionId} cannot be generated because it has not been successfully entered into the triple store" unless parsed_rdf
+              status = LinkedData::Models::SubmissionStatus.find("RDF_LABELS").first
+              begin
+                callbacks = {
+                  missing_labels: {
+                    op_name: "Missing Labels Generation",
+                    required: true,
+                    status: status,
+                    artifacts: {
+                      file_path: self.uploadFilePath.to_s
+                    },
+                    caller_on_pre: :generate_missing_labels_pre,
+                    caller_on_pre_page: :generate_missing_labels_pre_page,
+                    caller_on_each: :generate_missing_labels_each,
+                    caller_on_post_page: :generate_missing_labels_post_page,
+                    caller_on_post: :generate_missing_labels_post
+                  }
+                }
+
+                raw_paging = LinkedData::Models::Class.in(self).include(:prefLabel, :synonym, :label)
+                loop_classes(logger, raw_paging, callbacks)
+              rescue Exception => e
+                logger.error("#{e.class}: #{e.message}\n#{e.backtrace.join("\n\t")}")
+                logger.flush
+                add_submission_status(status.get_error_status)
+              ensure
+                self.save
               end
             end
 
