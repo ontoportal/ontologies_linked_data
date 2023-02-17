@@ -41,7 +41,7 @@ module LinkedData
             hash.merge!(context)
           end
         end
-        hash.map { |h| h['@context']['@language'] = options[:language] }
+        hash.map { |h| h['@context']['@language'] = options[:lang] }
         MultiJson.dump(hash)
       end
 

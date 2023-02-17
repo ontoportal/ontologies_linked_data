@@ -84,13 +84,13 @@ module LinkedData
     end
 
     def self.serialize(type, obj, params, request)
-      language = params['language'] || Goo.main_languages.first
+      lang = params['lang'] || Goo.main_languages.first
       only = params['display'] || []
       only = only.split(',') unless only.is_a?(Array)
       all = only[0] == 'all'
       only = all ? [] : only
 
-      options = { only: only, language: language, all: all, params: params, request: request } 
+      options = { only: only, lang: lang, all: all, params: params, request: request } 
       LinkedData::Serializers.serialize(obj, type, options)
     end
 
