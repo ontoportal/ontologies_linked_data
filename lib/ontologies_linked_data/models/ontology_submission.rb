@@ -478,6 +478,9 @@ module LinkedData
             self.missingImports = nil
           end
           logger.flush
+          # debug code when you need to avoid re-generating the owlapi.xrdf file,
+          # comment out the block above and uncomment the line below
+          # triples_file_path = output_rdf
         end
 
         begin
@@ -618,7 +621,7 @@ eos
             cls_count += page_classes.length unless cls_count_set
 
             page = page_classes.next? ? page + 1 : nil
-            # page = nil if page > 2 # uncomment for testing fewer pages
+            # page = nil if page > 20 # uncomment for testing fewer pages
           end while !page.nil?
 
           callbacks.each { |_, callback| callback[:artifacts][:count_classes] = cls_count }
@@ -649,7 +652,7 @@ eos
         property_triples = LinkedData::Utils::Triples.rdf_for_custom_properties(self)
         Goo.sparql_data_client.append_triples(self.id, property_triples, mime_type="application/x-turtle")
         fsave = File.open(artifacts[:save_in_file], "w")
-        fsave.write(property_triples)
+        fsave.write("#{property_triples}\n")
         fsave_mappings = File.open(artifacts[:save_in_file_mappings], "w")
         artifacts[:fsave] = fsave
         artifacts[:fsave_mappings] = fsave_mappings
@@ -712,33 +715,20 @@ eos
         artifacts[:mapping_triples].concat(rest_mappings)
 
         if artifacts[:label_triples].length > 0
-          logger.info("Asserting #{artifacts[:label_triples].length} labels in " +
-                          "#{self.id.to_ntriples}")
+          logger.info("Writing #{artifacts[:label_triples].length} labels to file for #{self.id.to_ntriples}")
           logger.flush
           artifacts[:label_triples] = artifacts[:label_triples].join("\n")
           artifacts[:fsave].write(artifacts[:label_triples])
-          t0 = Time.now
-          Goo.sparql_data_client.append_triples(self.id, artifacts[:label_triples], mime_type="application/x-turtle")
-          t1 = Time.now
-          logger.info("Labels asserted in #{t1 - t0} sec.")
-          logger.flush
         else
           logger.info("No labels generated in page #{page}.")
           logger.flush
         end
 
         if artifacts[:mapping_triples].length > 0
-          logger.info("Asserting #{artifacts[:mapping_triples].length} mappings in " +
-                          "#{self.id.to_ntriples}")
+          logger.info("Writing #{artifacts[:mapping_triples].length} mapping labels to file for #{self.id.to_ntriples}")
           logger.flush
           artifacts[:mapping_triples] = artifacts[:mapping_triples].join("\n")
           artifacts[:fsave_mappings].write(artifacts[:mapping_triples])
-
-          t0 = Time.now
-          Goo.sparql_data_client.append_triples(self.id, artifacts[:mapping_triples], mime_type="application/x-turtle")
-          t1 = Time.now
-          logger.info("Mapping labels asserted in #{t1 - t0} sec.")
-          logger.flush
         end
       end
 
@@ -747,9 +737,22 @@ eos
         logger.info("Saved generated labels in #{artifacts[:save_in_file]}")
         artifacts[:fsave].close()
         artifacts[:fsave_mappings].close()
+
+        t0 = Time.now
+        all_labels = File.read(artifacts[:fsave].path)
+        Goo.sparql_data_client.append_triples(self.id, all_labels, mime_type="application/x-turtle")
+        t1 = Time.now
+        logger.info("Wrote #{all_labels.lines.count} labels for #{self.id.to_ntriples} to triple store in #{t1 - t0} sec.")
+        logger.flush
+
+        t0 = Time.now
+        all_mapping_labels = File.read(artifacts[:fsave_mappings].path)
+        Goo.sparql_data_client.append_triples(self.id, all_mapping_labels, mime_type="application/x-turtle")
+        t1 = Time.now
+        logger.info("Wrote #{all_mapping_labels.lines.count} mapping labels for #{self.id.to_ntriples} to triple store in #{t1 - t0} sec.")
+        logger.flush
         # troubleshooting code to output the class ids used in pagination
         # artifacts[:class_list].close()
-        logger.flush
       end
 
       def generate_obsolete_classes(logger, file_path)
