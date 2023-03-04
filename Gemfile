@@ -35,5 +35,5 @@ group :development do
 end
 
 # NCBO gems (can be from a local dev path or from rubygems/git)
-gem 'goo', github: 'ontoportal-lirmm/goo', branch: 'development'
+gem 'goo', github: 'ontoportal-lirmm/goo', branch: 'feature/support-multilingual-read-one-language-from-request-parameter'
 gem 'sparql-client', github: 'ontoportal-lirmm/sparql-client', branch: 'master'
