@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ontoportal-lirmm/goo.git
-  revision: 92bed925de041eb5a40adbe8788a74c6c7cb1020
-  branch: feature/support-multilingual-read-one-language-from-request-parameter
+  revision: b769c165906163e30a026dba511ae1069c4eed3d
+  branch: development
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
@@ -156,7 +156,7 @@ GEM
     rexml (3.2.5)
     rsolr (1.1.2)
       builder (>= 2.1.2)
-    rubocop (1.47.0)
+    rubocop (1.48.0)
       json (~> 2.3)
       parallel (~> 1.10)
       parser (>= 3.2.0.0)
