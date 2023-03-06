@@ -19,6 +19,7 @@ gem 'rest-client'
 gem 'rsolr', '~> 1.0'
 gem 'rubyzip', '~> 1.0'
 gem 'thin'
+gem 'request_store'
 
 # Testing
 group :test do

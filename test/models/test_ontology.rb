@@ -308,11 +308,11 @@ class TestOntology < LinkedData::TestOntologyCommon
                                      })
     assert pc.valid?
     pc.save
-    assert_equal true, pc.exist?(reload=true)
+    assert_equal true, pc.exist?
 
     assert n.valid?
     n.save()
-    assert_equal true, n.exist?(reload=true)
+    assert_equal true, n.exist?
 
     review_params = {
         :creator => u,
@@ -329,12 +329,12 @@ class TestOntology < LinkedData::TestOntologyCommon
 
     r = LinkedData::Models::Review.new(review_params)
     r.save()
-    assert_equal true, r.exist?(reload=true)
+    assert_equal true, r.exist?
 
     o1.delete()
-    assert_equal false, n.exist?(reload=true)
-    assert_equal false, r.exist?(reload=true)
-    assert_equal false, o1.exist?(reload=true)
+    assert_equal false, n.exist?
+    assert_equal false, r.exist?
+    assert_equal false, o1.exist?
     o2.delete()
   end
 

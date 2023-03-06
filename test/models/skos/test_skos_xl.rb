@@ -9,7 +9,7 @@ class TestSkosXlLabel < LinkedData::TestOntologyCommon
 
   def test_skos_xl_label_all
     submission_parse('INRAETHES', 'Testing skos',
-                     'test/data/ontology_files/thesaurusINRAE_nouv_structure.rdf',
+                     'test/data/ontology_files/thesaurusINRAE_nouv_structure.skos',
                      1,
                      process_rdf: true, index_search: false,
                      run_metrics: false, reasoning: false)
@@ -27,17 +27,13 @@ class TestSkosXlLabel < LinkedData::TestOntologyCommon
 
   def test_class_skos_xl_label
     submission_parse('INRAETHES', 'Testing skos',
-                     'test/data/ontology_files/thesaurusINRAE_nouv_structure.rdf',
+                     'test/data/ontology_files/thesaurusINRAE_nouv_structure.skos',
                      1,
                      process_rdf: true, index_search: false,
                      run_metrics: false, reasoning: false)
     ont = 'INRAETHES'
     ont = LinkedData::Models::Ontology.find(ont).first
     sub = ont.latest_submission
-
-    sub.bring_remaining
-    sub.hasOntologyLanguage = LinkedData::Models::OntologyFormat.find('SKOS').first
-    sub.save
 
     class_test = LinkedData::Models::Class.find('http://opendata.inrae.fr/thesaurusINRAE/c_16193')
                                           .in(sub).include(:prefLabel,
