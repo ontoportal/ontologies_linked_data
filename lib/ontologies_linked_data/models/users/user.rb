@@ -18,6 +18,7 @@ module LinkedData
       attribute :role, enforce: [:role, :list], :default => lambda {|x| [LinkedData::Models::Users::Role.default]}
       attribute :firstName
       attribute :lastName
+      attribute :subscribed, default: false
       attribute :githubId, enforce: [:unique]
       attribute :orcidId, enforce: [:unique]
       attribute :created, enforce: [:date_time], :default => lambda { |record| DateTime.now }
@@ -92,7 +93,11 @@ module LinkedData
       end
 
       def to_s
-        self.username.to_s
+        if bring?(:username)
+          self.id.to_s
+        else
+          self.username.to_s
+        end
       end
 
       private
