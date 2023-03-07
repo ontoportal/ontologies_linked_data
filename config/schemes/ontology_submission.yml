@@ -1,0 +1,621 @@
+URI:
+  extractedMetadata: true
+  label: "URI2"
+  helpText: "The URI of the ontology which is described by this metadata."
+
+homepage:
+  extractedMetadata: true
+  metadataMappings: [ "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage" ]
+  helpText: "The URL of the homepage for the ontology."
+
+
+publication:
+  extractedMetadata: true
+  helpText: "The URL of bibliographic reference for the ontology."
+  metadataMappings: [ "omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation" ]
+
+naturalLanguage:
+  extractedMetadata: true
+  metadataMappings: [ "dc:language", "dct:language", "doap:language", "schema:inLanguage" ]
+  helpText: "The language of the content of the ontology.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://www.lexvo.org/&quot;&gt;Lexvo URI&lt;/a&gt; with ISO639-3 code.&lt;br&gt;e.g.: http://lexvo.org/id/iso639-3/eng"
+  enforcedValues: {
+    "http://lexvo.org/id/iso639-3/eng": "English",
+    "http://lexvo.org/id/iso639-3/fra": "French",
+    "http://lexvo.org/id/iso639-3/spa": "Spanish",
+    "http://lexvo.org/id/iso639-3/por": "Portuguese",
+    "http://lexvo.org/id/iso639-3/ita": "Italian",
+    "http://lexvo.org/id/iso639-3/deu": "German" }
+
+documentation:
+  extractedMetadata: true
+  metadataMappings: [ "rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki" ]
+  helpText: "URL for further documentation."
+
+version:
+  extractedMetadata: true
+  helpText: "The version of the released ontology"
+  metadataMappings: [ "owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version", "adms:last" ]
+
+description:
+  extractedMetadata: true
+  helpText: "Free text description of the ontology."
+  metadataMappings: [ "dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark" ]
+
+status:
+  extractedMetadata: true
+  metadataMappings: [ "adms:status", "idot:state" ]
+  helpText: "Information about the ontology status (alpha, beta, production, retired)."
+
+contact:
+  helpText: "The people to contact when questions about the ontology. Composed of the contacts name and email."
+
+creationDate:
+  metadataMappings: [ "dct:dateSubmitted", "schema:datePublished" ]
+
+released:
+  extractedMetadata: true
+  label: "Release date"
+  helpText: "Date of the ontology release."
+  metadataMappings: [ "omv:creationDate", "dc:date", "dct:date", "dct:issued", "mod:creationDate", "doap:created", "schema:dateCreated","prov:generatedAtTime", "pav:createdOn", "pav:authoredOn", "pav:contributedOn", "oboInOwl:date", "oboInOwl:hasDate" ]
+
+
+numberOfClasses:
+  metadataMappings: [ "void:classes", "voaf:classNumber", "mod:noOfClasses" ]
+  display: "metrics"
+  helpText: "Number of classes in this ontology. Automatically computed by OWLAPI."
+
+numberOfIndividuals:
+  metadataMappings: [ "mod:noOfIndividuals" ]
+  display: "metrics"
+  helpText: "Number of individuals in this ontology. Automatically computed by OWLAPI."
+
+numberOfProperties:
+  metadataMappings: [ "void:properties", "voaf:propertyNumber", "mod:noOfProperties" ]
+  display: "metrics"
+  helpText: "Number of properties in this ontology. Automatically computed by OWLAPI."
+
+
+modificationDate:
+  extractedMetadata: true
+  metadataMappings: [ "dct:modified", "schema:dateModified", "pav:lastUpdateOn", "mod:updated" ]
+  helpText: "Date of the last modification made to the ontology"
+
+entities:
+  extractedMetadata: true
+  label: "Number of entities"
+  display: "metrics"
+  helpText: "Number of entities in this ontology."
+
+numberOfAxioms:
+  extractedMetadata: true
+  metadataMappings: [ "mod:noOfAxioms", "void:triples" ]
+  display: "metrics"
+  helpText: "Number of axioms in this ontology."
+
+keyClasses:
+  extractedMetadata: true
+  display: "content"
+  metadataMappings: [ "foaf:primaryTopic", "void:exampleResource", "schema:mainEntity" ]
+  helpText: "Representative classes in the ontology."
+
+keywords:
+  extractedMetadata: true
+  helpText: "List of keywords related to the ontology."
+  metadataMappings: [ "mod:keyword", "dcat:keyword", "schema:keywords" ]
+
+knownUsage:
+  extractedMetadata: true
+  display: "usage"
+  helpText: "The applications where the ontology is being used."
+
+notes:
+  extractedMetadata: true
+  metadataMappings: [ "rdfs:comment", "adms:versionNotes" ]
+  helpText: "Additional information about the ontology that is not included somewhere else (e.g. information that you do not want to include in the documentation)."
+
+conformsToKnowledgeRepresentationParadigm:
+  extractedMetadata: true
+  metadataMappings: [ "mod:KnowledgeRepresentationFormalism", "dct:conformsTo" ]
+  display: "methodology"
+  helpText: "A representation formalism that is followed to describe knowledge in an ontology. Example includes description logics, first order logic, etc."
+
+hasContributor:
+  extractedMetadata: true
+  label: "Contributors"
+  metadataMappings: [ "dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy" ]
+  helpText: "Contributors to the creation of the ontology."
+
+hasCreator:
+  extractedMetadata: true
+  label: "Creators"
+  metadataMappings: [ "dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator" ]
+  helpText: "Main responsible for the creation of the ontology."
+
+designedForOntologyTask:
+  extractedMetadata: true
+  display: "usage"
+  helpText: "The purpose for which the ontology was originally designed."
+  enforcedValues: {
+    "http://omv.ontoware.org/2005/05/ontology#AnnotationTask": "Annotation Task",
+    "http://omv.ontoware.org/2005/05/ontology#ConfigurationTask": "Configuration Task",
+    "http://omv.ontoware.org/2005/05/ontology#FilteringTask": "Filtering Task",
+    "http://omv.ontoware.org/2005/05/ontology#IndexingTask": "Indexing Task",
+    "http://omv.ontoware.org/2005/05/ontology#IntegrationTask": "Integration Task",
+    "http://omv.ontoware.org/2005/05/ontology#MatchingTask": "Matching Task",
+    "http://omv.ontoware.org/2005/05/ontology#MediationTask": "Mediation Task",
+    "http://omv.ontoware.org/2005/05/ontology#PersonalizationTask": "Personalization Task",
+    "http://omv.ontoware.org/2005/05/ontology#QueryFormulationTask": "Query Formulation Task",
+    "http://omv.ontoware.org/2005/05/ontology#QueryRewritingTask": "Query Rewriting Task",
+    "http://omv.ontoware.org/2005/05/ontology#SearchTask": "Search Task"
+  }
+
+wasGeneratedBy:
+  extractedMetadata: true
+  display: "people"
+  helpText: "People who generated the ontology."
+
+wasInvalidatedBy:
+  extractedMetadata: true
+  display: "people"
+  helpText: "People who invalidated the ontology."
+
+curatedBy:
+  extractedMetadata: true
+  display: "people"
+  metadataMappings: [ "mod:evaluatedBy" ]
+  helpText: "People who curated the ontology."
+
+endorsedBy:
+  extractedMetadata: true
+  metadataMappings: [ "mod:endorsedBy" ]
+  helpText: "The parties that have expressed support or approval to this ontology"
+  display: "people"
+
+fundedBy:
+  extractedMetadata: true
+  metadataMappings: [ "mod:sponsoredBy", "schema:sourceOrganization" ]
+  display: "people"
+  helpText: "The organization funding the ontology development."
+
+translator:
+  extractedMetadata: true
+  metadataMappings: [ "doap:translator" ]
+  display: "people"
+  helpText: "Organization or person who adapted the ontology to different languages, regional differences and technical requirements"
+
+hasDomain:
+  extractedMetadata: true
+  helpText: "Typically, the domain can refer to established topic hierarchies such as the general purpose topic hierarchy DMOZ or the domain specific topic hierarchy ACM for the computer science domain"
+  metadataMappings: [ "dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about" ]
+  display: "usage"
+
+hasFormalityLevel:
+  extractedMetadata: true
+  metadataMappings: [ "mod:ontologyFormalityLevel" ]
+  helpText: "Level of formality of the ontology."
+  enforcedValues: {
+    "http://w3id.org/nkos/nkostype#classification_schema": "Classification scheme",
+    "http://w3id.org/nkos/nkostype#dictionary": "Dictionary",
+    "http://w3id.org/nkos/nkostype#gazetteer": "Gazetteer",
+    "http://w3id.org/nkos/nkostype#glossary": "Glossary",
+    "http://w3id.org/nkos/nkostype#list": "List",
+    "http://w3id.org/nkos/nkostype#name_authority_list": "Name authority list",
+    "http://w3id.org/nkos/nkostype#ontology": "Ontology",
+    "http://w3id.org/nkos/nkostype#semantic_network": "Semantic network",
+    "http://w3id.org/nkos/nkostype#subject_heading_scheme": "Subject heading scheme",
+    "http://w3id.org/nkos/nkostype#synonym_ring": "Synonym ring",
+    "http://w3id.org/nkos/nkostype#taxonomy": "Taxonomy",
+    "http://w3id.org/nkos/nkostype#terminology": "Terminology",
+    "http://w3id.org/nkos/nkostype#thesaurus": "Thesaurus"
+  }
+
+
+hasLicense:
+  extractedMetadata: true
+  metadataMappings: [ "dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license" ]
+  helpText: "Underlying license model.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://rdflicense.appspot.com/&quot;&gt;URI to describe your License&lt;/a&gt;&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://licentia.inria.fr/&quot;&gt;INRIA licentia&lt;/a&gt; to choose your license"
+  enforcedValues: {
+    "https://creativecommons.org/licenses/by/4.0/": "CC Attribution 4.0 International",
+    "https://creativecommons.org/licenses/by/3.0/": "CC Attribution 3.0",
+    "https://creativecommons.org/publicdomain/zero/1.0/": "CC Public Domain Dedication",
+    "http://www.gnu.org/licenses/gpl-3.0": "GNU General Public License 3.0",
+    "http://www.gnu.org/licenses/gpl-2.0": "GNU General Public License 2.0",
+    "https://opensource.org/licenses/Artistic-2.0": "Open Source Artistic license 2.0",
+    "https://opensource.org/licenses/MIT": "MIT License",
+    "https://opensource.org/licenses/BSD-3-Clause": "BSD 3-Clause License",
+    "http://www.apache.org/licenses/LICENSE-2.0": "Apache License 2.0"
+  }
+
+
+hasOntologySyntax:
+  extractedMetadata: true
+  metadataMappings: [ "mod:syntax", "dc:format", "dct:format" ]
+  label: "Ontology Syntax"
+  helpText: "The presentation syntax for the ontology langage.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt;"
+  enforcedValues: {
+    "http://www.w3.org/ns/formats/JSON-LD": "JSON-LD",
+    "http://www.w3.org/ns/formats/N3": "N3",
+    "http://www.w3.org/ns/formats/N-Quads": "N-Quads",
+    "http://www.w3.org/ns/formats/LD_Patch": "LD Patch",
+    "http://www.w3.org/ns/formats/microdata": "Microdata",
+    "http://www.w3.org/ns/formats/OWL_XML": "OWL XML Serialization",
+    "http://www.w3.org/ns/formats/OWL_Functional": "OWL Functional Syntax",
+    "http://www.w3.org/ns/formats/OWL_Manchester": "OWL Manchester Syntax",
+    "http://www.w3.org/ns/formats/POWDER": "POWDER",
+    "http://www.w3.org/ns/formats/POWDER-S": "POWDER-S",
+    "http://www.w3.org/ns/formats/PROV-N": "PROV-N",
+    "http://www.w3.org/ns/formats/PROV-XML": "PROV-XML",
+    "http://www.w3.org/ns/formats/RDFa": "RDFa",
+    "http://www.w3.org/ns/formats/RDF_JSON": "RDF/JSON",
+    "http://www.w3.org/ns/formats/RDF_XML": "RDF/XML",
+    "http://www.w3.org/ns/formats/RIF_XML": "RIF XML Syntax",
+    "http://www.w3.org/ns/formats/Turtle": "Turtle",
+    "http://www.w3.org/ns/formats/TriG": "TriG",
+    "http://purl.obolibrary.org/obo/oboformat/spec.html": "OBO"
+  }
+
+isOfType:
+  extractedMetadata: true
+  metadataMappings: [ "dc:type", "dct:type" ]
+  helpText: "The nature of the content of the ontology.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;http://wiki.dublincore.org/index.php/NKOS_Vocabularies#KOS_Types_Vocabulary&quot;&gt;DCMI KOS type vocabularies&lt;/a&gt;"
+  enforcedValues: {
+    "http://omv.ontoware.org/2005/05/ontology#ApplicationOntology": "Application Ontology",
+    "http://omv.ontoware.org/2005/05/ontology#CoreOntology": "Core Ontology",
+    "http://omv.ontoware.org/2005/05/ontology#DomainOntology": "Domain Ontology",
+    "http://omv.ontoware.org/2005/05/ontology#TaskOntology": "Task Ontology",
+    "http://omv.ontoware.org/2005/05/ontology#UpperLevelOntology": "Upper Level Ontology",
+    "http://omv.ontoware.org/2005/05/ontology#Vocabulary": "Vocabulary"
+  }
+
+usedOntologyEngineeringMethodology:
+  extractedMetadata: true
+  metadataMappings: [ "mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples" ]
+  display: "methodology"
+  helpText: "Information about the method model used to create the ontology"
+
+usedOntologyEngineeringTool:
+  extractedMetadata: true
+  metadataMappings: [ "mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by" ]
+  helpText: "Information about the tool used to create the ontology"
+  enforcedValues: {
+    "http://protege.stanford.edu": "Protégé",
+    "OWL API": "OWL API",
+    "http://oboedit.org/": "OBO-Edit",
+    "SWOOP": "SWOOP",
+    "OntoStudio": "OntoStudio",
+    "Altova": "Altova",
+    "SemanticWorks": "SemanticWorks",
+    "OilEd": "OilEd",
+    "IsaViz": "IsaViz",
+    "WebODE": "WebODE",
+    "OntoBuilder": "OntoBuilder",
+    "WSMO Studio": "WSMO Studio",
+    "VocBench": "VocBench",
+    "TopBraid": "TopBraid",
+    "NeOn-Toolkit": "NeOn-Toolkit"
+  }
+
+useImports:
+  extractedMetadata: true
+  metadataMappings: [ "owl:imports", "door:imports", "void:vocabulary", "voaf:extends", "dct:requires", "oboInOwl:import" ]
+  helpText: "References another ontology metadata instance that describes an ontology containing definitions, whose meaning is considered to be part of the meaning of the ontology described by this ontology metadata instance"
+
+hasPriorVersion:
+  extractedMetadata: true
+  metadataMappings: [ "owl:priorVersion", "dct:isVersionOf", "door:priorVersion", "prov:wasRevisionOf", "adms:prev", "pav:previousVersion", "pav:hasEarlierVersion" ]
+  helpText: "An URI to the prior version of the ontology"
+
+isBackwardCompatibleWith:
+  extractedMetadata: true
+  metadataMappings: [ "owl:backwardCompatibleWith", "door:backwardCompatibleWith" ]
+  display: "relations"
+  helpText: "URI of an ontology that has its prior version compatible with the described ontology"
+
+isIncompatibleWith:
+  extractedMetadata: true
+  metadataMappings: [ "owl:incompatibleWith", "door:owlIncompatibleWith" ]
+  display: "relations"
+  helpText: "URI of an ontology that is a prior version of this ontology, but not compatible"
+
+deprecated:
+  extractedMetadata: true
+  metadataMappings: [ "idot:obsolete" ]
+  helpText: "To specify if the ontology IRI is deprecated"
+
+versionIRI:
+  extractedMetadata: true
+  display: "links"
+  label: "Version IRI"
+  helpText: "Identifies the version IRI of an ontology."
+
+ontologyRelatedTo:
+  extractedMetadata: true
+  metadataMappings: [ "dc:relation", "dct:relation", "voaf:reliesOn" ]
+  helpText: "An ontology that uses or extends some class or property of the described ontology"
+
+comesFromTheSameDomain:
+  extractedMetadata: true
+  display: "relations"
+  helpText: "Ontologies that come from the same domain"
+  label: "From the same domain than"
+
+
+similarTo:
+  extractedMetadata: true
+  metadataMappings: [ "voaf:similar" ]
+  display: "relations"
+  helpText: "Vocabularies that are similar in scope and objectives, independently of the fact that they otherwise refer to each other."
+
+isAlignedTo:
+  extractedMetadata: true
+  metadataMappings: [ "voaf:hasEquivalencesWith", "nkos:alignedWith" ]
+  helpText: "Ontologies that have an alignment which covers a substantial part of the described ontology"
+
+explanationEvolution:
+  extractedMetadata: true
+  metadataMappings: [ "voaf:specializes", "prov:specializationOf" ]
+  display: "relations"
+  label: "Specialization of"
+  helpText: "If the ontology is a latter version that is semantically equivalent to another ontology."
+
+generalizes:
+  extractedMetadata: true
+  display: "relations"
+  label: "Generalization of"
+  helpText: "Vocabulary that is generalized by some superclasses or superproperties by the described ontology"
+
+hasDisparateModelling:
+  extractedMetadata: true
+  display: "relations"
+  label: "Disparate modelling with"
+  helpText: "URI of an ontology that is considered to have a different model, because they represent corresponding entities in different ways.&lt;br&gt;e.g. an instance in one case and a class in the other for the same concept"
+
+hiddenLabel:
+  extractedMetadata: true
+  helpText: "The hidden labels are useful when a user is interacting with a knowledge organization system via a text-based search function. The user may, for example, enter mis-spelled words when trying to find a relevant concept. If the mis-spelled query can be matched against a hidden label, the user will be able to find the relevant concept, but the hidden label won't otherwise be visible to the user"
+
+coverage:
+  extractedMetadata: true
+  metadataMappings: [ "dc:coverage", "schema:spatial" ]
+  display: "usage"
+  helpText: "The spatial or temporal topic of the ontology, the spatial applicability of the ontology, or the jurisdiction under which the ontology is relevant."
+
+publisher:
+  extractedMetadata: true
+  metadataMappings: [ "dc:publisher", "schema:publisher" ]
+  display: "license"
+  helpText: "An entity responsible for making the ontology available."
+
+
+identifier:
+  extractedMetadata: true
+  metadataMappings: [ "dc:identifier", "skos:notation", "adms:identifier" ]
+  helpText: "An unambiguous reference to the ontology. Use the ontology URI if not provided in the ontology metadata."
+
+source:
+  extractedMetadata: true
+  display: "links"
+  metadataMappings: [ "dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn", "nkos:basedOn", "mod:sourceOntology" ]
+  helpText: "A related resource from which the described resource is derived."
+
+abstract:
+  extractedMetadata: true
+  helpText: "A summary of the ontology"
+
+alternative:
+  extractedMetadata: true
+  label: "Alternative name"
+  metadataMappings: [ "skos:altLabel", "idot:alternatePrefix", "schema:alternativeHeadline", "schema:alternateName" ]
+  helpText: "An alternative title for the ontology"
+
+hasPart:
+  extractedMetadata: true
+  metadataMappings: [ "schema:hasPart", "oboInOwl:hasSubset", "adms:includedAsset" ]
+  display: "relations"
+  helpText: "A related ontology that is included either physically or logically in the described ontology."
+
+isFormatOf:
+  extractedMetadata: true
+  display: "links"
+  helpText: "URL to the original document that describe this ontology in a not ontological format (i.e.: the OBO original file)"
+
+hasFormat:
+  extractedMetadata: true
+  display: "links"
+  helpText: "URL to a document that describe this ontology in a not ontological format (i.e.: the OBO original file) generated from this ontology."
+
+
+audience:
+  extractedMetadata: true
+  metadataMappings: [ "doap:audience", "schema:audience" ]
+  display: "community"
+  helpText: "Description of the target user base of the ontology."
+
+valid:
+  extractedMetadata: true
+  label: "Valid until"
+  metadataMappings: [ "prov:invaliatedAtTime", "schema:endDate" ]
+  display: "dates"
+  helpText: "Date (often a range) of validity of the ontology."
+
+accrualMethod:
+  extractedMetadata: true
+  display: "methodology"
+  helpText: "The method by which items are added to the ontology."
+
+
+accrualPeriodicity:
+  extractedMetadata: true
+  display: "methodology"
+  metadataMappings: [ "nkos:updateFrequency" ]
+  helpText: "The frequency with which items are added to the ontology."
+
+
+accrualPolicy:
+  extractedMetadata: true
+  display: "methodology"
+  helpText: "The policy governing the addition of items to the ontology."
+
+endpoint:
+  extractedMetadata: true
+  metadataMappings: [ "void:sparqlEndpoint" ]
+  display: "content"
+
+
+dataDump:
+  extractedMetadata: true
+  metadataMappings: [ "doap:download-mirror", "schema:distribution" ]
+  display: "content"
+
+csvDump:
+  display: "content"
+  label: "CSV dump"
+
+openSearchDescription:
+  extractedMetadata: true
+  metadataMappings: [ "doap:service-endpoint" ]
+  display: "content"
+
+uriLookupEndpoint:
+  extractedMetadata: true
+  display: "content"
+  label: "URI Lookup Endpoint"
+  helpText: "A protocol endpoint for simple URI lookups for the ontology."
+
+uriRegexPattern:
+  extractedMetadata: true
+  metadataMappings: [ "idot:identifierPattern" ]
+  display: "content"
+  label: "URI Regex Pattern"
+  helpText: "A regular expression that matches the URIs of the ontology entities."
+
+depiction:
+  extractedMetadata: true
+  metadataMappings: [ "doap:screenshots", "schema:image" ]
+  display: "images"
+  helpText: "The URL of an image representing the ontology."
+
+logo:
+  extractedMetadata: true
+  metadataMappings: [ "schema:logo" ]
+  display: "images"
+  helpText: "The URL of the ontology logo."
+
+competencyQuestion:
+  extractedMetadata: true
+  display: "methodology"
+  helpText: "A set of questions made to build an ontology at the design time."
+
+
+usedBy:
+  extractedMetadata: true
+  display: "relations"
+  metadataMappings: [ "nkos:usedBy" ]
+  helpText: "Ontologies that use the described ontology."
+
+metadataVoc:
+  extractedMetadata: true
+  display: "content"
+  label: "Metadata vocabulary used"
+  metadataMappings: [ "mod:vocabularyUsed", "adms:supportedSchema", "schema:schemaVersion" ]
+  helpText: "Vocabularies that are used and/or referred to create the described ontology."
+
+hasDisjunctionsWith:
+  extractedMetadata: true,
+  helpText: "Ontology that declares some disjunct classes with the described ontology."
+
+toDoList:
+  extractedMetadata: true
+  display: "community"
+  helpText: "Describes future tasks planned by a resource curator."
+
+example:
+  extractedMetadata: true
+  metadataMappings: [ "schema:workExample" ]
+  display: "usage"
+  helpText: "A reference to a resource that provides an example of how this ontology can be used."
+  label: "Example of use"
+
+preferredNamespaceUri:
+  extractedMetadata: true
+  metadataMappings: [ "void:uriSpace" ]
+  helpText: "The preferred namespace URI to use when using terms from this ontology."
+
+
+preferredNamespacePrefix:
+  extractedMetadata: true
+  metadataMappings: [ "idot:preferredPrefix", "oboInOwl:default-namespace", "oboInOwl:hasDefaultNamespace" ]
+  helpText: "The preferred namespace prefix to use when using terms from this ontology."
+
+
+morePermissions:
+  extractedMetadata: true
+  display: "license"
+  helpText: "A related resource which describes additional permissions or alternative licenses."
+
+
+useGuidelines:
+  extractedMetadata: true
+  display: "community"
+  helpText: "A related resource which defines how the ontology should be used."
+
+
+curatedOn:
+  extractedMetadata: true
+  display: "dates"
+  helpText: "The date the ontology was curated."
+
+repository:
+  extractedMetadata: true
+  display: "community"
+  helpText: "Link to the source code repository."
+
+bugDatabase:
+  extractedMetadata: true
+  display: "community"
+  helpText: "Link to the bug tracker of the ontology (i.e.: GitHub issues)."
+
+mailingList:
+  extractedMetadata: true
+  display: "community"
+  helpText: "Mailing list home page or email address."
+
+exampleIdentifier:
+  extractedMetadata: true
+  display: "content"
+  helpText: "An example identifier used by one item (or record) from a dataset."
+
+award:
+  extractedMetadata: true
+  display: "community"
+  helpText: "An award won by this ontology."
+
+copyrightHolder:
+  extractedMetadata: true
+  display: "license"
+  helpText: "The party holding the legal copyright to the CreativeWork."
+
+associatedMedia:
+  extractedMetadata: true
+  display: "images"
+  helpText: "A media object that encodes this ontology. This property is a synonym for encoding."
+
+
+workTranslation:
+  extractedMetadata: true
+  display: "relations"
+  helpText: "A ontology that is a translation of the content of this ontology."
+  label: "Translated from"
+
+
+translationOfWork:
+  extractedMetadata: true
+  metadataMappings: [ "adms:translation" ]
+  helpText: "The ontology that this ontology has been translated from."
+  label: "Translation of"
+  display: "relations"
+
+includedInDataCatalog:
+  extractedMetadata: true
+  display: "links"
+  helpText: "A data catalog which contains this ontology (i.e.: OBOfoundry, aber-owl, EBI, VEST registry...)."
