@@ -217,7 +217,7 @@ module LinkedData
 
       attribute :useGuidelines, namespace: :cc, enforce: [ :textarea ]
 
-      attribute :curatedOn, namespace: :pav, type: %i[date_time list], enforce: [:superior_equal_to_CreationDate]
+      attribute :curatedOn, namespace: :pav, type: %i[date_time list], enforce: [:superior_equal_to_creationDate]
 
       # New metadata from ADMS and DOAP
       attribute :repository, namespace: :doap, type: :uri
