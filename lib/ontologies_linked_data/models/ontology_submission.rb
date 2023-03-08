@@ -21,7 +21,7 @@ module LinkedData
       FLAT_ROOTS_LIMIT = 1000
 
       model :ontology_submission, scheme: File.join(__dir__, '../../../config/schemes/ontology_submission.yml'),
-            name_with: lambda { |s| submission_id_generator(s) }
+            name_with: ->(s) { submission_id_generator(s) }
 
       attribute :submissionId, type: :integer, enforce: [:existence]
 
@@ -34,29 +34,31 @@ module LinkedData
       attribute :hierarchyProperty, type: :uri
       attribute :obsoleteProperty, type: :uri
       attribute :obsoleteParent, type: :uri
+      attribute :createdProperty, type: :uri
+      attribute :modifiedProperty, type: :uri
 
       # Ontology metadata
       attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
 
-      attribute :homepage, namespace: :foaf
+      attribute :homepage, namespace: :foaf, type: :uri
 
-      attribute :publication
+      attribute :publication, type: %i[uri list]
 
-      attribute :URI, namespace: :omv
+      attribute :URI, namespace: :omv, enforce: %i[existence unique distinct_of_identifier]
 
-      attribute :naturalLanguage, namespace: :omv, type: :list
+      attribute :naturalLanguage, namespace: :omv, type: %i[list uri], enforce: [:language_validator]
 
-      attribute :documentation, namespace: :omv
+      attribute :documentation, namespace: :omv, type: :uri
 
       attribute :version, namespace: :omv
 
-      attribute :description, namespace: :omv, enforce: [:concatenate]
+      attribute :description, namespace: :omv, enforce: %i[concatenate existence]
 
-      attribute :status, namespace: :omv
+      attribute :status, namespace: :omv, enforce: %i[existence status_deprecated_align status_previous_align]
 
-      attribute :contact, type: [:contact, :list], enforce: [:existence]
+      attribute :contact, type: %i[contact list], enforce: [:existence]
 
-      attribute :creationDate, namespace: :omv, type: :date_time, default: lambda { |record| DateTime.now }
+      attribute :creationDate, namespace: :omv, type: :date_time, default: ->(record) { DateTime.now }
       attribute :released, type: :date_time, enforce: [:existence]
 
       # Metrics metadata
@@ -64,35 +66,36 @@ module LinkedData
       attribute :numberOfClasses, namespace: :omv, type: :integer
       attribute :numberOfIndividuals, namespace: :omv, type: :integer
       attribute :numberOfProperties, namespace: :omv, type: :integer
+      attribute :numberOfAxioms, namespace: :omv, type: :integer
       attribute :maxDepth, type: :integer
       attribute :maxChildCount, type: :integer
-      attribute :averageChildCount, type: :integer
+      attribute :averageChildCount, type: :float
       attribute :classesWithOneChild, type: :integer
       attribute :classesWithMoreThan25Children, type: :integer
       attribute :classesWithNoDefinition, type: :integer
 
       # Complementary omv metadata
-      attribute :modificationDate, namespace: :omv, type: :date_time
+      attribute :modificationDate, namespace: :omv, type: :date_time, enforce: %i[superior_equal_to_creationDate modification_date_previous_align]
 
       attribute :entities, namespace: :void, type: :integer
 
-      attribute :numberOfAxioms, namespace: :omv, type: :integer
 
-      attribute :keyClasses, namespace: :omv, enforce: [:concatenate]
 
-      attribute :keywords, namespace: :omv, enforce: [:concatenate]
+      attribute :keyClasses, namespace: :omv, type: [:list, :class], enforce: [:concatenate]
 
-      attribute :knownUsage, namespace: :omv, enforce: [:concatenate, :textarea]
+      attribute :keywords, namespace: :omv, type: :list, enforce: [:concatenate]
 
-      attribute :notes, namespace: :omv, enforce: [:concatenate, :textarea]
+      attribute :knownUsage, namespace: :omv, enforce: %i[concatenate textarea]
+
+      attribute :notes, namespace: :omv, type: :list,  enforce: %i[textarea]
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv
-      attribute :hasContributor, namespace: :omv, enforce: [:concatenate]
+      attribute :hasContributor, namespace: :omv, type: :list, enforce: [:concatenate]
 
-      attribute :hasCreator, namespace: :omv, enforce: [:concatenate]
+      attribute :hasCreator, namespace: :omv, type: :list, enforce: [:concatenate]
 
-      attribute :designedForOntologyTask, namespace: :omv, type: :list
+      attribute :designedForOntologyTask, namespace: :omv, type: %i[list uri]
 
-      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate]
+      attribute :wasGeneratedBy, namespace: :prov,  enforce: [:concatenate]
 
       attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate]
 
@@ -104,77 +107,76 @@ module LinkedData
 
       attribute :translator, namespace: :schema
 
-      attribute :hasDomain, namespace: :omv, enforce: [:concatenate]
+      attribute :hasDomain, namespace: :omv, type: :list, enforce: [:concatenate]
 
-      attribute :hasFormalityLevel, namespace: :omv
+      attribute :hasFormalityLevel, namespace: :omv, type: :uri
 
-      attribute :hasLicense, namespace: :omv
+      attribute :hasLicense, namespace: :omv, type: :uri
 
-      attribute :hasOntologySyntax, namespace: :omv
+      attribute :hasOntologySyntax, namespace: :omv, type: :uri
 
-      attribute :isOfType, namespace: :omv
+      attribute :isOfType, namespace: :omv, type: :uri
 
       attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate]
 
-      attribute :usedOntologyEngineeringTool, namespace: :omv
+      attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list uri]
 
-      attribute :useImports, namespace: :omv, type: [:list, :uri]
+      attribute :useImports, namespace: :omv, type: %i[list uri], enforce: %i[isOntology inverse_of_usedBy]
 
-      attribute :hasPriorVersion, namespace: :omv, type: :uri
+      attribute :hasPriorVersion, namespace: :omv, type: :uri, enforce: [:include_previous_submission]
 
-      attribute :isBackwardCompatibleWith, namespace: :omv, type: [:list, :uri], enforce: [:isOntology]
+      attribute :isBackwardCompatibleWith, namespace: :omv, type: %i[list uri], enforce: [:isOntology]
 
-      attribute :isIncompatibleWith, namespace: :omv, type: [:list, :uri], enforce: [:isOntology]
+      attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri], enforce: [:isOntology]
 
       attribute :deprecated, namespace: :owl, type: :boolean
 
-      attribute :versionIRI, namespace: :owl, type: :uri
+      attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
 
-      attribute :ontologyRelatedTo, namespace: :door, type: [:list, :uri], enforce: [:isOntology]
+      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri], enforce: %i[isOntology symetric]
 
-      attribute :comesFromTheSameDomain, namespace: :door, type: [:list, :uri], enforce: [:isOntology]
+      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri], enforce: %i[isOntology symetric]
 
-      attribute :similarTo, namespace: :door, type: [:list, :uri], enforce: [:isOntology]
+      attribute :similarTo, namespace: :door, type: %i[list uri], enforce: %i[isOntology symetric]
 
-      attribute :isAlignedTo, namespace: :door, type: [:list, :uri], enforce: [:isOntology]
+      attribute :isAlignedTo, namespace: :door, type: %i[list uri], enforce: [:isOntology]
 
-      attribute :explanationEvolution, namespace: :door, type: :uri, enforce: [:isOntology]
+      attribute :explanationEvolution, namespace: :door, type: %i[list uri], enforce: [:isOntology]
 
-      attribute :generalizes, namespace: :voaf, type: :uri, enforce: [:isOntology]
+      attribute :generalizes, namespace: :voaf, type: %i[list uri], enforce: %i[isOntology symetric]
 
-      attribute :hasDisparateModelling, namespace: :door, type: :uri, enforce: [:isOntology]
+      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri], enforce: %i[isOntology symetric]
 
       # New metadata from SKOS
-      attribute :hiddenLabel, namespace: :skos
+      attribute :hiddenLabel, namespace: :skos, type: :list
       # New metadata from DC terms
       attribute :coverage, namespace: :dct
 
       attribute :publisher, namespace: :dct
 
-      attribute :identifier, namespace: :dct
+      attribute :identifier, namespace: :dct, type: %i[list uri], enforce: [:distinct_of_URI]
 
-      attribute :source, namespace: :dct, enforce: [:concatenate]
+      attribute :source, namespace: :dct, type: :list, enforce: [:concatenate]
 
       attribute :abstract, namespace: :dct, enforce: [:textarea]
 
-      attribute :alternative, namespace: :dct
-
-      attribute :hasPart, namespace: :dct, type: :uri, enforce: [:isOntology]
+      attribute :alternative, namespace: :dct, type: :list
+      attribute :hasPart, namespace: :dct, type: %i[uri list] , enforce: [:isOntology]
 
       attribute :isFormatOf, namespace: :dct, type: :uri
 
-      attribute :hasFormat, namespace: :dct, type: :uri
+      attribute :hasFormat, namespace: :dct, type: %i[uri list]
 
       attribute :audience, namespace: :dct
 
-      attribute :valid, namespace: :dct, type: :date_time
+      attribute :valid, namespace: :dct, type: :date_time, enforce: [:validity_date_deprecated_align]
 
-      attribute :accrualMethod, namespace: :dct
+      attribute :accrualMethod, namespace: :dct, type: %i[list uri]
       attribute :accrualPeriodicity, namespace: :dct
       attribute :accrualPolicy, namespace: :dct
 
       # New metadata from sd
-      attribute :endpoint, namespace: :sd, type: :uri
+      attribute :endpoint, namespace: :sd, type: %i[uri list]
 
       # New metadata from VOID
       attribute :dataDump, namespace: :void, type: :uri
@@ -187,35 +189,35 @@ module LinkedData
 
       attribute :uriRegexPattern, namespace: :void, type: :uri
       # New metadata from foaf
-      attribute :depiction, namespace: :foaf, type: :uri
+      attribute :depiction, namespace: :foaf, type: [:list, :uri]
 
       attribute :logo, namespace: :foaf, type: :uri
 
       # New metadata from MOD
-      attribute :competencyQuestion, namespace: :mod, enforce: [:textarea]
+      attribute :competencyQuestion, namespace: :mod, type: :list, enforce: [:textarea]
 
       # New metadata from VOAF
-      attribute :usedBy, namespace: :voaf, type: [:uri, :list], enforce: [:isOntology]
+      attribute :usedBy, namespace: :voaf, type: %i[uri list], enforce: [:isOntology]
 
-      attribute :metadataVoc, namespace: :voaf, type: [:uri, :list]
+      attribute :metadataVoc, namespace: :voaf, type: %i[uri list], enforce: [:isOntology]
 
-      attribute :hasDisjunctionsWith, namespace: :voaf, type: :uri, enforce: [:isOntology]
+      attribute :hasDisjunctionsWith, namespace: :voaf, type: %i[uri list], enforce: [:isOntology]
 
-      attribute :toDoList, namespace: :voaf, enforce: [:concatenate, :textarea]
+      attribute :toDoList, namespace: :voaf, type: :list, enforce: %i[concatenate textarea]
 
       # New metadata from VANN
-      attribute :example, namespace: :vann, type: :uri
+      attribute :example, namespace: :vann, type: :list
 
-      attribute :preferredNamespaceUri, namespace: :vann
+      attribute :preferredNamespaceUri, namespace: :vann, type: :uri
 
       attribute :preferredNamespacePrefix, namespace: :vann
 
       # New metadata from CC
       attribute :morePermissions, namespace: :cc
 
-      attribute :useGuidelines, namespace: :cc,  enforce: [ :textarea ]
+      attribute :useGuidelines, namespace: :cc, enforce: [ :textarea ]
 
-      attribute :curatedOn, namespace: :pav, type: :date_time
+      attribute :curatedOn, namespace: :pav, type: %i[date_time list], enforce: [:superior_equal_to_CreationDate]
 
       # New metadata from ADMS and DOAP
       attribute :repository, namespace: :doap, type: :uri
@@ -223,28 +225,28 @@ module LinkedData
       # Should be bug-database and mailing-list but NameError - `@bug-database' is not allowed as an instance variable name
       attribute :bugDatabase, namespace: :doap, type: :uri
 
-      attribute :mailingList, namespace: :doap, type: :uri
+      attribute :mailingList, namespace: :doap, enforce: [:email]
 
       # New metadata from Schema and IDOT
-      attribute :exampleIdentifier, namespace: :idot, type: :uri
+      attribute :exampleIdentifier, namespace: :idot, type: :class
 
-      attribute :award, namespace: :schema
+      attribute :award, namespace: :schema, type: :list
 
       attribute :copyrightHolder, namespace: :schema
 
-      attribute :associatedMedia, namespace: :schema
+      attribute :associatedMedia, namespace: :schema, type: %i[uri list]
 
-      attribute :workTranslation, namespace: :schema, type: :uri, enforce: [:isOntology]
+      attribute :workTranslation, namespace: :schema, type: %i[uri list], enforce: [:isOntology]
 
-      attribute :translationOfWork, namespace: :schema, type: :uri, enforce: [:isOntology]
+      attribute :translationOfWork, namespace: :schema, type: %i[uri list], enforce: %i[isOntology symetric]
 
-      attribute :includedInDataCatalog, namespace: :schema, type: [:list, :uri]
+      attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
 
       # Internal values for parsing - not definitive
       attribute :uploadFilePath
       attribute :diffFilePath
       attribute :masterFileName
-      attribute :submissionStatus, type: [:submission_status, :list], default: lambda { |record| [LinkedData::Models::SubmissionStatus.find("UPLOADED").first] }
+      attribute :submissionStatus, type: %i[submission_status list], default: ->(record) { [LinkedData::Models::SubmissionStatus.find("UPLOADED").first] }
       attribute :missingImports, type: :list
 
       # URI for pulling ontology
@@ -264,18 +266,18 @@ module LinkedData
 
       # Links
       links_load :submissionId, ontology: [:acronym]
-      link_to LinkedData::Hypermedia::Link.new("metrics", lambda { |s| "#{self.ontology_link(s)}/submissions/#{s.submissionId}/metrics" }, self.type_uri)
-      LinkedData::Hypermedia::Link.new("download", lambda { |s| "#{self.ontology_link(s)}/submissions/#{s.submissionId}/download" }, self.type_uri)
+      link_to LinkedData::Hypermedia::Link.new("metrics", ->(s) { "#{self.ontology_link(s)}/submissions/#{s.submissionId}/metrics" }, self.type_uri)
+      LinkedData::Hypermedia::Link.new("download", ->(s) { "#{self.ontology_link(s)}/submissions/#{s.submissionId}/download" }, self.type_uri)
 
       # HTTP Cache settings
       cache_timeout 3600
-      cache_segment_instance lambda { |sub| segment_instance(sub) }
+      cache_segment_instance ->(sub) { segment_instance(sub) }
       cache_segment_keys [:ontology_submission]
       cache_load ontology: [:acronym]
 
       # Access control
-      read_restriction_based_on lambda { |sub| sub.ontology }
-      access_control_load ontology: [:administeredBy, :acl, :viewingRestriction]
+      read_restriction_based_on ->(sub) { sub.ontology }
+      access_control_load ontology: %i[administeredBy acl viewingRestriction]
 
       def initialize(*args)
         super(*args)
