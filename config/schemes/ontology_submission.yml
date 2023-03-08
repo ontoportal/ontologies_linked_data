@@ -2,11 +2,19 @@ URI:
   extractedMetadata: true
   label: "URI2"
   helpText: "The URI of the ontology which is described by this metadata."
+  description: [ "OMV: The URI of the ontology which is described by these metadata." ]
+  display: "general"
+  example: 'https://w3id.org/myontto'
 
 homepage:
   extractedMetadata: true
   metadataMappings: [ "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage" ]
   helpText: "The URL of the homepage for the ontology."
+
+hasOntologyLanguage:
+  display: 'general'
+  description: [ "SCHEMA: Media type, typically MIME format (see IANA site) of the content, e.g. application/zip of a SoftwareApplication binary. In cases where a CreativeWork has several media type representations, 'encoding' can be used to indicate each MediaObject alongside particular fileFormat information. Unregistered or niche file formats can be indicated instead via the most appropriate URL, e.g. defining Web page or a Wikipedia entry.",
+                 "MOD: A language that is used to create an ontology." ]
 
 
 publication:
@@ -35,6 +43,14 @@ version:
   extractedMetadata: true
   helpText: "The version of the released ontology"
   metadataMappings: [ "owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version", "adms:last" ]
+  description: [ "MOD: The version of the released ontology.",
+                 "SCHEMA: The version of the CreativeWork embodied by a specified resource.",
+                 "OMV: The version information of the ontology.",
+                 "OWL: The annotation property that provides version information for an ontology or another OWL construct. ",
+                 "PAV: The version number of a resource.",
+                 "DOAP: A project release",
+                 "ADMS : A link to the current or latest version of the Asset" ]
+  example: "v.3.2.0"
 
 description:
   extractedMetadata: true
@@ -45,6 +61,12 @@ status:
   extractedMetadata: true
   metadataMappings: [ "adms:status", "idot:state" ]
   helpText: "Information about the ontology status (alpha, beta, production, retired)."
+  enforcedValues: [ "alpha", "beta", "production", "retired" ]
+  display: "general"
+  description: [ "OMV: It specifies the tracking information for the contents of the ontology. Pre-defined values.",
+                 "IDOT: State of a resource (physical location providing access to data or information about the identified entity). This should be based on a recent manual or automatic check of the resource. Possible values are: 'up', 'down', 'probably up', 'obsolete resource', 'restricted access' and 'unknown'.",
+                 "ADMS : Links to the status of the Asset or Asset Distribution in the context of a particular workflow process. Since Status is defined using a skos:Concept, that is the defined range for this property"
+  ]
 
 contact:
   helpText: "The people to contact when questions about the ontology. Composed of the contacts name and email."
@@ -208,6 +230,8 @@ hasFormalityLevel:
     "http://w3id.org/nkos/nkostype#terminology": "Terminology",
     "http://w3id.org/nkos/nkostype#thesaurus": "Thesaurus"
   }
+  display: "general"
+  description: "OMV: The level of formality of an ontology."
 
 
 hasLicense:
@@ -253,6 +277,7 @@ hasOntologySyntax:
     "http://www.w3.org/ns/formats/TriG": "TriG",
     "http://purl.obolibrary.org/obo/oboformat/spec.html": "OBO"
   }
+  description: [ "DUBLIN CORE: The file format, physical medium, or dimensions of the resource.", "MOD: The syntax followed in the creation of an ontology." ]
 
 isOfType:
   extractedMetadata: true
@@ -321,12 +346,17 @@ deprecated:
   extractedMetadata: true
   metadataMappings: [ "idot:obsolete" ]
   helpText: "To specify if the ontology IRI is deprecated"
+  description: [ "DCAT: An annotation with the owl:deprecated annotation property and the value equal to \"true\"^^xsd:boolean can be used to specify that an IRI is deprecated",
+                 "OWL: The annotation property that indicates that a given entity has been deprecated.",
+                 "IDOT: Indicates if the current dataset is obsolete (not provided any more to the public community). Value can either be 'true' or 'false' (xsd:boolean). The statement is usually omitted if 'false'."
+  ]
 
 versionIRI:
   extractedMetadata: true
-  display: "links"
+  display: "general"
   label: "Version IRI"
   helpText: "Identifies the version IRI of an ontology."
+  description: [ "OWL: The property that identifies the version IRI of an ontology" ]
 
 ontologyRelatedTo:
   extractedMetadata: true
