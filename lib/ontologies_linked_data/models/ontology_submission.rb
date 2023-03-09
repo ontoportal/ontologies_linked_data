@@ -738,19 +738,26 @@ eos
         artifacts[:fsave].close()
         artifacts[:fsave_mappings].close()
 
-        t0 = Time.now
         all_labels = File.read(artifacts[:fsave].path)
-        Goo.sparql_data_client.append_triples(self.id, all_labels, mime_type="application/x-turtle")
-        t1 = Time.now
-        logger.info("Wrote #{all_labels.lines.count} labels for #{self.id.to_ntriples} to triple store in #{t1 - t0} sec.")
-        logger.flush
 
-        t0 = Time.now
+        unless all_labels.empty?
+          t0 = Time.now
+          Goo.sparql_data_client.append_triples(self.id, all_labels, mime_type="application/x-turtle")
+          t1 = Time.now
+          logger.info("Wrote #{all_labels.lines.count} labels for #{self.id.to_ntriples} to triple store in #{t1 - t0} sec.")
+          logger.flush
+        end
+
         all_mapping_labels = File.read(artifacts[:fsave_mappings].path)
-        Goo.sparql_data_client.append_triples(self.id, all_mapping_labels, mime_type="application/x-turtle")
-        t1 = Time.now
-        logger.info("Wrote #{all_mapping_labels.lines.count} mapping labels for #{self.id.to_ntriples} to triple store in #{t1 - t0} sec.")
-        logger.flush
+
+        unless all_mapping_labels.empty?
+          t0 = Time.now
+          Goo.sparql_data_client.append_triples(self.id, all_mapping_labels, mime_type="application/x-turtle")
+          t1 = Time.now
+          logger.info("Wrote #{all_mapping_labels.lines.count} mapping labels for #{self.id.to_ntriples} to triple store in #{t1 - t0} sec.")
+          logger.flush
+        end
+
         # troubleshooting code to output the class ids used in pagination
         # artifacts[:class_list].close()
       end
