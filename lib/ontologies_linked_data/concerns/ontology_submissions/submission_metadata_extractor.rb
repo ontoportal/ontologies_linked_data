@@ -28,6 +28,7 @@ module LinkedData
             logger.error("Error while setting default metadata: #{e}")
           end
 
+          self.save
         end
 
         def extract_version
@@ -57,7 +58,7 @@ module LinkedData
         # Extract additional metadata about the ontology
         # First it extracts the main metadata, then the mapped metadata
         def extract_ontology_metadata(logger, user_params)
-          user_params = {} if user_params.nil?
+          user_params = {} if user_params.nil? || !user_params
           ontology_uri = uri
           logger.info("Extraction metadata from ontology #{ontology_uri}")
 
@@ -66,12 +67,14 @@ module LinkedData
             # for attribute with the :extractedMetadata setting on, and that have not been defined by the user
             attr_settings = LinkedData::Models::OntologySubmission.attribute_settings(attr)
 
-            attr_not_excluded = !(user_params.key?(attr) && !user_params[attr].nil? && !user_params[attr].empty?)
+            attr_not_excluded = user_params && !(user_params.key?(attr) && !user_params[attr].nil? && !user_params[attr].empty?)
 
             next unless attr_settings[:extractedMetadata] && attr_not_excluded
 
             # a boolean to check if a value that should be single have already been extracted
             single_extracted = false
+            type = enforce?(attr, :list) ? :list : :string
+            old_value = value(attr, type)
 
             unless attr_settings[:namespace].nil?
               property_to_extract = "#{attr_settings[:namespace].to_s}:#{attr.to_s}"
@@ -86,8 +89,11 @@ module LinkedData
               break if single_extracted
 
               hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
-              send_value(attr, hash_mapping_results) unless hash_mapping_results.empty?
+              single_extracted = send_value(attr, hash_mapping_results) unless hash_mapping_results.empty?
             end
+
+            new_value = value(attr, type)
+            send_value(attr, old_value) if empty_value?(new_value) && !empty_value?(old_value)
 
           end
         end
@@ -176,21 +182,32 @@ module LinkedData
 
         end
 
+        def empty_value?(value)
+          value.nil? || (value.is_a?(Array) && value.empty?) || value.to_s.strip.empty?
+        end
+
+        def value(attr, type)
+          val = send(attr.to_s)
+          type.eql?(:list) ? Array(val) || [] : val || ''
+        end
+
         def send_value(attr, value)
+
           if enforce?(attr, :list)
             # Add the retrieved value(s) to the attribute if the attribute take a list of objects
-            metadata_values = send(attr.to_s) || []
+            metadata_values = value(attr, :list)
             metadata_values = metadata_values.dup
 
             metadata_values.push(*value.values)
 
-            send("#{attr}=", metadata_values)
+            send("#{attr}=", metadata_values.uniq)
           elsif enforce?(attr, :concatenate)
             # if multiple value for this attribute, then we concatenate it
             # Add the concat at the very end, to easily join the content of the array
-            metadata_values = send(attr.to_s) || ''
+            metadata_values = value(attr, :string)
             metadata_values = metadata_values.split(', ')
-            send("#{attr}=", (metadata_values + value.values.map(&:to_s)).join(', '))
+            new_values = value.values.map { |x| x.to_s.split(', ') }.flatten
+            send("#{attr}=", (metadata_values + new_values).uniq.join(', '))
           else
             # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
             send("#{attr}=", value.values.first)
