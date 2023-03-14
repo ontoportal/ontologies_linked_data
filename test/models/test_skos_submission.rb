@@ -28,7 +28,7 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
   def test_roots_no_main_scheme
 
     sub = before_suite
-    sub.uri = nil # no concept scheme as owl:ontology found
+    sub.uri = RDF::URI.new('http://test.com') # no concept scheme as owl:ontology found
     sub.save
     assert_nil sub.get_main_concept_scheme
     # if no main scheme found get all roots (topConcepts)
