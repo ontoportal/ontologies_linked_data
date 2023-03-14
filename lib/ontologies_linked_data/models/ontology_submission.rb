@@ -58,7 +58,7 @@ module LinkedData
 
       attribute :contact, type: %i[contact list], enforce: [:existence]
 
-      attribute :creationDate, namespace: :omv, type: :date_time, default: ->(record) { DateTime.now }
+      attribute :creationDate, namespace: :omv, type: :date_time
       attribute :released, type: :date_time, enforce: [:existence]
 
       # Metrics metadata
