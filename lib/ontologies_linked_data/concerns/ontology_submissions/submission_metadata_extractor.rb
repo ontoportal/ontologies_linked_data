@@ -28,7 +28,12 @@ module LinkedData
             logger.error("Error while setting default metadata: #{e}")
           end
 
-          self.save
+          if self.valid?
+            self.save
+          else
+            logger.error("Error while extracting additional metadata: #{self.errors}")
+          end
+
         end
 
         def extract_version
@@ -101,7 +106,6 @@ module LinkedData
         # Set some metadata to default values if nothing extracted
         def set_default_metadata
 
-          self.identifier = uri.to_s if identifier.nil?
 
           self.deprecated = status.eql?('retired') if deprecated.nil?
 
@@ -161,9 +165,9 @@ module LinkedData
           end
 
           if hasOntologyLanguage.umls?
-            self.hasOntologySyntax = 'http://www.w3.org/ns/formats/Turtle'
+            self.hasOntologySyntax = RDF::URI.new('http://www.w3.org/ns/formats/Turtle')
           elsif hasOntologyLanguage.obo?
-            self.hasOntologySyntax = 'http://purl.obolibrary.org/obo/oboformat/spec.html'
+            self.hasOntologySyntax = RDF::URI.new('http://purl.obolibrary.org/obo/oboformat/spec.html')
           end
 
           # Define default properties for prefLabel, synonyms, definition, author:
@@ -284,7 +288,8 @@ eos
             value = sol[:extractedObject]
             if enforce?(attr, :uri)
               # If the attr is enforced as URI then it directly takes the URI
-              hash_results[value] = value if value.is_a?(RDF::URI)
+              uri_value = value ? RDF::URI.new(value.to_s.strip) : nil
+              hash_results[value] = uri_value if uri_value&.valid?
             elsif enforce?(attr, :date_time)
               begin
                 hash_results[value] = DateTime.iso8601(value.to_s)
