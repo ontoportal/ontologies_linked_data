@@ -1361,7 +1361,11 @@ eos
         self.numberOfProperties = metrics.properties
         self.maxDepth = metrics.maxDepth
         self.maxChildCount = metrics.maxChildCount
-        self.averageChildCount = metrics.averageChildCount
+        begin
+          self.averageChildCount = metrics.averageChildCount&.to_f || 0.0
+        rescue
+          self.averageChildCount = 0.0
+        end
         self.classesWithOneChild = metrics.classesWithOneChild
         self.classesWithMoreThan25Children = metrics.classesWithMoreThan25Children
         self.classesWithNoDefinition = metrics.classesWithNoDefinition
