@@ -115,7 +115,7 @@ numberOfAxioms:
   helpText: "Number of axioms in this ontology."
 
 keyClasses:
-  extractedMetadata: true
+  extractedMetadata: false
   display: "content"
   metadataMappings: [ "foaf:primaryTopic", "void:exampleResource", "schema:mainEntity" ]
   helpText: "Representative classes in the ontology."
@@ -611,7 +611,7 @@ mailingList:
   helpText: "Mailing list home page or email address."
 
 exampleIdentifier:
-  extractedMetadata: true
+  extractedMetadata: false
   display: "content"
   helpText: "An example identifier used by one item (or record) from a dataset."
 
