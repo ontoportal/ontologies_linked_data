@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ontoportal-lirmm/goo.git
-  revision: b769c165906163e30a026dba511ae1069c4eed3d
+  revision: a82a443a965b5f86f2324cb91ef3810376ffe935
   branch: development
   specs:
     goo (0.0.2)
@@ -124,7 +124,7 @@ GEM
     omni_logger (0.1.4)
       logger
     parallel (1.22.1)
-    parser (3.2.1.0)
+    parser (3.2.1.1)
       ast (~> 2.4.1)
     pony (1.13.1)
       mail (>= 2.0)
@@ -143,7 +143,7 @@ GEM
       addressable (>= 2.2)
     redis (5.0.6)
       redis-client (>= 0.9.0)
-    redis-client (0.13.0)
+    redis-client (0.14.0)
       connection_pool
     regexp_parser (2.7.0)
     request_store (1.5.1)
@@ -156,7 +156,7 @@ GEM
     rexml (3.2.5)
     rsolr (1.1.2)
       builder (>= 2.1.2)
-    rubocop (1.48.0)
+    rubocop (1.48.1)
       json (~> 2.3)
       parallel (~> 1.10)
       parser (>= 3.2.0.0)

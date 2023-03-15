@@ -44,7 +44,7 @@ module LinkedData
 
       attribute :publication, type: %i[uri list]
 
-      attribute :URI, namespace: :omv, enforce: %i[existence unique distinct_of_identifier]
+      attribute :URI, namespace: :omv, enforce: %i[existence distinct_of_identifier]
 
       attribute :naturalLanguage, namespace: :omv, type: %i[list uri], enforce: [:language_validator]
 
@@ -121,7 +121,7 @@ module LinkedData
 
       attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list uri]
 
-      attribute :useImports, namespace: :omv, type: %i[list uri], enforce: %i[isOntology inverse_of_usedBy]
+      attribute :useImports, namespace: :omv, type: %i[list uri], enforce: %i[isOntology custom_inverse_of_usedBy]
 
       attribute :hasPriorVersion, namespace: :omv, type: :uri, enforce: [:include_previous_submission]
 
@@ -287,7 +287,7 @@ module LinkedData
       def synchronize(&block)
         @mutex.synchronize(&block)
       end
-
+      
       def self.ontology_link(m)
         ontology_link = ""
 
