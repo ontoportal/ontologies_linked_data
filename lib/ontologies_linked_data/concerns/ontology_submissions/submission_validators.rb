@@ -53,7 +53,9 @@ module LinkedData
         end
 
         def validity_date_retired_align(inst, attr)
-          valid_date = inst.send(attr)
+          inst.bring :valid if inst.bring?(:valid)
+
+          valid_date = inst.valid
 
           if deprecated? || retired?
             if valid_date.nil? || (valid_date && valid_date >= DateTime.now)
@@ -65,11 +67,29 @@ module LinkedData
           end
         end
 
+        def modification_date_previous_align(inst, attr)
 
+          sub = previous_submission
+          return if sub.nil?
+
+          sub.bring(:modificationDate) if sub.bring?(:modificationDate) || sub.modificationDate.nil?
+
+          return unless sub.modificationDate
+
+          inst.bring :modificationDate if inst.bring?(:modificationDate)
+
+          if inst.modificationDate.nil? || (sub.modificationDate >= inst.modificationDate)
+            [:modification_date_previous_align,
+             "modification date can't be inferior to the previous submission modification date #{sub.modificationDate}"]
+          end
+        end
 
         private
 
         def previous_submission
+          self.bring :ontology if self.bring?(:ontology)
+          return if self.ontology.nil?
+
           self.ontology.bring(:submissions) if self.ontology.bring?(:submissions)
           submissions = self.ontology.submissions
 
@@ -95,8 +115,9 @@ module LinkedData
           inst.deprecated = true
         end
 
-        def retired?
-          self.status.eql?('retired')
+        def retired?(inst = self)
+          inst.bring :status if inst.bring?(:status)
+          inst.status.eql?('retired')
         end
 
         def deprecated?(inst = self)
