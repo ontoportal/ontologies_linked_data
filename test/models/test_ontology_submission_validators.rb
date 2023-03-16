@@ -9,7 +9,6 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
       create_ontologies_and_submissions(ont_count: 3, submission_count: 1,
                                         process_submission: false, acronym: 'NCBO-545')
 
-
     assert_equal 3, ontologies.size
 
     ontologies[0].bring :submissions
@@ -21,7 +20,6 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
     assert_empty first_sub.ontologyRelatedTo
     first_sub.ontologyRelatedTo = [ontologies[1].id, ontologies[2].id]
     first_sub.bring_remaining
-
 
     assert first_sub.valid?
 
@@ -44,39 +42,64 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
 
   end
 
-  def test_status_align_callbacks
+  # Regroup all validity test related to a submission retired status (deprecated, valid date)
+  def test_submission_retired_validity
+    sorted_submissions = sorted_submissions_init
+
+    latest = sorted_submissions.first
+
+    latest.bring :status, :deprecated
+
+    # Test default values
+    assert_equal 'production', latest.status
+    assert_equal false, latest.deprecated
+
+    # Test deprecate_previous_submissions callback
+    sorted_submissions[1..].each do |s|
+      s.bring :deprecated, :valid
+      assert_equal true, s.deprecated
+      assert s.valid
+    end
+
+    latest.bring_remaining
+    latest.status = 'retired'
+
+    refute latest.valid?
+
+    # Test retired status related attributes validators
+    assert latest.errors[:deprecated][:deprecated_retired_align]
+    assert latest.errors[:valid][:validity_date_retired_align]
+
+    latest.deprecated = true
+    latest.valid = DateTime.now
+
+    assert latest.valid?
+    latest.save
+
+    # Test retired_previous_align callback
+    sorted_submissions.each do |s|
+      s.bring :status, :deprecated, :valid
+      assert_equal 'retired', s.status
+      assert_equal true, s.deprecated
+      assert s.valid
+    end
+
+  end
+
+  private
+
+  def sorted_submissions_init
     ont_count, ont_acronyms, ontologies =
       create_ontologies_and_submissions(ont_count: 1, submission_count: 3,
                                         process_submission: false, acronym: 'NCBO-545')
 
-
-
-
-    # Sanity check.
     assert_equal 1, ontologies.count
     ont = ontologies.first
     ont.bring :submissions
     ont.submissions.each { |s| s.bring(:submissionId) }
     assert_equal 3, ont.submissions.count
 
-    # Sort submissions in descending order.
-    sorted_submissions = ont.submissions.sort { |a,b| b.submissionId <=> a.submissionId }
-
-    latest = sorted_submissions.first
-
-    latest.bring :status, :deprecated
-
-    assert_equal 'alpha', latest.status
-    assert_equal false, latest.deprecated
-
-    latest.status = 'retired'
-    latest.bring_remaining
-    latest.save
-
-    sorted_submissions.each do |s|
-      s.bring :status, :deprecated
-      assert_equal 'retired', latest.status
-      assert_equal true, latest.deprecated
-    end
+    ont.submissions.sort { |a, b| b.submissionId <=> a.submissionId }
   end
+
 end

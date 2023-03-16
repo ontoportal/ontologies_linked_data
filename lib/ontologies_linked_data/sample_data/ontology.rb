@@ -69,7 +69,7 @@ module LinkedData
               released: DateTime.now - 3,
               URI: RDF::URI.new("https://test-#{o.next_submission_id}.com"),
               description: "Description #{o.next_submission_id}",
-              status: 'alpha'
+              status: 'production'
             })
 
             if (submissions_to_process.nil? || submissions_to_process.include?(os.submissionId))
