@@ -13,6 +13,7 @@ module LinkedData
     class OntologySubmission < LinkedData::Models::Base
 
       include LinkedData::Concerns::OntologySubmission::MetadataExtractor
+      include LinkedData::Concerns::OntologySubmission::Validators
 
       include SKOS::ConceptSchemes
       include SKOS::RootsFetcher
@@ -133,19 +134,19 @@ module LinkedData
 
       attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
 
-      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri], enforce: %i[isOntology symetric]
+      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
 
-      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri], enforce: %i[isOntology symetric]
+      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
 
-      attribute :similarTo, namespace: :door, type: %i[list uri], enforce: %i[isOntology symetric]
+      attribute :similarTo, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
 
       attribute :isAlignedTo, namespace: :door, type: %i[list uri], enforce: [:isOntology]
 
       attribute :explanationEvolution, namespace: :door, type: %i[list uri], enforce: [:isOntology]
 
-      attribute :generalizes, namespace: :voaf, type: %i[list uri], enforce: %i[isOntology symetric]
+      attribute :generalizes, namespace: :voaf, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
 
-      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri], enforce: %i[isOntology symetric]
+      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
 
       # New metadata from SKOS
       attribute :hiddenLabel, namespace: :skos, type: :list
@@ -238,7 +239,7 @@ module LinkedData
 
       attribute :workTranslation, namespace: :schema, type: %i[uri list], enforce: [:isOntology]
 
-      attribute :translationOfWork, namespace: :schema, type: %i[uri list], enforce: %i[isOntology symetric]
+      attribute :translationOfWork, namespace: :schema, type: %i[uri list], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
 
       attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
 
@@ -287,7 +288,7 @@ module LinkedData
       def synchronize(&block)
         @mutex.synchronize(&block)
       end
-      
+
       def self.ontology_link(m)
         ontology_link = ""
 
@@ -878,10 +879,10 @@ module LinkedData
 
             if rdfs_labels && rdfs_labels.length > 0
               label = rdfs_labels[0]
-            else
-              # If no label found, we take the last fragment of the URI
+                    else
+                      # If no label found, we take the last fragment of the URI
               label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
-            end
+                    end
           rescue Goo::Base::AttributeNotLoaded => e
             label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
           end
@@ -1131,15 +1132,15 @@ eos
 
             if !process_rdf || options[:reasoning] == false
               reasoning = false
-            else
+                        else
               reasoning = true
-            end
+                        end
 
             if (!index_search && !index_properties) || options[:index_commit] == false
               index_commit = false
-            else
+                           else
               index_commit = true
-            end
+                           end
 
             diff = options[:diff] == true ? true : false
             archive = options[:archive] == true ? true : false
@@ -1745,9 +1746,9 @@ eos
           url = URI.parse(url)
           if url.kind_of?(URI::FTP)
             check = check_ftp_file(url)
-          else
+                  else
             check = check_http_file(url)
-          end
+                  end
         rescue Exception
           check = false
         end
