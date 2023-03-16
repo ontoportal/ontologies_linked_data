@@ -1,55 +1,47 @@
 module LinkedData
   module Concerns
     module OntologySubmission
+      module ValidatorsHelpers
+        def previous_submission
+          self.bring :ontology if self.bring?(:ontology)
+          return if self.ontology.nil?
+
+          self.ontology.bring(:submissions) if self.ontology.bring?(:submissions)
+          submissions = self.ontology.submissions
+
+          return if submissions.nil?
+
+          submissions.each { |s| s.bring(:submissionId) }
+          # Sort submissions in descending order of submissionId, extract last two submissions
+          sorted_submissions = submissions.sort { |a, b| b.submissionId <=> a.submissionId }.reverse
+
+          current_index = sorted_submissions.index { |x| x.submissionId.eql?(self.submissionId) }
+
+          if current_index.nil?
+            sorted_submissions.last
+          else
+            min_index = [current_index - 1, 0].max
+            sub = sorted_submissions[min_index]
+            sub unless sub.submissionId.eql?(self.submissionId)
+          end
+        end
+
+        def retired?(inst = self)
+          inst.bring :status if inst.bring?(:status)
+          inst.status.eql?('retired')
+        end
+
+        def deprecated?(inst = self)
+          inst.bring :deprecated if inst.bring?(:deprecated)
+          inst.deprecated
+        end
+      end
+
       module Validators
-
-        def enforce_symmetric_ontologies(inst, attr)
-          previous_values = inst.previous_values ? Array(inst.previous_values[attr]) : []
-          new_values, deleted_values = new_and_deleted_elements(Array(inst.send(attr)), previous_values)
-          deleted_values.each do |val|
-            update_submission_values(inst, attr, val, action: :remove)
-          end
-          new_values.each do |val|
-            update_submission_values(inst, attr, val)
-          end
-        end
-
-        def retired_previous_align(inst, attr)
-          return unless retired?
-
-          sub = previous_submission
-          return if sub.nil?
-
-          sub.bring_remaining
-          sub.status = 'retired'
-          sub.valid = DateTime.now if sub.valid.nil?
-          sub.deprecated = true
-          sub.save
-        end
+        include ValidatorsHelpers
 
         def deprecated_retired_align(inst, attr)
           [:deprecated_retired_align, "can't be with the status retired and not deprecated"] if !deprecated? && retired?
-        end
-
-        def deprecate_previous_submissions(inst, attr)
-          sub = previous_submission
-          return if sub.nil?
-
-          changed = false
-
-          sub.bring_remaining
-          unless deprecated?(sub)
-            sub.deprecated = true
-            changed = true
-          end
-
-          unless sub.valid
-            inst.bring :modificationDate if inst.bring?(:modificationDate)
-            inst.bring :creationDate if inst.bring?(:creationDate)
-            sub.valid = inst.modificationDate || inst.creationDate || DateTime.now
-            changed = true
-          end
-          sub.save if changed
         end
 
         def validity_date_retired_align(inst, attr)
@@ -84,46 +76,59 @@ module LinkedData
           end
         end
 
-        private
+      end
 
-        def previous_submission
-          self.bring :ontology if self.bring?(:ontology)
-          return if self.ontology.nil?
+      module UpdateCallbacks
+        include ValidatorsHelpers
 
-          self.ontology.bring(:submissions) if self.ontology.bring?(:submissions)
-          submissions = self.ontology.submissions
-
-          return if submissions.nil?
-
-          submissions.each { |s| s.bring(:submissionId) }
-          # Sort submissions in descending order of submissionId, extract last two submissions
-          sorted_submissions = submissions.sort { |a, b| b.submissionId <=> a.submissionId }.reverse
-
-          current_index = sorted_submissions.index { |x| x.submissionId.eql?(self.submissionId) }
-
-          if current_index.nil?
-            sorted_submissions.last
-          else
-            min_index = [current_index - 1, 0].max
-            sub = sorted_submissions[min_index]
-            sub unless sub.submissionId.eql?(self.submissionId)
+        def enforce_symmetric_ontologies(inst, attr)
+          previous_values = inst.previous_values ? Array(inst.previous_values[attr]) : []
+          new_values, deleted_values = new_and_deleted_elements(Array(inst.send(attr)), previous_values)
+          deleted_values.each do |val|
+            update_submission_values(inst, attr, val, action: :remove)
+          end
+          new_values.each do |val|
+            update_submission_values(inst, attr, val)
           end
         end
 
-        def deprecate(inst)
-          inst.bring :deprecated if inst.bring?(:deprecated)
-          inst.deprecated = true
+        def retired_previous_align(inst, attr)
+          return unless retired?
+
+          sub = previous_submission
+          return if sub.nil?
+
+          sub.bring_remaining
+          sub.status = 'retired'
+          sub.valid = DateTime.now if sub.valid.nil?
+          sub.deprecated = true
+          sub.save
         end
 
-        def retired?(inst = self)
-          inst.bring :status if inst.bring?(:status)
-          inst.status.eql?('retired')
+        def deprecate_previous_submissions(inst, attr)
+          sub = previous_submission
+          return if sub.nil?
+
+          changed = false
+
+          sub.bring_remaining
+          unless deprecated?(sub)
+            sub.deprecated = true
+            changed = true
+          end
+
+          unless sub.valid
+            inst.bring :modificationDate if inst.bring?(:modificationDate)
+            inst.bring :creationDate if inst.bring?(:creationDate)
+            sub.valid = inst.modificationDate || inst.creationDate || DateTime.now
+            changed = true
+          end
+          sub.save if changed
         end
 
-        def deprecated?(inst = self)
-          inst.bring :deprecated if inst.bring?(:deprecated)
-          inst.deprecated
-        end
+        def include_previous_submission(inst, attr) end
+
+        private
 
         def new_and_deleted_elements(current_values, previous_values)
           new_elements = current_values - previous_values
@@ -161,7 +166,6 @@ module LinkedData
         end
 
       end
-
     end
   end
 end

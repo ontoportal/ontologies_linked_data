@@ -14,6 +14,7 @@ module LinkedData
 
       include LinkedData::Concerns::OntologySubmission::MetadataExtractor
       include LinkedData::Concerns::OntologySubmission::Validators
+      include LinkedData::Concerns::OntologySubmission::UpdateCallbacks
 
       include SKOS::ConceptSchemes
       include SKOS::RootsFetcher
