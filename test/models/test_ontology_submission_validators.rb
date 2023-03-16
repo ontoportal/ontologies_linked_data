@@ -86,6 +86,38 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
 
   end
 
+  def test_modification_date_previous_align
+    sorted_submissions = sorted_submissions_init
+
+    latest = sorted_submissions[0]
+    previous = sorted_submissions[1]
+
+    latest.bring_remaining
+    assert latest.valid?
+
+    previous.bring_remaining
+    previous.modificationDate = Date.today.to_datetime
+
+    assert previous.valid?
+    previous.save
+
+    previous.bring_remaining
+    assert Date.today.to_datetime, previous.modificationDate
+
+    refute latest.valid?
+    assert latest.errors[:modificationDate][:modification_date_previous_align]
+
+    latest.modificationDate = Date.today.prev_day.to_datetime
+
+    refute latest.valid?
+    assert latest.errors[:modificationDate][:modification_date_previous_align]
+
+    latest.modificationDate = (Date.today + 1).to_datetime
+
+    assert latest.valid?
+    latest.save
+  end
+
   private
 
   def sorted_submissions_init
