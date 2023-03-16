@@ -22,9 +22,9 @@ module LinkedData
       FLAT_ROOTS_LIMIT = 1000
 
       model :ontology_submission, scheme: File.join(__dir__, '../../../config/schemes/ontology_submission.yml'),
-            name_with: ->(s) { submission_id_generator(s) }
+                                  name_with: ->(s) { submission_id_generator(s) }
 
-      attribute :submissionId, type: :integer, enforce: [:existence]
+      attribute :submissionId, type: :integer, enforce: [:existence], onUpdate: :deprecate_previous_submissions
 
       # Configurable properties for processing
       attribute :prefLabelProperty, type: :uri
@@ -55,7 +55,8 @@ module LinkedData
 
       attribute :description, namespace: :omv, enforce: %i[concatenate existence]
 
-      attribute :status, namespace: :omv, enforce: %i[existence], onUpdate: %i[status_deprecated_align status_previous_align]
+      attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' },
+                         onUpdate: %i[retired_previous_align]
 
       attribute :contact, type: %i[contact list], enforce: [:existence]
 
@@ -130,7 +131,8 @@ module LinkedData
 
       attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri], enforce: [:isOntology]
 
-      attribute :deprecated, namespace: :owl, type: :boolean, default: ->(x) {false}
+      attribute :deprecated, namespace: :owl, type: :boolean, enforce: [:deprecated_retired_align],
+                             default: ->(x) { false }
 
       attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
 
@@ -170,7 +172,7 @@ module LinkedData
 
       attribute :audience, namespace: :dct
 
-      attribute :valid, namespace: :dct, type: :date_time, enforce: [:validity_date_deprecated_align]
+      attribute :valid, namespace: :dct, type: :date_time, enforce: [:validity_date_retired_align]
 
       attribute :accrualMethod, namespace: :dct, type: %i[list uri]
       attribute :accrualPeriodicity, namespace: :dct
