@@ -15,6 +15,7 @@ module LinkedData
           # Sort submissions in descending order of submissionId, extract last two submissions
           sorted_submissions = submissions.sort { |a, b| b.submissionId <=> a.submissionId }.reverse
 
+          self.bring :submissionId if self.bring?(:submissionId)
           current_index = sorted_submissions.index { |x| x.submissionId.eql?(self.submissionId) }
 
           if current_index.nil?
@@ -70,12 +71,28 @@ module LinkedData
 
           inst.bring :modificationDate if inst.bring?(:modificationDate)
 
-          if inst.modificationDate.nil? || (sub.modificationDate >= inst.modificationDate)
-            [:modification_date_previous_align,
-             "modification date can't be inferior to the previous submission modification date #{sub.modificationDate}"]
-          end
+          return unless inst.modificationDate.nil? || (sub.modificationDate >= inst.modificationDate)
+          [:modification_date_previous_align,
+           "modification date can't be inferior to the previous submission modification date #{sub.modificationDate}"]
+
         end
 
+        def include_ontology_views(inst, attr)
+          self.bring :ontology if self.bring?(:ontology)
+          return if self.ontology.nil?
+
+          self.ontology.bring :views
+          views = self.ontology.views
+
+          return if views.nil? || views.empty?
+
+          inst.bring :hasPart if inst.bring? :hasPart
+          parts = inst.hasPart || []
+          return if views.all? { |v| parts.include?(v.id) }
+
+          [:include_ontology_views, "#{attr} needs to include all the views of the ontology"]
+
+        end
       end
 
       module UpdateCallbacks
@@ -134,7 +151,6 @@ module LinkedData
           values = inst.send(attr)
           is_list = values&.is_a?(Array)
           values = Array(values)
-
 
           values += [sub.id] unless values.include?(sub.id)
 

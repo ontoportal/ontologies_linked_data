@@ -165,7 +165,7 @@ module LinkedData
       attribute :abstract, namespace: :dct, enforce: [:textarea]
 
       attribute :alternative, namespace: :dct, type: :list
-      attribute :hasPart, namespace: :dct, type: %i[uri list] , enforce: [:isOntology]
+      attribute :hasPart, namespace: :dct, type: %i[uri list], enforce: %i[isOntology include_ontology_views]
 
       attribute :isFormatOf, namespace: :dct, type: :uri
 
