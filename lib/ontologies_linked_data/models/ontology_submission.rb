@@ -55,7 +55,7 @@ module LinkedData
 
       attribute :description, namespace: :omv, enforce: %i[concatenate existence]
 
-      attribute :status, namespace: :omv, enforce: %i[existence status_deprecated_align status_previous_align]
+      attribute :status, namespace: :omv, enforce: %i[existence], onUpdate: %i[status_deprecated_align status_previous_align]
 
       attribute :contact, type: %i[contact list], enforce: [:existence]
 
@@ -130,7 +130,7 @@ module LinkedData
 
       attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri], enforce: [:isOntology]
 
-      attribute :deprecated, namespace: :owl, type: :boolean
+      attribute :deprecated, namespace: :owl, type: :boolean, default: ->(x) {false}
 
       attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
 
