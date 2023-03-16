@@ -14,7 +14,49 @@ module LinkedData
           end
         end
 
+        def status_deprecated_align(inst, attr)
+          if retired?(inst)
+            inst.bring :deprecated if inst.bring?(:deprecated)
+            inst.deprecated = true
+          end
+        end
+
+        def status_previous_align(inst, attr)
+          if retired?(inst)
+            sub = previous_submission
+            return if sub.nil?
+            sub.bring :status if sub.bring?(:status)
+            sub.status = 'retired'
+            sub.bring_remaining
+            sub.save
+          end
+        end
+
+
+
         private
+
+        def previous_submission
+          self.ontology.bring(:submissions) if self.ontology.bring?(:submissions)
+          submissions = self.ontology.submissions
+
+          return if submissions.nil?
+
+          submissions.each { |s| s.bring(:submissionId) }
+          # Sort submissions in descending order of submissionId, extract last two submissions
+          recent_submissions = submissions.sort { |a, b| b.submissionId <=> a.submissionId }[0..1]
+
+          if recent_submissions.length > 1
+            # validate that the most recent submission is the current submission
+            if self.submissionId == recent_submissions.first.submissionId
+              return recent_submissions.last
+            end
+          end
+        end
+
+        def retired?(inst)
+          inst.status.eql?('retired')
+        end
 
         def new_and_deleted_elements(current_values, previous_values)
           new_elements = current_values - previous_values
