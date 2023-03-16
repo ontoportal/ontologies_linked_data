@@ -126,7 +126,7 @@ module LinkedData
 
       attribute :useImports, namespace: :omv, type: %i[list uri], enforce: %i[isOntology custom_inverse_of_usedBy]
 
-      attribute :hasPriorVersion, namespace: :omv, type: :uri, enforce: [:include_previous_submission]
+      attribute :hasPriorVersion, namespace: :omv, type: :uri, onUpdate: [:include_previous_submission]
 
       attribute :isBackwardCompatibleWith, namespace: :omv, type: %i[list uri], enforce: [:isOntology]
 

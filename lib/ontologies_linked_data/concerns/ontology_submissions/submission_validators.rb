@@ -126,7 +126,20 @@ module LinkedData
           sub.save if changed
         end
 
-        def include_previous_submission(inst, attr) end
+        def include_previous_submission(inst, attr)
+          sub = previous_submission
+          return if sub.nil?
+
+          inst.bring(attr) if inst.bring?(attr)
+          values = inst.send(attr)
+          is_list = values&.is_a?(Array)
+          values = Array(values)
+
+
+          values += [sub.id] unless values.include?(sub.id)
+
+          inst.send("#{attr}=", is_list ? values : values.first)
+        end
 
         private
 
