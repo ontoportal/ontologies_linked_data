@@ -118,6 +118,16 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
     latest.save
   end
 
+  def test_has_prior_version_callback
+    sorted_submissions = sorted_submissions_init
+
+    sorted_submissions.each_cons(2) do |current, previous|
+      current.bring :hasPriorVersion
+      assert previous.id, current.hasPriorVersion
+    end
+
+  end
+
   private
 
   def sorted_submissions_init
