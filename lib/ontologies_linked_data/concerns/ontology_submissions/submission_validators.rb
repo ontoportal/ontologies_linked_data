@@ -14,21 +14,54 @@ module LinkedData
           end
         end
 
-        def status_deprecated_align(inst, attr)
-          if retired?(inst)
-            inst.bring :deprecated if inst.bring?(:deprecated)
-            inst.deprecated = true
-          end
+        def retired_previous_align(inst, attr)
+          return unless retired?
+
+          sub = previous_submission
+          return if sub.nil?
+
+          sub.bring_remaining
+          sub.status = 'retired'
+          sub.valid = DateTime.now if sub.valid.nil?
+          sub.deprecated = true
+          sub.save
         end
 
-        def status_previous_align(inst, attr)
-          if retired?(inst)
-            sub = previous_submission
-            return if sub.nil?
-            sub.bring :status if sub.bring?(:status)
-            sub.status = 'retired'
-            sub.bring_remaining
-            sub.save
+        def deprecated_retired_align(inst, attr)
+          [:deprecated_retired_align, "can't be with the status retired and not deprecated"] if !deprecated? && retired?
+        end
+
+        def deprecate_previous_submissions(inst, attr)
+          sub = previous_submission
+          return if sub.nil?
+
+          changed = false
+
+          sub.bring_remaining
+          unless deprecated?(sub)
+            sub.deprecated = true
+            changed = true
+          end
+
+          unless sub.valid
+            inst.bring :modificationDate if inst.bring?(:modificationDate)
+            inst.bring :creationDate if inst.bring?(:creationDate)
+            sub.valid = inst.modificationDate || inst.creationDate || DateTime.now
+            changed = true
+          end
+          sub.save if changed
+        end
+
+        def validity_date_retired_align(inst, attr)
+          valid_date = inst.send(attr)
+
+          if deprecated? || retired?
+            if valid_date.nil? || (valid_date && valid_date >= DateTime.now)
+              [:validity_date_retired_align, "validity date should be before or equal to #{DateTime.now}"]
+            end
+          elsif valid_date && valid_date <= DateTime.now
+            [:validity_date_retired_align,
+             "can't be with the status retired  and with validity date should that is before or equal to #{DateTime.now}"]
           end
         end
 
@@ -44,18 +77,31 @@ module LinkedData
 
           submissions.each { |s| s.bring(:submissionId) }
           # Sort submissions in descending order of submissionId, extract last two submissions
-          recent_submissions = submissions.sort { |a, b| b.submissionId <=> a.submissionId }[0..1]
+          sorted_submissions = submissions.sort { |a, b| b.submissionId <=> a.submissionId }.reverse
 
-          if recent_submissions.length > 1
-            # validate that the most recent submission is the current submission
-            if self.submissionId == recent_submissions.first.submissionId
-              return recent_submissions.last
-            end
+          current_index = sorted_submissions.index { |x| x.submissionId.eql?(self.submissionId) }
+
+          if current_index.nil?
+            sorted_submissions.last
+          else
+            min_index = [current_index - 1, 0].max
+            sub = sorted_submissions[min_index]
+            sub unless sub.submissionId.eql?(self.submissionId)
           end
         end
 
-        def retired?(inst)
-          inst.status.eql?('retired')
+        def deprecate(inst)
+          inst.bring :deprecated if inst.bring?(:deprecated)
+          inst.deprecated = true
+        end
+
+        def retired?
+          self.status.eql?('retired')
+        end
+
+        def deprecated?(inst = self)
+          inst.bring :deprecated if inst.bring?(:deprecated)
+          inst.deprecated
         end
 
         def new_and_deleted_elements(current_values, previous_values)
