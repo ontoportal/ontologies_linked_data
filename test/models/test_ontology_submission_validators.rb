@@ -128,6 +128,57 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
 
   end
 
+  def test_update_submissions_has_part
+    ont_count, ont_acronyms, ontologies =
+      create_ontologies_and_submissions(ont_count: 3, submission_count: 1,
+                                        process_submission: false, acronym: 'NCBO-545')
+
+    assert_equal 3, ontologies.size
+
+    ontologies.each { |o| o.bring(:viewOf) }
+    ont_one = ontologies[0]
+    ont_two = ontologies[1]
+    ont_three = ontologies[2]
+
+    ont_two.bring_remaining
+    ont_three.bring_remaining
+
+    ont_two.viewOf = ont_one
+    ont_three.viewOf = ont_one
+
+    ont_two.save
+    ont_three.save
+
+    ont_one.bring :submissions
+
+    sub = ont_one.submissions.first
+
+    refute_nil sub
+
+    sub.bring :hasPart if sub.bring?(:hasPart)
+    assert_equal [ont_two.id, ont_three.id].sort, sub.hasPart.sort
+
+    sub.hasPart = [ont_two.id]
+
+    refute sub.valid?
+    assert sub.errors[:hasPart][:include_ontology_views]
+
+    ont_two.viewOf = nil
+
+    ont_two.save
+
+    sub.bring :hasPart
+    assert_equal [ont_three.id].sort, sub.hasPart.sort
+
+    ont_three.viewOf = nil
+    ont_three.save
+
+    sub.bring_remaining
+    sub.hasPart = []
+    sub.save
+
+  end
+
   private
 
   def sorted_submissions_init
