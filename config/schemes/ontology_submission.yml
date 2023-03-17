@@ -6,10 +6,9 @@ URI:
   display: "general"
   example: 'https://w3id.org/myontto'
 
-
 homepage:
   extractedMetadata: true
-  description: ["FOAF: A homepage for something." "MOD: An unambiguous reference to the resource within a given context.", "DOAP: URI of a blog related to a project." "CC: The URL the creator of a Work would like used when attributing re-use." "SCHEMA: Indicates a page (or other CreativeWork) for which this thing is the main entity being described"]
+  description: ["FOAF: A homepage for something.", "MOD: An unambiguous reference to the resource within a given context.", "DOAP: URI of a blog related to a project.", "CC: The URL the creator of a Work would like used when attributing re-use.", "SCHEMA: Indicates a page (or other CreativeWork) for which this thing is the main entity being described"]
   metadataMappings: [ "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage" ]
   helpText: "The URL of the homepage for the ontology."
 
@@ -58,13 +57,12 @@ version:
 
 description:
   extractedMetadata: true
-  description:["DCTERMS: An account of the resource","SCHEMA: A description of the item.","OMV: Free text description of an ontology.","DOAP: Plain text description of a project, of 2-4 sentences in length.","RDFS: A human-readable description of a resource."]
+  description: ["DCTERMS: An account of the resource","SCHEMA: A description of the item.","OMV: Free text description of an ontology.","DOAP: Plain text description of a project, of 2-4 sentences in length.","RDFS: A human-readable description of a resource."]
   helpText: "Free text description of the ontology."
   metadataMappings: [ "dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark" ]
 
 status:
   extractedMetadata: true
-  description:
   metadataMappings: [ "adms:status", "idot:state" ]
   helpText: "Information about the ontology status (alpha, beta, production, retired)."
   enforcedValues: [ "alpha", "beta", "production", "retired" ]
@@ -84,7 +82,7 @@ creationDate:
 
 released:
   extractedMetadata: true
-  description:["DCTERMS: Date of submission of the resource.",
+  description: ["DCTERMS: Date of submission of the resource.",
                "SCHEMA: Date of first broadcast/publication."]
   label: "Release date"
   helpText: "Date of the ontology release."
@@ -111,7 +109,7 @@ numberOfIndividuals:
 
 numberOfProperties:
   metadataMappings: [ "void:properties", "voaf:propertyNumber", "mod:noOfProperties" ]
-  description:["MOD: The total number of properties in an ontology.", 
+  description: ["MOD: The total number of properties in an ontology.",
                "OMV: Number of properties in the ontology.", 
                "VOAF: The number of properties defined in the vocabulary namespace. Properties imported from other namespaces are not taken into account.",
                "VOID: The total number of distinct properties in a void:Dataset. In other words, the number of distinct resources that occur in the predicate position of triples in the dataset.
@@ -212,8 +210,7 @@ hasCreator:
                 "PAV: An agent that originated or gave existence to the work that is expressed by the digital resource.",
                 "PAV: An agent primary responsible for making the digital artifact or resource representation.",
                 "DOAP: Maintainer of a project, a project leader.",
-                "SCHEMA: The author of this content or rating.",
-"]
+                "SCHEMA: The author of this content or rating."]
   label: "Creators"
   metadataMappings: [ "dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator" ]
   helpText: "Main responsible for the creation of the ontology."
@@ -562,9 +559,7 @@ hiddenLabel:
 coverage:
   extractedMetadata: true
   description: ["DCTERMS: The spatial or temporal topic of the resource, the spatial applicability of the resource, or the jurisdiction under which the resource is relevant. Spatial topic and spatial applicability may be a named place or a location specified by its geographic coordinates. Temporal topic may be a named period, date, or date range. A jurisdiction may be a named administrative entity or a geographic place to which the resource applies.",
-                "SCHEMA: The""spatial""property can be used in cases when more specific properties (e.g. locationCreated, spatialCoverage, contentLocation) are not known to be appropriate.
-
-"]
+                "SCHEMA: The 'spatial' property can be used in cases when more specific properties (e.g. locationCreated, spatialCoverage, contentLocation) are not known to be appropriate."]
   metadataMappings: [ "dc:coverage", "schema:spatial" ]
   display: "usage"
   helpText: "The spatial or temporal topic of the ontology, the spatial applicability of the ontology, or the jurisdiction under which the ontology is relevant."
@@ -582,7 +577,7 @@ publisher:
 identifier:
   extractedMetadata: true
   description: ["DCTERMS: An unambiguous reference to the resource within a given context. Recommended practice is to identify the resource by means of a string conforming to an identification system. Examples include International Standard Book Number (ISBN), Digital Object Identifier (DOI), and Uniform Resource Name (URN).  Persistent identifiers should be provided as HTTP URIs.", 
-                "SKOS: A notation is a string of characters such as""T58.5""or""303.4833""used to uniquely identify a concept within the scope of a given concept scheme.",
+                "SKOS: A notation is a string of characters such as\"T58.5\"or\"303.4833\"used to uniquely identify a concept within the scope of a given concept scheme.",
                 "ADMS: adms:identifier is used to link any resource to an instance of adms:Identifier which is its range. N.B. it is not appropriate to use dcterms:identifer to link to the Identifier class as its range is rdfs:Literal. ADMS uses this to provide any identifier for the Asset.",
                 "SCHEMA: The identifier property represents any kind of identifier for any kind of Thing, such as ISBNs, GTIN codes, UUIDs etc. Schema.org provides dedicated properties for representing many of these, either as textual strings or as URL (URI) links. 
 "]
@@ -877,10 +872,8 @@ award:
 
 copyrightHolder:
   extractedMetadata: true
-  description: ["SCHEMA: The party holding the legal copyright to the CreativeWork.
-                "DCTERMS: A person or organization owning or managing rights over the resource.
-            
-"]
+  description: ["SCHEMA: The party holding the legal copyright to the CreativeWork.",
+                "DCTERMS: A person or organization owning or managing rights over the resource."]
   display: "license"
   helpText: "The party holding the legal copyright to the CreativeWork."
   example : 'INRAE (003vg9w96)'
