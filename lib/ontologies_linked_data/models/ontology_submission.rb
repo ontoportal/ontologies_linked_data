@@ -124,7 +124,7 @@ module LinkedData
 
       attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list uri]
 
-      attribute :useImports, namespace: :omv, type: %i[list uri], enforce: %i[isOntology custom_inverse_of_usedBy]
+      attribute :useImports, namespace: :omv, type: %i[list uri], enforce: %i[isOntology], onUpdate: :ontology_inverse_of_callback
 
       attribute :hasPriorVersion, namespace: :omv, type: :uri, onUpdate: [:include_previous_submission]
 
@@ -201,7 +201,7 @@ module LinkedData
       attribute :competencyQuestion, namespace: :mod, type: :list, enforce: [:textarea]
 
       # New metadata from VOAF
-      attribute :usedBy, namespace: :voaf, type: %i[uri list], enforce: [:isOntology]
+      attribute :usedBy, namespace: :voaf, type: %i[uri list], enforce: [:isOntology], onUpdate: :ontology_inverse_of_callback
 
       attribute :metadataVoc, namespace: :voaf, type: %i[uri list], enforce: [:isOntology]
 

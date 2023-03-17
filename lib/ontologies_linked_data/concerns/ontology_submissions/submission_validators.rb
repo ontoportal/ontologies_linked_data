@@ -99,13 +99,18 @@ module LinkedData
         include ValidatorsHelpers
 
         def enforce_symmetric_ontologies(inst, attr)
-          previous_values = inst.previous_values ? Array(inst.previous_values[attr]) : []
-          new_values, deleted_values = new_and_deleted_elements(Array(inst.send(attr)), previous_values)
+          new_values, deleted_values = new_and_deleted_elements(Array(inst.send(attr)), attr_previous_values(inst, attr))
           deleted_values.each do |val|
-            update_submission_values(inst, attr, val, action: :remove)
+            submission, target_ontologies = target_ontologies(attr, val)
+            next unless submission
+
+            update_submission_values(inst, attr, submission, target_ontologies, action: :remove)
           end
           new_values.each do |val|
-            update_submission_values(inst, attr, val)
+            submission, target_ontologies = target_ontologies(attr, val)
+            next unless submission
+
+            update_submission_values(inst, attr, submission, target_ontologies)
           end
         end
 
@@ -157,7 +162,33 @@ module LinkedData
           inst.send("#{attr}=", is_list ? values : values.first)
         end
 
+        def ontology_inverse_of_callback(inst, attr)
+          inst.bring(attr) if inst.bring?(attr)
+          inverse_attr = attr.eql?(:useImports) ? :usedBy : :useImports
+
+          values = Array(inst.send(attr))
+          new_values, deleted_values = new_and_deleted_elements(values, attr_previous_values(inst, attr))
+
+          new_values.each do |ontology|
+            submission, inverse_values = target_ontologies(inverse_attr, ontology)
+            next unless submission
+
+            update_submission_values(inst, inverse_attr, submission, inverse_values, action: :append)
+          end
+
+          deleted_values.each do |ontology|
+            submission, inverse_values = target_ontologies(inverse_attr, ontology)
+            next unless submission
+
+            update_submission_values(inst, inverse_attr, submission, inverse_values, action: :remove)
+          end
+        end
+
         private
+
+        def attr_previous_values(inst, attr)
+          inst.previous_values ? Array(inst.previous_values[attr]) : []
+        end
 
         def new_and_deleted_elements(current_values, previous_values)
           new_elements = current_values - previous_values
@@ -165,10 +196,7 @@ module LinkedData
           [new_elements, deleted_elements]
         end
 
-        def update_submission_values(inst, attr, val, action: :append)
-
-          submission, target_ontologies = target_ontologies(attr, val)
-
+        def update_submission_values(inst, attr, submission, target_ontologies, action: :append)
           if action.eql?(:append) && target_ontologies && !target_ontologies.include?(inst.ontology.id)
             target_ontologies << inst.ontology.id
           elsif action.eql?(:remove) && target_ontologies && target_ontologies.include?(inst.ontology.id) # delete
@@ -178,7 +206,7 @@ module LinkedData
           end
           submission.bring_remaining
           submission.send("#{attr}=", target_ontologies)
-          submission.save(callbacks: false) if submission.valid?
+          submission.save(callbacks: false)
         end
 
         def target_ontologies(attr, val)
