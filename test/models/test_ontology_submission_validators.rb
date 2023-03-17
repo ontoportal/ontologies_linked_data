@@ -5,41 +5,7 @@ require "rack"
 class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
 
   def test_enforce_symmetric_ontologies
-    ont_count, ont_acronyms, ontologies =
-      create_ontologies_and_submissions(ont_count: 3, submission_count: 1,
-                                        process_submission: false, acronym: 'NCBO-545')
-
-    assert_equal 3, ontologies.size
-
-    ontologies[0].bring :submissions
-    first_sub = ontologies[0].submissions.last
-
-    refute_nil first_sub
-    first_sub.bring :ontologyRelatedTo
-
-    assert_empty first_sub.ontologyRelatedTo
-    first_sub.ontologyRelatedTo = [ontologies[1].id, ontologies[2].id]
-    first_sub.bring_remaining
-
-    assert first_sub.valid?
-
-    first_sub.save
-    sub = nil
-    2.times do |i|
-      ontologies[i + 1].bring :submissions
-      sub = ontologies[i + 1].submissions.last
-      sub.bring :ontologyRelatedTo
-      assert_equal [ontologies[0].id], sub.ontologyRelatedTo
-    end
-
-    #sub is the submission of the ontology 2
-    sub.bring_remaining
-    sub.ontologyRelatedTo = []
-    sub.save
-
-    first_sub.bring :ontologyRelatedTo
-    assert_equal [ontologies[1].id], first_sub.ontologyRelatedTo
-
+    ontologies_properties_callbacks(:ontologyRelatedTo)
   end
 
   # Regroup all validity test related to a submission retired status (deprecated, valid date)
@@ -179,6 +145,10 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
 
   end
 
+  def test_inverse_use_imports_callback
+    ontologies_properties_callbacks(:useImports, :usedBy)
+  end
+
   private
 
   def sorted_submissions_init
@@ -195,4 +165,44 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
     ont.submissions.sort { |a, b| b.submissionId <=> a.submissionId }
   end
 
+
+  def ontologies_properties_callbacks(attr, inverse_attr = nil)
+    inverse_attr = attr unless  inverse_attr
+    ont_count, ont_acronyms, ontologies =
+      create_ontologies_and_submissions(ont_count: 3, submission_count: 1,
+                                        process_submission: false, acronym: 'NCBO-545')
+
+
+    assert_equal 3, ontologies.size
+
+    ontologies[0].bring :submissions
+    first_sub = ontologies[0].submissions.last
+
+    refute_nil first_sub
+    first_sub.bring attr
+
+    assert_empty first_sub.send(attr)
+    first_sub.bring_remaining
+    first_sub.send( "#{attr}=",[ontologies[1].id, ontologies[2].id])
+
+    assert first_sub.valid?
+
+    first_sub.save
+
+    sub = nil
+    2.times do |i|
+      ontologies[i + 1].bring :submissions
+      sub = ontologies[i + 1].submissions.last
+      sub.bring(inverse_attr)
+      assert_equal [ontologies[0].id], sub.send(inverse_attr)
+    end
+
+    #sub is the submission of the ontology 2
+    sub.bring_remaining
+    sub.send("#{inverse_attr}=", [])
+    sub.save
+
+    first_sub.bring(attr)
+    assert_equal [ontologies[1].id], first_sub.send(attr)
+  end
 end
