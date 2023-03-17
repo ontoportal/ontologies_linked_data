@@ -1,6 +1,6 @@
 URI:
   extractedMetadata: true
-  label: "URI2"
+  label: "URI identifier"
   helpText: "The URI of the ontology which is described by this metadata."
   description: [ "OMV: The URI of the ontology which is described by these metadata." ]
   display: "general"
@@ -11,18 +11,20 @@ homepage:
   description: ["FOAF: A homepage for something.", "MOD: An unambiguous reference to the resource within a given context.", "DOAP: URI of a blog related to a project.", "CC: The URL the creator of a Work would like used when attributing re-use.", "SCHEMA: Indicates a page (or other CreativeWork) for which this thing is the main entity being described"]
   metadataMappings: [ "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage" ]
   helpText: "The URL of the homepage for the ontology."
+  label: "Homepage"
 
 hasOntologyLanguage:
   display: 'general'
   description: [ "SCHEMA: Media type, typically MIME format (see IANA site) of the content, e.g. application/zip of a SoftwareApplication binary. In cases where a CreativeWork has several media type representations, 'encoding' can be used to indicate each MediaObject alongside particular fileFormat information. Unregistered or niche file formats can be indicated instead via the most appropriate URL, e.g. defining Web page or a Wikipedia entry.", "MOD: A language that is used to create an ontology."]
-
+  label: "Language"
 
 publication:
   extractedMetadata: true
   description: ["SCHEMA: A citation or reference to another creative work, such as another publication, web page, scholarly article, etc.","DCTERMS: A bibliographic reference for the resource.","OMV: List of bibliographic references describing the ontology and its applications.","FOAF: A document that this thing is the primary topic of"]
   helpText: "The URL of bibliographic reference for the ontology."
   metadataMappings: [ "omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation" ]
-
+ label: "Publication"
+ 
 naturalLanguage:
   extractedMetadata: true
   description: ["DUBLIN CORE: A language of the resource.","SCHEMA: The language of the content or performance or used in an action. Please use one of the language codes from the IETF BCP 47 standard. See also availableLanguage.","DOAP: ISO language code a project has been translated into."]
@@ -35,13 +37,14 @@ naturalLanguage:
     "http://lexvo.org/id/iso639-3/por": "Portuguese",
     "http://lexvo.org/id/iso639-3/ita": "Italian",
     "http://lexvo.org/id/iso639-3/deu": "German" }
-
+  label: "Natural language"
+  
 documentation:
   extractedMetadata: true
   description: ["DCTERMS: A link to the documentation page on a thing","DCAT: A Web page that can be navigated to in a Web browser to gain access to the dataset, its distributions and/or additional information.", "OMV: URL for further documentation.","RDFS: Further information about the subject resource.", "DOAP: URL of Wiki for collaborative discussion of project. ","VANN: A reference to a resource that provides information on how this resource is to be used","MOD: A link to the documentation page on a thing."]
   metadataMappings: [ "rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki" ]
   helpText: "URL for further documentation."
-
+  label: "Documentation"
 version:
   extractedMetadata: true
   helpText: "The version of the released ontology"
@@ -54,8 +57,9 @@ version:
                  "DOAP: A project release",
                  "ADMS : A link to the current or latest version of the Asset" ]
   example: "v.3.2.0"
-
+  label: "Version"
 description:
+  label: "Description"
   extractedMetadata: true
   description: ["DCTERMS: An account of the resource","SCHEMA: A description of the item.","OMV: Free text description of an ontology.","DOAP: Plain text description of a project, of 2-4 sentences in length.","RDFS: A human-readable description of a resource."]
   helpText: "Free text description of the ontology."
@@ -63,6 +67,7 @@ description:
 
 status:
   extractedMetadata: true
+  label: "Status"
   metadataMappings: [ "adms:status", "idot:state" ]
   helpText: "Information about the ontology status (alpha, beta, production, retired)."
   enforcedValues: [ "alpha", "beta", "production", "retired" ]
@@ -74,11 +79,15 @@ status:
 
 contact:
   helpText: "The people to contact when questions about the ontology. Composed of the contacts name and email."
+  label: "Contact"
   description: "DCAT: Relevant contact information for the cataloged resource. Use of vCard is recommended"
 
 creationDate:
-  description:
+  description: ["DCTERMS: Date of submission of the resource.",
+                "SCHEMA: Date of first broadcast/publication.
+"]
   metadataMappings: [ "dct:dateSubmitted", "schema:datePublished" ]
+  label: "Creation date"
 
 released:
   extractedMetadata: true
@@ -97,6 +106,7 @@ numberOfClasses:
                 "VOID: The total number of distinct classes in a void:Dataset. In other words, the number of distinct resources occurring as objects of rdf:type."]
   display: "metrics"
   helpText: "Number of classes in this ontology. Automatically computed by OWLAPI."
+  label: "Number of classes"
 
 numberOfIndividuals:
   metadataMappings: [ "mod:noOfIndividuals" ]
@@ -106,6 +116,7 @@ numberOfIndividuals:
 "]
   display: "metrics"
   helpText: "Number of individuals in this ontology. Automatically computed by OWLAPI."
+  label: "Number of individuals"
 
 numberOfProperties:
   metadataMappings: [ "void:properties", "voaf:propertyNumber", "mod:noOfProperties" ]
@@ -116,6 +127,7 @@ numberOfProperties:
 "]
   display: "metrics"
   helpText: "Number of properties in this ontology. Automatically computed by OWLAPI."
+  label: "Number of properties"
 
 
 modificationDate:
@@ -126,6 +138,7 @@ modificationDate:
                 "PAV: The date of the last update of the resource"]
   metadataMappings: [ "dct:modified", "schema:dateModified", "pav:lastUpdateOn", "mod:updated" ]
   helpText: "Date of the last modification made to the ontology"
+  label: "Modification date"
 
 entities:
   extractedMetadata: true
@@ -133,6 +146,7 @@ entities:
   label: "Number of entities"
   display: "metrics"
   helpText: "Number of entities in this ontology."
+  label: "Number of individuals"
 
 numberOfAxioms:
   extractedMetadata: true
@@ -141,6 +155,7 @@ numberOfAxioms:
   metadataMappings: [ "mod:noOfAxioms", "void:triples" ]
   display: "metrics"
   helpText: "Number of axioms in this ontology."
+  label: "Number of axioms or triples"
 
 keyClasses:
   extractedMetadata: false
@@ -150,6 +165,7 @@ keyClasses:
   display: "content"
   metadataMappings: [ "foaf:primaryTopic", "void:exampleResource", "schema:mainEntity" ]
   helpText: "Representative classes in the ontology."
+  label: "Key classes"
 
 keywords:
   extractedMetadata: true
@@ -160,6 +176,7 @@ keywords:
                 "MOD: A keyword(s) is used to describe the content of an ontology."]
   helpText: "List of keywords related to the ontology."
   metadataMappings: [ "mod:keyword", "dcat:keyword", "schema:keywords" ]
+  label: "Keywords"
 
 knownUsage:
   extractedMetadata: true
@@ -167,6 +184,7 @@ knownUsage:
   display: "usage"
   helpText: "The applications where the ontology is being used."
   example: "Used to annotate phenotypes and patterns of gene expression"
+  label: "Known usage"
 
 notes:
   extractedMetadata: true
@@ -175,6 +193,7 @@ notes:
 "]
   metadataMappings: [ "rdfs:comment", "adms:versionNotes" ]
   helpText: "Additional information about the ontology that is not included somewhere else (e.g. information that you do not want to include in the documentation)."
+  label: "Notes"
 
 conformsToKnowledgeRepresentationParadigm:
   extractedMetadata: true
@@ -186,6 +205,7 @@ conformsToKnowledgeRepresentationParadigm:
   metadataMappings: [ "mod:KnowledgeRepresentationFormalism", "dct:conformsTo" ]
   display: "methodology"
   helpText: "A representation formalism that is followed to describe knowledge in an ontology. Example includes description logics, first order logic, etc."
+  label: "Knowledge representation paradigm"
 
 hasContributor:
   extractedMetadata: true
@@ -221,6 +241,7 @@ designedForOntologyTask:
                 "OMV: The purpose for which the ontology was originally designed.
 "]
   display: "usage"
+  label: "Designed for task"
   helpText: "The purpose for which the ontology was originally designed."
   enforcedValues: {
     "http://omv.ontoware.org/2005/05/ontology#AnnotationTask": "Annotation Task",
@@ -240,10 +261,12 @@ wasGeneratedBy:
   extractedMetadata: true
   description: ["PROV: Generation is the completion of production of a new entity by an activity. This entity did not exist before generation and becomes available for usage after this generation"]
   display: "people"
+  label: "Was generated by"
   helpText: "People who generated the ontology."
 
 wasInvalidatedBy:
   extractedMetadata: true
+  label: "Was invalidated by"
   description: ["PROV: Invalidation is the start of the destruction, cessation, or expiry of an existing entity by an activity"]
   display: "people"
   helpText: "People who invalidated the ontology."
@@ -254,12 +277,14 @@ curatedBy:
                 "MOD: A curator who restructure the previously authored content and shape it to be appropriate for the intended representation (e.g. by normalizing the fields for being represented in a spreadsheet).
 "]
   display: "people"
+  label: "Curator"
   metadataMappings: [ "mod:evaluatedBy" ]
   helpText: "People who curated the ontology."
   example: 'Yvonne M. Bradford (0000-0002-9900-7880)'
 
 endorsedBy:
   extractedMetadata: true
+  label: "Endorsed by"
   description: ["MOD: An ontology endorsed by an agent.",
                 "OMV: The parties that have expressed support or approval to this ontology.
 "]
@@ -270,6 +295,7 @@ endorsedBy:
 
 fundedBy:
   extractedMetadata: true
+  label: "Funded or sponsored by"
   description: ["MOD: An ontology that is sponsored by and developed under a project.",
                 "FOAF: An organization funding a project or person.",
                 "SCHEMA: The Organization on whose behalf the creator was working.
@@ -282,6 +308,7 @@ fundedBy:
 
 translator:
   extractedMetadata: true
+  label: "Translator"
   description: "SCHEMA: Organization or person who adapts a creative work to different languages, regional differences and technical requirements of a target market, or that translates during some event."
   metadataMappings: [ "doap:translator" ]
   display: "people"
@@ -289,6 +316,7 @@ translator:
 
 hasDomain:
   extractedMetadata: true
+  label: "Subject"
   description: ["DCTERMS: The topic of the resource.",
                 "SCHEMA: The subject matter of the content.",
                 "FOAF: A topic of some page or document.",
@@ -302,6 +330,7 @@ hasDomain:
 
 hasFormalityLevel:
   extractedMetadata: true
+  label: "Formality level"
   metadataMappings: [ "mod:ontologyFormalityLevel" ]
   helpText: "Level of formality of the ontology."
   enforcedValues: {
@@ -325,6 +354,7 @@ hasFormalityLevel:
 
 hasLicense:
   extractedMetadata: true
+  label: "License"
   description: ["CC: A Work has a License.",
                 "DC: Information about rights held in and over the resource.", 
                 "SCHEMA: A license document that applies to this content, typically indicated by URL.",
@@ -381,6 +411,7 @@ isOfType:
                 "DCTERMS: The nature or genre of the resource.
 "]
   metadataMappings: [ "dc:type", "dct:type" ]
+  label: "Generic Type"
   helpText: "The nature of the content of the ontology.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;http://wiki.dublincore.org/index.php/NKOS_Vocabularies#KOS_Types_Vocabulary&quot;&gt;DCMI KOS type vocabularies&lt;/a&gt;"
   enforcedValues: {
     "http://omv.ontoware.org/2005/05/ontology#ApplicationOntology": "Application Ontology",
@@ -393,6 +424,7 @@ isOfType:
 
 usedOntologyEngineeringMethodology:
   extractedMetadata: true
+  label: "Engineering methodology"
   description: ["MOD: A methodology following which an ontology is created",
                 "SCHEMA: The publishingPrinciples property indicates (typically via URL) a document describing the editorial principles of an Organization (or individual, e.g. a Person writing a blog) that relate to their activities as a publisher, e.g. ethics or diversity policies.",
                 "ADMS: More information about the format in which an Asset Distribution is released. This is different from the file format as, for example, a ZIP file (file format) could contain an XML schema (representation technique)."]
@@ -402,6 +434,7 @@ usedOntologyEngineeringMethodology:
 
 usedOntologyEngineeringTool:
   extractedMetadata: true
+  label: "Created With"
   description: ["PAV: The software/tool used by the creator (pav:createdBy) when making the digital resource, for instance a word processor or an annotation tool.",
                 "MOD: The tool used for the creation of an ontology.",
                 "OMV: Information about the tool used to create the ontology.
@@ -429,6 +462,7 @@ usedOntologyEngineeringTool:
 
 useImports:
   extractedMetadata: true
+  label: "Imports"
   description: ["OWL: References another OWL ontology containing definitions, whose meaning is considered to be part of the meaning of the importing ontology.",
                 "OMV: References another ontology metadata instance that describes an ontology containing definitions, whose meaning is considered to be part of the meaning of the ontology described by this ontology metadata instance.",
                 "DCTERMS: A related resource that is required by the described resource to support its function, delivery, or coherence.",
@@ -440,6 +474,7 @@ useImports:
 
 hasPriorVersion:
   extractedMetadata: true
+  label: "Prior version"
   description: ["OWL:  This identifies the specified ontology as a prior version of the containing ontology.",
                 "OMV: Contains a reference to another ontology metadata instance.",
                 "DCTERMS: A related resource of which the described resource is a version, edition, or adaptation.", 
@@ -453,6 +488,7 @@ hasPriorVersion:
 
 isBackwardCompatibleWith:
   extractedMetadata: true
+  label: "Backward compatible"
   description: ["OWL: This identifies the specified ontology as a prior version of the containing ontology, and further indicates that it is backward compatible with it.",
                 "OMV: The ontology metadata instance which describes an ontology that is a compatible prior version of the ontology described by this ontology metadata Instance.", 
                 "DOOR: The relation of being a compatible new version from owl
@@ -463,6 +499,7 @@ isBackwardCompatibleWith:
 
 isIncompatibleWith:
   extractedMetadata: true
+  label: "Incompatible"
   description: ["OWL: This indicates that the containing ontology is a later version of the referenced ontology, but is not backward compatible with it.",
                 "OMV: The described ontology is a later version of the ontology described by the metadata specified, but is not backward compatible with it. It can be used to explicitly state that ontology cannot upgrade to use the new version without checking whether changes are required.
 
@@ -473,6 +510,7 @@ isIncompatibleWith:
 
 deprecated:
   extractedMetadata: true
+  label: "Deprecated"
   metadataMappings: [ "idot:obsolete" ]
   helpText: "To specify if the ontology IRI is deprecated"
   description: [ "DCAT: An annotation with the owl:deprecated annotation property and the value equal to \"true\"^^xsd:boolean can be used to specify that an IRI is deprecated",
@@ -489,6 +527,7 @@ versionIRI:
 
 ontologyRelatedTo:
   extractedMetadata: true
+  label: "Generally related to"
   description: ["DCTERMS: A related resource",
                 "VOAF: Indicates that the subject vocabulary uses or extends some class or property of the object vocabulary
 "]
@@ -505,6 +544,7 @@ comesFromTheSameDomain:
 
 similarTo:
   extractedMetadata: true
+  label: "Similar to"
   description: ["VOAF: Used to assert that two vocabularies are similar in scope and objectives, independently of the fact that they otherwise refer to each other.", 
                 "DOOR: Represents the meaning of 'how an ontology overlap/cover parts of the same area of interest of another ontology.
 
@@ -515,6 +555,7 @@ similarTo:
 
 isAlignedTo:
   extractedMetadata: true
+  label: "Has equivalences with"
   description: ["VOAF: Indicates that the subject vocabulary declares some equivalent classes or properties with the object vocabulary.",
                 "DOOR: Links two ontologies if there exists an alignment which covers a substantial part of the vocabulary (i.e., a proportion greater than a threshold).",
                 "NKOS: A related resource with which the described resource is aligned.
@@ -551,6 +592,7 @@ hasDisparateModelling:
 
 hiddenLabel:
   extractedMetadata: true
+  label: "Hidden or past name"
   description: ["MOD: Hidden or past name",
                 "SKOS: A lexical label for a resource that should be hidden when generating visual displays of the resource, but should still be accessible to free text search operations.
 "]
@@ -558,6 +600,7 @@ hiddenLabel:
 
 coverage:
   extractedMetadata: true
+  label: "Coverage"
   description: ["DCTERMS: The spatial or temporal topic of the resource, the spatial applicability of the resource, or the jurisdiction under which the resource is relevant. Spatial topic and spatial applicability may be a named place or a location specified by its geographic coordinates. Temporal topic may be a named period, date, or date range. A jurisdiction may be a named administrative entity or a geographic place to which the resource applies.",
                 "SCHEMA: The 'spatial' property can be used in cases when more specific properties (e.g. locationCreated, spatialCoverage, contentLocation) are not known to be appropriate."]
   metadataMappings: [ "dc:coverage", "schema:spatial" ]
@@ -566,6 +609,7 @@ coverage:
 
 publisher:
   extractedMetadata: true
+  label: "Publisher"
   description: ["DCTERMS: An entity responsible for making the resource available.",
                 "SCHEMA: The publisher of creative work.",
                 "ADMS: The name of the agency that issued the identifier."]
@@ -576,6 +620,7 @@ publisher:
 
 identifier:
   extractedMetadata: true
+  label: "Other identifier"
   description: ["DCTERMS: An unambiguous reference to the resource within a given context. Recommended practice is to identify the resource by means of a string conforming to an identification system. Examples include International Standard Book Number (ISBN), Digital Object Identifier (DOI), and Uniform Resource Name (URN).  Persistent identifiers should be provided as HTTP URIs.", 
                 "SKOS: A notation is a string of characters such as\"T58.5\"or\"303.4833\"used to uniquely identify a concept within the scope of a given concept scheme.",
                 "ADMS: adms:identifier is used to link any resource to an instance of adms:Identifier which is its range. N.B. it is not appropriate to use dcterms:identifer to link to the Identifier class as its range is rdfs:Literal. ADMS uses this to provide any identifier for the Asset.",
@@ -595,11 +640,13 @@ source:
                 "NKOS: A resource used as the source for a derivative resource.
 "]
   display: "links"
+  label: "Source"
   metadataMappings: [ "dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn", "nkos:basedOn", "mod:sourceOntology" ]
   helpText: "A related resource from which the described resource is derived."
 
 abstract:
   extractedMetadata: true
+  label: "Abstract"
   description: "DCTERMS: A summary of the resource"
   helpText: "A summary of the ontology"
 
@@ -616,6 +663,7 @@ alternative:
 
 hasPart:
   extractedMetadata: true
+  label: "Has part (has views)"
   description: ["DCTERMS: A related resource that is included either physically or logically in the described resource.",
                 "SCHEMA: Indicates an item or CreativeWork that is part of this item, or CreativeWork (in some sense).", 
                 "ADMS: Links to a sample of an Asset (which is itself an Asset)
@@ -627,12 +675,14 @@ hasPart:
 
 isFormatOf:
   extractedMetadata: true
-  description:
+  label: "Is format of"
+  description: "DCTERMS: A related resource that is substantially the same as the described resource, but in another format"
   display: "links"
   helpText: "URL to the original document that describe this ontology in a not ontological format (i.e.: the OBO original file)"
 
 hasFormat:
   extractedMetadata: true
+  label: "Has format"
   description: "DCTERMS: A related resource that is substantially the same as the described resource, but in another format"
   display: "links"
   helpText: "URL to a document that describe this ontology in a not ontological format (i.e.: the OBO original file) generated from this ontology."
@@ -640,6 +690,7 @@ hasFormat:
 
 audience:
   extractedMetadata: true
+  label: "Audience"
   description: ["DCTERMS: a class of entity for whom the resource is intended or useful (public visé ou recommandé pour la ressource).", 
                 "DOAP: Description of target user base.",
                 "SCHEMA: An intended audience, i.e. a group for whom something was created
@@ -661,6 +712,7 @@ valid:
 
 accrualMethod:
   extractedMetadata: true
+  label: "Accrual method"
   description: "DCTERMS: The method by which items are added to a collection. May use a value from the Collection Description Accrual Method Vocabulary"
   display: "methodology"
   helpText: "The method by which items are added to the ontology."
@@ -668,6 +720,7 @@ accrualMethod:
 
 accrualPeriodicity:
   extractedMetadata: true
+  label: "Accrual periodicity"
   description: "DCTERMS: The frequency with which items are added to a collection"
   display: "methodology"
   metadataMappings: [ "nkos:updateFrequency" ]
@@ -676,12 +729,14 @@ accrualPeriodicity:
 
 accrualPolicy:
   extractedMetadata: true
+  label: "Accrual policy"
   description: "DCTERMS: The policy governing the addition of items to a collection"
   display: "methodology"
   helpText: "The policy governing the addition of items to the ontology."
 
 endpoint:
   extractedMetadata: true
+  label: "SPARQL endpoint"
   description: ["SD: Relates an instance of sd:Service to a SPARQL endpoint that implements the SPARQL Protocol service for the service. The object of the sd:endpoint property is an IRI.", 
                 "VOID: A SPARQL protocol endpoint that allows SPARQL query access to a void:Dataset.
 
@@ -692,6 +747,7 @@ endpoint:
 
 dataDump:
   extractedMetadata: true
+  label: "Download URL"
   description: ["DCAT: The URL of the downloadable file in a given format. E.g. CSV file or RDF file. The format is indicated by the distribution's dcterms:format and/or dcat:mediaType.",
                 "VOID: An RDF dump, partial or complete, of a void:Dataset.", 
                 "DOAP: Mirror of software download web page.", 
@@ -707,13 +763,14 @@ csvDump:
 
 openSearchDescription:
   extractedMetadata: true
+  label: "Free-text search endpoint"
   description: "VOID: An OpenSearch description document for a free-text search service over a void:Dataset. "
   metadataMappings: [ "doap:service-endpoint" ]
   display: "content"
 
 uriLookupEndpoint:
   extractedMetadata: true
-  description:
+  description: "VOID: A protocol endpoint for simple URI lookups for a void:Dataset."
   display: "content"
   label: "URI Lookup Endpoint"
   helpText: "A protocol endpoint for simple URI lookups for the ontology."
@@ -728,6 +785,7 @@ uriRegexPattern:
 
 depiction:
   extractedMetadata: true
+  label: "Depiction"
   description: ["FOAF: A depiction of something.",
                 "DOAP: Web page with screenshots of project. An image of the item. SCHEMA: An image of the item. This can be a URL or a fully described ImageObject.
 
@@ -738,6 +796,7 @@ depiction:
 
 logo:
   extractedMetadata: true
+  label: "Logo"
   description: ["FOAF: A logo representing something.",
                 "SCHEMA: An associated logo. 
 "]
@@ -747,6 +806,7 @@ logo:
 
 competencyQuestion:
   extractedMetadata: true
+  label: "Competency question"
   description: ["FOAF: A logo representing something.",
                 "SCHEMA: An associated logo. 
 "]
@@ -756,6 +816,7 @@ competencyQuestion:
 
 usedBy:
   extractedMetadata: true
+  label: "Used by"
   description: ["VOAF: Indicates that the subject vocabulary is used by the object vocabulary.", 
                 "NKOS: Agent using the described KOS
 "]
@@ -778,11 +839,13 @@ metadataVoc:
 
 hasDisjunctionsWith:
   extractedMetadata: true
+  label: "Disparate modelling with"
   description: "VOAF: Indicates that the subject vocabulary declares some disjunct classes with the object vocabulary"
   helpText: "Ontology that declares some disjunct classes with the described ontology."
 
 toDoList:
   extractedMetadata: true
+  label: "To do list"
   description: "VOID: Describes future tasks planned by a resource curator. This property is primarily intended to be used for vocabularies or datasets, but the domain is left open, it can be used for any resource. Use iCalendar Vtodo class and its properties to further describe the task calendar, priorities etc"
   display: "community"
   helpText: "Describes future tasks planned by a resource curator."
@@ -799,6 +862,7 @@ example:
 
 preferredNamespaceUri:
   extractedMetadata: true
+  label: "Preferred namespace URI"
   description: ["VANN: The preferred namespace URI to use when using terms from this vocabulary in an XML document.", 
                 "VOID: A URI that is a common string prefix of all the entity URIs in a void:Dataset
 "]
@@ -809,6 +873,7 @@ preferredNamespaceUri:
 
 preferredNamespacePrefix:
   extractedMetadata: true
+  label: "Preferred namespace prefix"
   description: ["VANN: The preferred namespace prefix to use when using terms from this vocabulary in an XML document.", 
                 "IDOT: Short label that is commonly used to refer to the dataset. Often used to identify the dataset in IRIs for specific items (or records). This may also stand in place of the base IRI of the dataset (e.g. see http://prefix.cc)
 "]
@@ -819,12 +884,14 @@ preferredNamespacePrefix:
 morePermissions:
   description: "CC: A related resource which describes additional permissions or alternative licenses for a Work which may be available"
   extractedMetadata: true
+  label: "More permissions"
   display: "license"
   helpText: "A related resource which describes additional permissions or alternative licenses."
 
 
 useGuidelines:
   extractedMetadata: true
+  label: "Use guidelines"
   description: "CC: A related resource which defines non-binding use guidelines for the work"
   display: "community"
   helpText: "A related resource which defines how the ontology should be used."
@@ -832,6 +899,7 @@ useGuidelines:
 
 curatedOn:
   extractedMetadata: true
+  label: "Curation date"
   description: "PAV: Specifies the date this resource was curated. pav:curatedBy gives the agents that performed the curation."
   display: "dates"
   helpText: "The date the ontology was curated."
@@ -839,6 +907,7 @@ curatedOn:
 
 repository:
   extractedMetadata: true
+  label: "Repository"
   description: "DOAP: Source code repository"
   display: "community"
   helpText: "Link to the source code repository."
@@ -846,18 +915,21 @@ repository:
 
 bugDatabase:
   extractedMetadata: true
+  label: "Bug database"
   description: "DOAP: Bug tracker for a project"
   display: "community"
   helpText: "Link to the bug tracker of the ontology (i.e.: GitHub issues)."
 
 mailingList:
   extractedMetadata: true
+  label: "Mailing list"
   description: "DOAP: Mailing list home page or email address "
   display: "community"
   helpText: "Mailing list home page or email address."
 
 exampleIdentifier:
   extractedMetadata: false
+  label: "Example of resource"
   description: ["VOID: Example resource of dataset.",
                 "IDOT: An example identifier used by one item (or record) from a dataset.
 "]
@@ -866,12 +938,14 @@ exampleIdentifier:
 
 award:
   extractedMetadata: true
+  label: "Award"
   description: "SCHEMA: An award won by or for this item"
   display: "community"
   helpText: "An award won by this ontology."
 
 copyrightHolder:
   extractedMetadata: true
+  label: "Rights holder"
   description: ["SCHEMA: The party holding the legal copyright to the CreativeWork.",
                 "DCTERMS: A person or organization owning or managing rights over the resource."]
   display: "license"
@@ -880,6 +954,7 @@ copyrightHolder:
 
 associatedMedia:
   extractedMetadata: true
+  label: "Associated media"
   description: "SCHEMA: A media object that encodes this CreativeWork. This property is a synonym for encoding"
   display: "images"
   helpText: "A media object that encodes this ontology. This property is a synonym for encoding."
@@ -909,6 +984,7 @@ translationOfWork:
 
 includedInDataCatalog:
   extractedMetadata: true
+  label: "Indexed or Included in catalog or repository"
   description: "SCHEMA: A data catalog which contains this dataset."
   display: "links"
   helpText: "A data catalog which contains this ontology (i.e.: OBOfoundry, aber-owl, EBI, VEST registry...)."
