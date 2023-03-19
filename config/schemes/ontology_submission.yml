@@ -84,6 +84,7 @@ contact:
   description: "DCAT: Relevant contact information for the cataloged resource. Use of vCard is recommended"
 
 creationDate:
+  extractedMetadata: true
   description: [ "DCTERMS: Date of submission of the resource.", "SCHEMA: Date of first broadcast/publication." ]
   metadataMappings: [ "dct:dateSubmitted", "schema:datePublished" ]
   label: "Creation date"

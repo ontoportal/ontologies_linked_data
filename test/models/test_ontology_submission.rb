@@ -1054,6 +1054,8 @@ eos
       sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission()
       sub.bring_remaining
       assert_equal false, sub.deprecated
+      assert_equal '2015-09-28', sub.creationDate.to_date.to_s
+      assert_equal '2015-10-01', sub.modificationDate.to_date.to_s
       assert_equal  "description example,  AGROOE is an ontology used to test the metadata extraction,  AGROOE is an ontology to illustrate how to describe their ontologies", sub.description
       assert_equal " LIRMM (default name) ", sub.publisher
       assert_equal [RDF::URI.new('http://agroportal.lirmm.fr')], sub.identifier

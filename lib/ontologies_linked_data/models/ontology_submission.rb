@@ -23,7 +23,7 @@ module LinkedData
       FLAT_ROOTS_LIMIT = 1000
 
       model :ontology_submission, scheme: File.join(__dir__, '../../../config/schemes/ontology_submission.yml'),
-            name_with: ->(s) { submission_id_generator(s) }
+                                  name_with: ->(s) { submission_id_generator(s) }
 
       attribute :submissionId, type: :integer, enforce: [:existence]
 
@@ -66,7 +66,6 @@ module LinkedData
       attribute :alternative, namespace: :dct, type: :list
       attribute :abstract, namespace: :dct, enforce: [:textarea]
       attribute :publication, type: %i[uri list]
-      attribute :modificationDate, namespace: :omv, type: :date_time, enforce: %i[superior_equal_to_creationDate modification_date_previous_align]
 
       # Licensing metadata
       attribute :hasLicense, namespace: :omv, type: :uri
@@ -79,6 +78,8 @@ module LinkedData
       attribute :valid, namespace: :dct, type: :date_time, enforce: [:validity_date_retired_align]
       attribute :curatedOn, namespace: :pav, type: %i[date_time list], enforce: [:superior_equal_to_creationDate]
       attribute :creationDate, namespace: :omv, type: :date_time, default: ->(x) { Date.today.to_datetime }
+      attribute :modificationDate, namespace: :omv, type: :date_time,
+                                   enforce: %i[superior_equal_to_creationDate modification_date_previous_align]
 
       # Person and organizations metadata
       attribute :contact, type: %i[contact list], enforce: [:existence]
