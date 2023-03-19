@@ -153,7 +153,7 @@ module LinkedData
       attribute :preferredNamespacePrefix, namespace: :vann
       attribute :exampleIdentifier, namespace: :idot, type: :class
       attribute :keyClasses, namespace: :omv, type: %i[list class]
-      attribute :metadataVoc, namespace: :voaf, type: %i[uri list], enforce: [:isOntology]
+      attribute :metadataVoc, namespace: :voaf, type: %i[uri list]
       attribute :uploadFilePath
       attribute :diffFilePath
       attribute :masterFileName
@@ -164,17 +164,7 @@ module LinkedData
       attribute :logo, namespace: :foaf, type: :uri
 
       # Metrics metadata
-      attribute :numberOfClasses, namespace: :omv, type: :integer
-      attribute :numberOfIndividuals, namespace: :omv, type: :integer
-      attribute :numberOfProperties, namespace: :omv, type: :integer
-      attribute :numberOfAxioms, namespace: :omv, type: :integer
-      attribute :maxDepth, type: :integer
-      attribute :maxChildCount, type: :integer
-      attribute :averageChildCount, type: :float
-      attribute :classesWithOneChild, type: :integer
-      attribute :classesWithMoreThan25Children, type: :integer
-      attribute :classesWithNoDefinition, type: :integer
-      attribute :entities, namespace: :void, type: :integer
+      attribute :metrics, type: :metrics
 
       # Configuration metadata
 
@@ -185,11 +175,8 @@ module LinkedData
       # Link to ontology
       attribute :ontology, type: :ontology, enforce: [:existence]
 
-      #Link to metrics
-      attribute :metrics, type: :metrics
-
       # Hypermedia settings
-      embed :contact, :ontology
+      embed :contact, :ontology, :metrics
       embed_values :submissionStatus => [:code], :hasOntologyLanguage => [:acronym]
       serialize_default :contact, :ontology, :hasOntologyLanguage, :released, :creationDate, :homepage,
                         :publication, :documentation, :version, :description, :status, :submissionId
@@ -1283,21 +1270,6 @@ eos
         exist_metrics = LinkedData::Models::Metric.find(metrics.id).first
         exist_metrics.delete if exist_metrics
         metrics.save
-
-        # Define metrics in submission metadata
-        self.numberOfClasses = metrics.classes
-        self.numberOfIndividuals = metrics.individuals
-        self.numberOfProperties = metrics.properties
-        self.maxDepth = metrics.maxDepth
-        self.maxChildCount = metrics.maxChildCount
-        begin
-          self.averageChildCount = metrics.averageChildCount&.to_f || 0.0
-        rescue
-          self.averageChildCount = 0.0
-        end
-        self.classesWithOneChild = metrics.classesWithOneChild
-        self.classesWithMoreThan25Children = metrics.classesWithMoreThan25Children
-        self.classesWithNoDefinition = metrics.classesWithNoDefinition
 
         self.metrics = metrics
         self

@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ontoportal-lirmm/goo.git
-  revision: 1895ccd78f3dd0edc29b711582662f829c19bb37
+  revision: f9b73ce6b6fac92bffd0a2a1b9dc9ba9266acf79
   branch: development
   specs:
     goo (0.0.2)
