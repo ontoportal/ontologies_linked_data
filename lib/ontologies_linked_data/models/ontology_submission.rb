@@ -60,16 +60,16 @@ module LinkedData
       attribute :description, namespace: :omv, enforce: %i[concatenate existence]
       attribute :homepage, namespace: :foaf, type: :uri
       attribute :documentation, namespace: :omv, type: :uri
-      attribute :notes, namespace: :omv, type: :list, enforce: %i[textarea]
-      attribute :keywords, namespace: :omv, type: :list, enforce: [:concatenate]
+      attribute :notes, namespace: :omv, type: :list
+      attribute :keywords, namespace: :omv, type: :list
       attribute :hiddenLabel, namespace: :skos, type: :list
       attribute :alternative, namespace: :dct, type: :list
-      attribute :abstract, namespace: :dct, enforce: [:textarea]
+      attribute :abstract, namespace: :dct
       attribute :publication, type: %i[uri list]
 
       # Licensing metadata
       attribute :hasLicense, namespace: :omv, type: :uri
-      attribute :useGuidelines, namespace: :cc, enforce: [:textarea]
+      attribute :useGuidelines, namespace: :cc
       attribute :morePermissions, namespace: :cc
       attribute :copyrightHolder, namespace: :schema
 
@@ -83,9 +83,9 @@ module LinkedData
 
       # Person and organizations metadata
       attribute :contact, type: %i[contact list], enforce: [:existence]
-      attribute :hasCreator, namespace: :omv, type: :list, enforce: [:concatenate]
-      attribute :hasContributor, namespace: :omv, type: :list, enforce: [:concatenate]
-      attribute :curatedBy, namespace: :pav, enforce: [:concatenate]
+      attribute :hasCreator, namespace: :omv, type: :list
+      attribute :hasContributor, namespace: :omv, type: :list
+      attribute :curatedBy, namespace: :pav, type: :list
       attribute :publisher, namespace: :dct
       attribute :fundedBy, namespace: :foaf
       attribute :endorsedBy, namespace: :omv, type: :list
@@ -96,26 +96,26 @@ module LinkedData
       attribute :repository, namespace: :doap, type: :uri
       attribute :bugDatabase, namespace: :doap, type: :uri
       attribute :mailingList, namespace: :doap, enforce: [:email]
-      attribute :toDoList, namespace: :voaf, type: :list, enforce: %i[concatenate textarea]
+      attribute :toDoList, namespace: :voaf, type: :list
       attribute :award, namespace: :schema, type: :list
 
       # Usage metadata
-      attribute :knownUsage, namespace: :omv, enforce: %i[concatenate textarea]
+      attribute :knownUsage, namespace: :omv, type: :list
       attribute :designedForOntologyTask, namespace: :omv, type: %i[list uri]
-      attribute :hasDomain, namespace: :omv, type: :list, enforce: [:concatenate]
+      attribute :hasDomain, namespace: :omv, type: :list
       attribute :coverage, namespace: :dct
       attribute :example, namespace: :vann, type: :list
 
       # Methodology metadata
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv
-      attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate]
+      attribute :usedOntologyEngineeringMethodology, namespace: :omv
       attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list uri]
       attribute :accrualMethod, namespace: :dct, type: %i[list uri]
       attribute :accrualPeriodicity, namespace: :dct
       attribute :accrualPolicy, namespace: :dct
-      attribute :competencyQuestion, namespace: :mod, type: :list, enforce: [:textarea]
-      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate]
-      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate]
+      attribute :competencyQuestion, namespace: :mod, type: :list
+      attribute :wasGeneratedBy, namespace: :prov, type: :list
+      attribute :wasInvalidatedBy, namespace: :prov, type: :list
 
       # Links
       attribute :pullLocation, type: :uri # URI for pulling ontology
@@ -125,34 +125,34 @@ module LinkedData
       attribute :csvDump, type: :uri
       attribute :uriLookupEndpoint, namespace: :void, type: :uri
       attribute :openSearchDescription, namespace: :void, type: :uri
-      attribute :source, namespace: :dct, type: :list, enforce: [:concatenate]
+      attribute :source, namespace: :dct, type: :list
       attribute :endpoint, namespace: :sd, type: %i[uri list]
       attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
 
       # Relations
-      attribute :useImports, namespace: :omv, type: %i[list uri], enforce: %i[isOntology], onUpdate: :ontology_inverse_of_callback
+      attribute :useImports, namespace: :omv, type: %i[list uri], onUpdate: :ontology_inverse_of_callback
       attribute :hasPriorVersion, namespace: :omv, type: :uri, onUpdate: [:include_previous_submission]
-      attribute :hasPart, namespace: :dct, type: %i[uri list], enforce: %i[isOntology include_ontology_views]
-      attribute :explanationEvolution, namespace: :door, type: %i[list uri], enforce: [:isOntology]
-      attribute :generalizes, namespace: :voaf, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
-      attribute :usedBy, namespace: :voaf, type: %i[uri list], enforce: [:isOntology], onUpdate: :ontology_inverse_of_callback
-      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
-      attribute :similarTo, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
-      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
-      attribute :isAlignedTo, namespace: :door, type: %i[list uri], enforce: [:isOntology], onUpdate: :enforce_symmetric_ontologies
-      attribute :isBackwardCompatibleWith, namespace: :omv, type: %i[list uri], enforce: [:isOntology]
-      attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri], enforce: [:isOntology]
-      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
-      attribute :hasDisjunctionsWith, namespace: :voaf, type: %i[uri list], enforce: [:isOntology]
-      attribute :workTranslation, namespace: :schema, type: %i[uri list], enforce: [:isOntology]
-      attribute :translationOfWork, namespace: :schema, type: %i[uri list], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
+      attribute :hasPart, namespace: :dct, type: %i[uri list], enforce: %i[include_ontology_views]
+      attribute :explanationEvolution, namespace: :door, type: %i[list uri]
+      attribute :generalizes, namespace: :voaf, type: %i[list uri],  onUpdate: :enforce_symmetric_ontologies
+      attribute :usedBy, namespace: :voaf, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
+      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :similarTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :isAlignedTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :isBackwardCompatibleWith, namespace: :omv, type: %i[list uri]
+      attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri]
+      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :hasDisjunctionsWith, namespace: :voaf, type: %i[uri list]
+      attribute :workTranslation, namespace: :schema, type: %i[uri list]
+      attribute :translationOfWork, namespace: :schema, type: %i[uri list], onUpdate: :enforce_symmetric_ontologies
 
       # Content metadata
       attribute :uriRegexPattern, namespace: :void, type: :uri
       attribute :preferredNamespaceUri, namespace: :vann, type: :uri
       attribute :preferredNamespacePrefix, namespace: :vann
       attribute :exampleIdentifier, namespace: :idot, type: :class
-      attribute :keyClasses, namespace: :omv, type: %i[list class], enforce: [:concatenate]
+      attribute :keyClasses, namespace: :omv, type: %i[list class]
       attribute :metadataVoc, namespace: :voaf, type: %i[uri list], enforce: [:isOntology]
       attribute :uploadFilePath
       attribute :diffFilePath
