@@ -23,10 +23,11 @@ module LinkedData
       FLAT_ROOTS_LIMIT = 1000
 
       model :ontology_submission, scheme: File.join(__dir__, '../../../config/schemes/ontology_submission.yml'),
-                                  name_with: ->(s) { submission_id_generator(s) }
+            name_with: ->(s) { submission_id_generator(s) }
 
-      attribute :submissionId, type: :integer, enforce: [:existence], onUpdate: :deprecate_previous_submissions
+      attribute :submissionId, type: :integer, enforce: [:existence]
 
+      # Object description properties metadata
       # Configurable properties for processing
       attribute :prefLabelProperty, type: :uri
       attribute :definitionProperty, type: :uri
@@ -40,32 +41,128 @@ module LinkedData
       attribute :modifiedProperty, type: :uri
 
       # Ontology metadata
-      attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
-
-      attribute :homepage, namespace: :foaf, type: :uri
-
-      attribute :publication, type: %i[uri list]
-
+      # General metadata
       attribute :URI, namespace: :omv, enforce: %i[existence distinct_of_identifier]
-
-      attribute :naturalLanguage, namespace: :omv, type: %i[list uri], enforce: [:language_validator]
-
-      attribute :documentation, namespace: :omv, type: :uri
-
+      attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
       attribute :version, namespace: :omv
-
-      attribute :description, namespace: :omv, enforce: %i[concatenate existence]
-
       attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' },
-                         onUpdate: %i[retired_previous_align]
+                         onUpdate: :retired_previous_align
+      attribute :deprecated, namespace: :owl, type: :boolean, enforce: [:deprecated_retired_align],
+                             onUpdate: :deprecate_previous_submissions, default: ->(x) { false }
+      attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
+      attribute :hasFormalityLevel, namespace: :omv, type: :uri
+      attribute :hasOntologySyntax, namespace: :omv, type: :uri
+      attribute :naturalLanguage, namespace: :omv, type: %i[list uri], enforce: [:language_validator]
+      attribute :isOfType, namespace: :omv, type: :uri
+      attribute :identifier, namespace: :dct, type: %i[list uri], enforce: [:distinct_of_URI]
 
-      attribute :contact, type: %i[contact list], enforce: [:existence]
+      # Description metadata
+      attribute :description, namespace: :omv, enforce: %i[concatenate existence]
+      attribute :homepage, namespace: :foaf, type: :uri
+      attribute :documentation, namespace: :omv, type: :uri
+      attribute :notes, namespace: :omv, type: :list, enforce: %i[textarea]
+      attribute :keywords, namespace: :omv, type: :list, enforce: [:concatenate]
+      attribute :hiddenLabel, namespace: :skos, type: :list
+      attribute :alternative, namespace: :dct, type: :list
+      attribute :abstract, namespace: :dct, enforce: [:textarea]
+      attribute :publication, type: %i[uri list]
+      attribute :modificationDate, namespace: :omv, type: :date_time, enforce: %i[superior_equal_to_creationDate modification_date_previous_align]
 
-      attribute :creationDate, namespace: :omv, type: :date_time
+      # Licensing metadata
+      attribute :hasLicense, namespace: :omv, type: :uri
+      attribute :useGuidelines, namespace: :cc, enforce: [:textarea]
+      attribute :morePermissions, namespace: :cc
+      attribute :copyrightHolder, namespace: :schema
+
+      # Date metadata
       attribute :released, type: :date_time, enforce: [:existence]
+      attribute :valid, namespace: :dct, type: :date_time, enforce: [:validity_date_retired_align]
+      attribute :curatedOn, namespace: :pav, type: %i[date_time list], enforce: [:superior_equal_to_creationDate]
+      attribute :creationDate, namespace: :omv, type: :date_time, default: ->(x) { Date.today.to_datetime }
+
+      # Person and organizations metadata
+      attribute :contact, type: %i[contact list], enforce: [:existence]
+      attribute :hasCreator, namespace: :omv, type: :list, enforce: [:concatenate]
+      attribute :hasContributor, namespace: :omv, type: :list, enforce: [:concatenate]
+      attribute :curatedBy, namespace: :pav, enforce: [:concatenate]
+      attribute :publisher, namespace: :dct
+      attribute :fundedBy, namespace: :foaf
+      attribute :endorsedBy, namespace: :omv, type: :list
+      attribute :translator, namespace: :schema
+
+      # Community metadata
+      attribute :audience, namespace: :dct
+      attribute :repository, namespace: :doap, type: :uri
+      attribute :bugDatabase, namespace: :doap, type: :uri
+      attribute :mailingList, namespace: :doap, enforce: [:email]
+      attribute :toDoList, namespace: :voaf, type: :list, enforce: %i[concatenate textarea]
+      attribute :award, namespace: :schema, type: :list
+
+      # Usage metadata
+      attribute :knownUsage, namespace: :omv, enforce: %i[concatenate textarea]
+      attribute :designedForOntologyTask, namespace: :omv, type: %i[list uri]
+      attribute :hasDomain, namespace: :omv, type: :list, enforce: [:concatenate]
+      attribute :coverage, namespace: :dct
+      attribute :example, namespace: :vann, type: :list
+
+      # Methodology metadata
+      attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv
+      attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate]
+      attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list uri]
+      attribute :accrualMethod, namespace: :dct, type: %i[list uri]
+      attribute :accrualPeriodicity, namespace: :dct
+      attribute :accrualPolicy, namespace: :dct
+      attribute :competencyQuestion, namespace: :mod, type: :list, enforce: [:textarea]
+      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate]
+      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate]
+
+      # Links
+      attribute :pullLocation, type: :uri # URI for pulling ontology
+      attribute :isFormatOf, namespace: :dct, type: :uri
+      attribute :hasFormat, namespace: :dct, type: %i[uri list]
+      attribute :dataDump, namespace: :void, type: :uri
+      attribute :csvDump, type: :uri
+      attribute :uriLookupEndpoint, namespace: :void, type: :uri
+      attribute :openSearchDescription, namespace: :void, type: :uri
+      attribute :source, namespace: :dct, type: :list, enforce: [:concatenate]
+      attribute :endpoint, namespace: :sd, type: %i[uri list]
+      attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
+
+      # Relations
+      attribute :useImports, namespace: :omv, type: %i[list uri], enforce: %i[isOntology], onUpdate: :ontology_inverse_of_callback
+      attribute :hasPriorVersion, namespace: :omv, type: :uri, onUpdate: [:include_previous_submission]
+      attribute :hasPart, namespace: :dct, type: %i[uri list], enforce: %i[isOntology include_ontology_views]
+      attribute :explanationEvolution, namespace: :door, type: %i[list uri], enforce: [:isOntology]
+      attribute :generalizes, namespace: :voaf, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
+      attribute :usedBy, namespace: :voaf, type: %i[uri list], enforce: [:isOntology], onUpdate: :ontology_inverse_of_callback
+      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
+      attribute :similarTo, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
+      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
+      attribute :isAlignedTo, namespace: :door, type: %i[list uri], enforce: [:isOntology], onUpdate: :enforce_symmetric_ontologies
+      attribute :isBackwardCompatibleWith, namespace: :omv, type: %i[list uri], enforce: [:isOntology]
+      attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri], enforce: [:isOntology]
+      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
+      attribute :hasDisjunctionsWith, namespace: :voaf, type: %i[uri list], enforce: [:isOntology]
+      attribute :workTranslation, namespace: :schema, type: %i[uri list], enforce: [:isOntology]
+      attribute :translationOfWork, namespace: :schema, type: %i[uri list], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
+
+      # Content metadata
+      attribute :uriRegexPattern, namespace: :void, type: :uri
+      attribute :preferredNamespaceUri, namespace: :vann, type: :uri
+      attribute :preferredNamespacePrefix, namespace: :vann
+      attribute :exampleIdentifier, namespace: :idot, type: :class
+      attribute :keyClasses, namespace: :omv, type: %i[list class], enforce: [:concatenate]
+      attribute :metadataVoc, namespace: :voaf, type: %i[uri list], enforce: [:isOntology]
+      attribute :uploadFilePath
+      attribute :diffFilePath
+      attribute :masterFileName
+
+      # Media metadata
+      attribute :associatedMedia, namespace: :schema, type: %i[uri list]
+      attribute :depiction, namespace: :foaf, type: %i[uri list]
+      attribute :logo, namespace: :foaf, type: :uri
 
       # Metrics metadata
-      # LES metrics sont auto calculés par BioPortal (utilisant OWLAPI)
       attribute :numberOfClasses, namespace: :omv, type: :integer
       attribute :numberOfIndividuals, namespace: :omv, type: :integer
       attribute :numberOfProperties, namespace: :omv, type: :integer
@@ -76,185 +173,13 @@ module LinkedData
       attribute :classesWithOneChild, type: :integer
       attribute :classesWithMoreThan25Children, type: :integer
       attribute :classesWithNoDefinition, type: :integer
-
-      # Complementary omv metadata
-      attribute :modificationDate, namespace: :omv, type: :date_time, enforce: %i[superior_equal_to_creationDate modification_date_previous_align]
-
       attribute :entities, namespace: :void, type: :integer
 
-
-
-      attribute :keyClasses, namespace: :omv, type: [:list, :class], enforce: [:concatenate]
-
-      attribute :keywords, namespace: :omv, type: :list, enforce: [:concatenate]
-
-      attribute :knownUsage, namespace: :omv, enforce: %i[concatenate textarea]
-
-      attribute :notes, namespace: :omv, type: :list,  enforce: %i[textarea]
-      attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv
-      attribute :hasContributor, namespace: :omv, type: :list, enforce: [:concatenate]
-
-      attribute :hasCreator, namespace: :omv, type: :list, enforce: [:concatenate]
-
-      attribute :designedForOntologyTask, namespace: :omv, type: %i[list uri]
-
-      attribute :wasGeneratedBy, namespace: :prov,  enforce: [:concatenate]
-
-      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate]
-
-      attribute :curatedBy, namespace: :pav, enforce: [:concatenate]
-
-      attribute :endorsedBy, namespace: :omv, type: :list
-
-      attribute :fundedBy, namespace: :foaf
-
-      attribute :translator, namespace: :schema
-
-      attribute :hasDomain, namespace: :omv, type: :list, enforce: [:concatenate]
-
-      attribute :hasFormalityLevel, namespace: :omv, type: :uri
-
-      attribute :hasLicense, namespace: :omv, type: :uri
-
-      attribute :hasOntologySyntax, namespace: :omv, type: :uri
-
-      attribute :isOfType, namespace: :omv, type: :uri
-
-      attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate]
-
-      attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list uri]
-
-      attribute :useImports, namespace: :omv, type: %i[list uri], enforce: %i[isOntology], onUpdate: :ontology_inverse_of_callback
-
-      attribute :hasPriorVersion, namespace: :omv, type: :uri, onUpdate: [:include_previous_submission]
-
-      attribute :isBackwardCompatibleWith, namespace: :omv, type: %i[list uri], enforce: [:isOntology]
-
-      attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri], enforce: [:isOntology]
-
-      attribute :deprecated, namespace: :owl, type: :boolean, enforce: [:deprecated_retired_align],
-                             default: ->(x) { false }
-
-      attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
-
-      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
-
-      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
-
-      attribute :similarTo, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
-
-      attribute :isAlignedTo, namespace: :door, type: %i[list uri], enforce: [:isOntology]
-
-      attribute :explanationEvolution, namespace: :door, type: %i[list uri], enforce: [:isOntology]
-
-      attribute :generalizes, namespace: :voaf, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
-
-      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
-
-      # New metadata from SKOS
-      attribute :hiddenLabel, namespace: :skos, type: :list
-      # New metadata from DC terms
-      attribute :coverage, namespace: :dct
-
-      attribute :publisher, namespace: :dct
-
-      attribute :identifier, namespace: :dct, type: %i[list uri], enforce: [:distinct_of_URI]
-
-      attribute :source, namespace: :dct, type: :list, enforce: [:concatenate]
-
-      attribute :abstract, namespace: :dct, enforce: [:textarea]
-
-      attribute :alternative, namespace: :dct, type: :list
-      attribute :hasPart, namespace: :dct, type: %i[uri list], enforce: %i[isOntology include_ontology_views]
-
-      attribute :isFormatOf, namespace: :dct, type: :uri
-
-      attribute :hasFormat, namespace: :dct, type: %i[uri list]
-
-      attribute :audience, namespace: :dct
-
-      attribute :valid, namespace: :dct, type: :date_time, enforce: [:validity_date_retired_align]
-
-      attribute :accrualMethod, namespace: :dct, type: %i[list uri]
-      attribute :accrualPeriodicity, namespace: :dct
-      attribute :accrualPolicy, namespace: :dct
-
-      # New metadata from sd
-      attribute :endpoint, namespace: :sd, type: %i[uri list]
-
-      # New metadata from VOID
-      attribute :dataDump, namespace: :void, type: :uri
-
-      attribute :csvDump, type: :uri
-
-      attribute :openSearchDescription, namespace: :void, type: :uri
-
-      attribute :uriLookupEndpoint, namespace: :void, type: :uri
-
-      attribute :uriRegexPattern, namespace: :void, type: :uri
-      # New metadata from foaf
-      attribute :depiction, namespace: :foaf, type: [:list, :uri]
-
-      attribute :logo, namespace: :foaf, type: :uri
-
-      # New metadata from MOD
-      attribute :competencyQuestion, namespace: :mod, type: :list, enforce: [:textarea]
-
-      # New metadata from VOAF
-      attribute :usedBy, namespace: :voaf, type: %i[uri list], enforce: [:isOntology], onUpdate: :ontology_inverse_of_callback
-
-      attribute :metadataVoc, namespace: :voaf, type: %i[uri list], enforce: [:isOntology]
-
-      attribute :hasDisjunctionsWith, namespace: :voaf, type: %i[uri list], enforce: [:isOntology]
-
-      attribute :toDoList, namespace: :voaf, type: :list, enforce: %i[concatenate textarea]
-
-      # New metadata from VANN
-      attribute :example, namespace: :vann, type: :list
-
-      attribute :preferredNamespaceUri, namespace: :vann, type: :uri
-
-      attribute :preferredNamespacePrefix, namespace: :vann
-
-      # New metadata from CC
-      attribute :morePermissions, namespace: :cc
-
-      attribute :useGuidelines, namespace: :cc, enforce: [ :textarea ]
-
-      attribute :curatedOn, namespace: :pav, type: %i[date_time list], enforce: [:superior_equal_to_creationDate]
-
-      # New metadata from ADMS and DOAP
-      attribute :repository, namespace: :doap, type: :uri
-
-      # Should be bug-database and mailing-list but NameError - `@bug-database' is not allowed as an instance variable name
-      attribute :bugDatabase, namespace: :doap, type: :uri
-
-      attribute :mailingList, namespace: :doap, enforce: [:email]
-
-      # New metadata from Schema and IDOT
-      attribute :exampleIdentifier, namespace: :idot, type: :class
-
-      attribute :award, namespace: :schema, type: :list
-
-      attribute :copyrightHolder, namespace: :schema
-
-      attribute :associatedMedia, namespace: :schema, type: %i[uri list]
-
-      attribute :workTranslation, namespace: :schema, type: %i[uri list], enforce: [:isOntology]
-
-      attribute :translationOfWork, namespace: :schema, type: %i[uri list], enforce: %i[isOntology], onUpdate: :enforce_symmetric_ontologies
-
-      attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
+      # Configuration metadata
 
       # Internal values for parsing - not definitive
-      attribute :uploadFilePath
-      attribute :diffFilePath
-      attribute :masterFileName
       attribute :submissionStatus, type: %i[submission_status list], default: ->(record) { [LinkedData::Models::SubmissionStatus.find("UPLOADED").first] }
       attribute :missingImports, type: :list
-
-      # URI for pulling ontology
-      attribute :pullLocation, type: :uri
 
       # Link to ontology
       attribute :ontology, type: :ontology, enforce: [:existence]
@@ -429,7 +354,7 @@ module LinkedData
         end
 
         zip = zipped?
-        files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
+        files = LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
 
         if not zip and self.masterFileName.nil?
           return true
@@ -651,7 +576,7 @@ module LinkedData
         end
       end
 
-      def generate_umls_metrics_file(tr_file_path=nil)
+      def generate_umls_metrics_file(tr_file_path = nil)
         tr_file_path ||= self.triples_file_path
         class_count = 0
         indiv_count = 0
@@ -668,7 +593,6 @@ module LinkedData
 
       def generate_rdf(logger, reasoning: true)
         mime_type = nil
-
 
         if self.hasOntologyLanguage.umls?
           triples_file_path = self.triples_file_path
@@ -882,10 +806,10 @@ module LinkedData
 
             if rdfs_labels && rdfs_labels.length > 0
               label = rdfs_labels[0]
-                    else
-                      # If no label found, we take the last fragment of the URI
+            else
+              # If no label found, we take the last fragment of the URI
               label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
-                    end
+            end
           rescue Goo::Base::AttributeNotLoaded => e
             label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
           end
@@ -1135,15 +1059,15 @@ eos
 
             if !process_rdf || options[:reasoning] == false
               reasoning = false
-                        else
+            else
               reasoning = true
-                        end
+            end
 
             if (!index_search && !index_properties) || options[:index_commit] == false
               index_commit = false
-                           else
+            else
               index_commit = true
-                           end
+            end
 
             diff = options[:diff] == true ? true : false
             archive = options[:archive] == true ? true : false
@@ -1749,9 +1673,9 @@ eos
           url = URI.parse(url)
           if url.kind_of?(URI::FTP)
             check = check_ftp_file(url)
-                  else
+          else
             check = check_http_file(url)
-                  end
+          end
         rescue Exception
           check = false
         end
@@ -1767,7 +1691,6 @@ eos
       def delete_classes_graph
         Goo.sparql_data_client.delete_graph(self.id)
       end
-
 
       def master_file_path
         path = if zipped?
@@ -1790,9 +1713,7 @@ eos
         parsable
       end
 
-
       private
-
 
       def owlapi_parser_input
         path = if zipped?
@@ -1802,7 +1723,6 @@ eos
                end
         File.expand_path(path)
       end
-
 
       def owlapi_parser(logger: Logger.new($stdout))
         unzip_submission(logger)

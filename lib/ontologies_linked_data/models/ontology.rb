@@ -122,12 +122,11 @@ module LinkedData
         if target_ontology.nil?
           previous_value = inst.previous_values ? inst.previous_values[attr] : nil
           return if previous_value.nil?
+
           action = :remove
-          element = previous_value.id
           target_ontology = previous_value
         else
           action = :append
-          element = target_ontology.id
         end
 
         sub = target_ontology.latest_submission || target_ontology.bring(:submissions) && target_ontology.submissions.last
@@ -157,7 +156,9 @@ module LinkedData
         sub.hasPart = parts
         sub.save
 
-        sub.class.model_settings[:attributes][:hasPart][:enforce].append(:include_ontology_views) if changed && action.eql?(:remove)
+        return unless changed && action.eql?(:remove)
+
+        sub.class.model_settings[:attributes][:hasPart][:enforce].append(:include_ontology_views)
       end
 
       def latest_submission(options = {})
