@@ -8,6 +8,25 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
     ontologies_properties_callbacks(:ontologyRelatedTo)
   end
 
+  def test_lexvo_language_validator
+    submissions = sorted_submissions_init(1)
+
+    sub = submissions.first
+
+    sub.bring_remaining
+    assert sub.valid?
+
+    sub.naturalLanguage = ["fr" , "http://iso639-3/eng"]
+
+    refute sub.valid?
+    assert sub.errors[:naturalLanguage][:lexvo_language]
+
+    sub.naturalLanguage = [RDF::URI.new('http://lexvo.org/id/iso639-3/fra'),
+                           RDF::URI.new('http://lexvo.org/id/iso639-3/eng')]
+
+    assert sub.valid?
+  end
+
   # Regroup all validity test related to a submission retired status (deprecated, valid date)
   def test_submission_retired_validity
     sorted_submissions = sorted_submissions_init
@@ -151,16 +170,16 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
 
   private
 
-  def sorted_submissions_init
+  def sorted_submissions_init(submission_count = 3)
     ont_count, ont_acronyms, ontologies =
-      create_ontologies_and_submissions(ont_count: 1, submission_count: 3,
+      create_ontologies_and_submissions(ont_count: 1, submission_count: submission_count,
                                         process_submission: false, acronym: 'NCBO-545')
 
     assert_equal 1, ontologies.count
     ont = ontologies.first
     ont.bring :submissions
     ont.submissions.each { |s| s.bring(:submissionId) }
-    assert_equal 3, ont.submissions.count
+    assert_equal submission_count, ont.submissions.count
 
     ont.submissions.sort { |a, b| b.submissionId <=> a.submissionId }
   end
