@@ -15,6 +15,7 @@ module LinkedData
       include LinkedData::Concerns::OntologySubmission::MetadataExtractor
       include LinkedData::Concerns::OntologySubmission::Validators
       include LinkedData::Concerns::OntologySubmission::UpdateCallbacks
+      extend LinkedData::Concerns::OntologySubmission::DefaultCallbacks
 
       include SKOS::ConceptSchemes
       include SKOS::RootsFetcher
@@ -29,16 +30,16 @@ module LinkedData
 
       # Object description properties metadata
       # Configurable properties for processing
-      attribute :prefLabelProperty, type: :uri
-      attribute :definitionProperty, type: :uri
-      attribute :synonymProperty, type: :uri
-      attribute :authorProperty, type: :uri
+      attribute :prefLabelProperty, type: :uri, default: ->(s) {Goo.vocabulary(:skos)[:prefLabel]}
+      attribute :definitionProperty, type: :uri, default: ->(s) {Goo.vocabulary(:skos)[:definition]}
+      attribute :synonymProperty, type: :uri, default: ->(s) {Goo.vocabulary(:skos)[:altLabel]}
+      attribute :authorProperty, type: :uri, default: ->(s) {Goo.vocabulary(:dc)[:creator]}
       attribute :classType, type: :uri
-      attribute :hierarchyProperty, type: :uri
-      attribute :obsoleteProperty, type: :uri
-      attribute :obsoleteParent, type: :uri
-      attribute :createdProperty, type: :uri
-      attribute :modifiedProperty, type: :uri
+      attribute :hierarchyProperty, type: :uri, default: ->(s) {default_hierarchy_property(s)}
+      attribute :obsoleteProperty, type: :uri, default: ->(s) {Goo.vocabulary(:owl)[:deprecated]}
+      attribute :obsoleteParent, type: :uri, default: ->(s) {RDF::URI.new("http://www.geneontology.org/formats/oboInOwl#ObsoleteClass")}
+      attribute :createdProperty, type: :uri, default: ->(s) {Goo.vocabulary(:dc)[:created]}
+      attribute :modifiedProperty, type: :uri, default: ->(s) {Goo.vocabulary(:dc)[:modified]}
 
       # Ontology metadata
       # General metadata
@@ -51,7 +52,7 @@ module LinkedData
                              onUpdate: :deprecate_previous_submissions, default: ->(x) { false }
       attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
       attribute :hasFormalityLevel, namespace: :omv, type: :uri
-      attribute :hasOntologySyntax, namespace: :omv, type: :uri
+      attribute :hasOntologySyntax, namespace: :omv, type: :uri, default: ->(s) {ontology_syntax_default(s)}
       attribute :naturalLanguage, namespace: :omv, type: %i[list uri], enforce: [:lexvo_language]
       attribute :isOfType, namespace: :omv, type: :uri
       attribute :identifier, namespace: :dct, type: %i[list uri], enforce: [:distinct_of_URI]
@@ -102,7 +103,7 @@ module LinkedData
       # Usage metadata
       attribute :knownUsage, namespace: :omv, type: :list
       attribute :designedForOntologyTask, namespace: :omv, type: %i[list uri]
-      attribute :hasDomain, namespace: :omv, type: :list
+      attribute :hasDomain, namespace: :omv, type: :list, default: ->(s) {ontology_has_domain(s)}
       attribute :coverage, namespace: :dct
       attribute :example, namespace: :vann, type: :list
 
@@ -121,12 +122,13 @@ module LinkedData
       attribute :pullLocation, type: :uri # URI for pulling ontology
       attribute :isFormatOf, namespace: :dct, type: :uri
       attribute :hasFormat, namespace: :dct, type: %i[uri list]
-      attribute :dataDump, namespace: :void, type: :uri
-      attribute :csvDump, type: :uri
-      attribute :uriLookupEndpoint, namespace: :void, type: :uri
-      attribute :openSearchDescription, namespace: :void, type: :uri
+      attribute :dataDump, namespace: :void, type: :uri, default: -> (s) {data_dump_default(s)}
+      attribute :csvDump, type: :uri, default: -> (s) {csv_dump_default(s)}
+      attribute :uriLookupEndpoint, namespace: :void, type: :uri, default: -> (s) {uri_lookup_default(s)}
+      attribute :openSearchDescription, namespace: :void, type: :uri, default: -> (s) {open_search_default(s)}
       attribute :source, namespace: :dct, type: :list
-      attribute :endpoint, namespace: :sd, type: %i[uri list]
+      attribute :endpoint, namespace: :sd, type: %i[uri list],
+                           default: ->(s) {[RDF::URI.new(LinkedData.settings.sparql_endpoint_url)]}
       attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
 
       # Relations
@@ -151,7 +153,7 @@ module LinkedData
       attribute :uriRegexPattern, namespace: :void, type: :uri
       attribute :preferredNamespaceUri, namespace: :vann, type: :uri
       attribute :preferredNamespacePrefix, namespace: :vann
-      attribute :exampleIdentifier, namespace: :idot, type: :class
+      attribute :exampleIdentifier, namespace: :idot, type: :class, default: ->(s) { LinkedData::Models::Class.in(s).first }
       attribute :keyClasses, namespace: :omv, type: %i[list class]
       attribute :metadataVoc, namespace: :voaf, type: %i[uri list]
       attribute :uploadFilePath

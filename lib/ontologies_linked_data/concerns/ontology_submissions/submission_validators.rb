@@ -6,6 +6,7 @@ module LinkedData
           inst.bring(attr) if inst.bring?(attr)
           inst.send(attr)
         end
+
         def previous_submission
           self.bring :ontology if self.bring?(:ontology)
           return if self.ontology.nil?
@@ -48,7 +49,7 @@ module LinkedData
         def lexvo_language(inst, attr)
           values = Array(attr_value(inst, attr))
 
-          return if values.all?{ |x| x&.to_s&.start_with?('http://lexvo.org/id/iso639-3') }
+          return if values.all? { |x| x&.to_s&.start_with?('http://lexvo.org/id/iso639-3') }
 
           [:lexvo_language, "#{attr} values need to be in the lexvo namespace (e.g http://lexvo.org/id/iso639-3/fra)"]
         end
@@ -229,6 +230,49 @@ module LinkedData
           [submission, Array(submission.send(attr)).dup]
         end
 
+      end
+
+      module DefaultCallbacks
+
+        def ontology_has_domain(sub)
+          ontology_domain_list = []
+          sub.ontology.bring(:hasDomain).hasDomain.each do |domain|
+            ontology_domain_list << domain.id
+          end
+          ontology_domain_list
+        end
+
+        def open_search_default(sub)
+          RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{sub.ontology.acronym}&q=")
+        end
+
+        def uri_lookup_default(sub)
+          RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{sub.ontology.acronym}&require_exact_match=true&q=")
+        end
+
+        def data_dump_default(sub)
+          RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{sub.ontology.acronym}/download?download_format=rdf")
+        end
+
+        def csv_dump_default(sub)
+          RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{sub.ontology.acronym}/download?download_format=csv")
+        end
+
+        def ontology_syntax_default(sub)
+          if sub.hasOntologyLanguage.umls?
+            RDF::URI.new('http://www.w3.org/ns/formats/Turtle')
+          elsif sub.hasOntologyLanguage.obo?
+            RDF::URI.new('http://purl.obolibrary.org/obo/oboformat/spec.html')
+          end
+        end
+
+        def default_hierarchy_property(sub)
+          if sub.hasOntologyLanguage.owl?
+            Goo.vocabulary(:owl)[:subClassOf]
+          elsif sub.hasOntologyLanguage.skos?
+            Goo.vocabulary(:skos)[:broader]
+          end
+        end
       end
     end
   end
