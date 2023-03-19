@@ -2,6 +2,10 @@ module LinkedData
   module Concerns
     module OntologySubmission
       module ValidatorsHelpers
+        def attr_value(inst, attr)
+          inst.bring(attr) if inst.bring?(attr)
+          inst.send(attr)
+        end
         def previous_submission
           self.bring :ontology if self.bring?(:ontology)
           return if self.ontology.nil?
@@ -41,14 +45,20 @@ module LinkedData
       module Validators
         include ValidatorsHelpers
 
+        def lexvo_language(inst, attr)
+          values = Array(attr_value(inst, attr))
+
+          return if values.all?{ |x| x&.to_s&.start_with?('http://lexvo.org/id/iso639-3') }
+
+          [:lexvo_language, "#{attr} values need to be in the lexvo namespace (e.g http://lexvo.org/id/iso639-3/fra)"]
+        end
+
         def deprecated_retired_align(inst, attr)
           [:deprecated_retired_align, "can't be with the status retired and not deprecated"] if !deprecated? && retired?
         end
 
         def validity_date_retired_align(inst, attr)
-          inst.bring :valid if inst.bring?(:valid)
-
-          valid_date = inst.valid
+          valid_date = attr_value(inst, :valid)
 
           if deprecated? || retired?
             if valid_date.nil? || (valid_date && valid_date >= DateTime.now)
@@ -86,8 +96,7 @@ module LinkedData
 
           return if views.nil? || views.empty?
 
-          inst.bring :hasPart if inst.bring? :hasPart
-          parts = inst.hasPart || []
+          parts = attr_value(inst, :hasPart) || []
           return if views.all? { |v| parts.include?(v.id) }
 
           [:include_ontology_views, "#{attr} needs to include all the views of the ontology"]
@@ -152,8 +161,7 @@ module LinkedData
           sub = previous_submission
           return if sub.nil?
 
-          inst.bring(attr) if inst.bring?(attr)
-          values = inst.send(attr)
+          values = attr_value(inst, attr)
           is_list = values&.is_a?(Array)
           values = Array(values)
 
@@ -163,10 +171,9 @@ module LinkedData
         end
 
         def ontology_inverse_of_callback(inst, attr)
-          inst.bring(attr) if inst.bring?(attr)
           inverse_attr = attr.eql?(:useImports) ? :usedBy : :useImports
 
-          values = Array(inst.send(attr))
+          values = Array(attr_value(inst, attr))
           new_values, deleted_values = new_and_deleted_elements(values, attr_previous_values(inst, attr))
 
           new_values.each do |ontology|
