@@ -132,12 +132,8 @@ module LinkedData
       attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
 
       # Relations
-      attribute :useImports, namespace: :omv, type: %i[list uri], onUpdate: :ontology_inverse_of_callback
       attribute :hasPriorVersion, namespace: :omv, type: :uri, onUpdate: [:include_previous_submission]
       attribute :hasPart, namespace: :dct, type: %i[uri list], enforce: %i[include_ontology_views]
-      attribute :explanationEvolution, namespace: :door, type: %i[list uri]
-      attribute :generalizes, namespace: :voaf, type: %i[list uri],  onUpdate: :enforce_symmetric_ontologies
-      attribute :usedBy, namespace: :voaf, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
       attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
       attribute :similarTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
       attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
@@ -146,8 +142,12 @@ module LinkedData
       attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri]
       attribute :hasDisparateModelling, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
       attribute :hasDisjunctionsWith, namespace: :voaf, type: %i[uri list]
-      attribute :workTranslation, namespace: :schema, type: %i[uri list]
-      attribute :translationOfWork, namespace: :schema, type: %i[uri list], onUpdate: :enforce_symmetric_ontologies
+      attribute :generalizes, namespace: :voaf, type: %i[list uri],  onUpdate: :ontology_inverse_of_callback
+      attribute :explanationEvolution, namespace: :door, type: %i[list uri], onUpdate: :ontology_inverse_of_callback
+      attribute :useImports, namespace: :omv, type: %i[list uri], onUpdate: :ontology_inverse_of_callback
+      attribute :usedBy, namespace: :voaf, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
+      attribute :workTranslation, namespace: :schema, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
+      attribute :translationOfWork, namespace: :schema, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
 
       # Content metadata
       attribute :uriRegexPattern, namespace: :void, type: :uri

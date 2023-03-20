@@ -172,7 +172,15 @@ module LinkedData
         end
 
         def ontology_inverse_of_callback(inst, attr)
-          inverse_attr = attr.eql?(:useImports) ? :usedBy : :useImports
+          inverse_of_settings = {
+            useImports: :usedBy,
+            translationOfWork: :workTranslation,
+            generalises: :explanationEvolution
+          }
+
+          inverse_attr = inverse_of_settings[attr] ||  inverse_of_settings.key(attr)
+
+          return unless  inverse_attr
 
           values = Array(attr_value(inst, attr))
           new_values, deleted_values = new_and_deleted_elements(values, attr_previous_values(inst, attr))
