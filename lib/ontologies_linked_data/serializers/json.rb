@@ -40,7 +40,7 @@ module LinkedData
             context = {"@context" => context_hash}
             hash.merge!(context)
           end
-          hash['@context']['@language'] = options[:lang]
+          hash['@context']['@language'] = options[:lang] if hash['@context']
         end
         MultiJson.dump(hash)
       end
