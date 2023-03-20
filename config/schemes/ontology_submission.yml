@@ -742,7 +742,7 @@ accrualPeriodicity:
     "http://purl.org/cld/freq/daily": "Daily",
     "http://purl.org/cld/freq/continuous": "Continuous",
     "http://purl.org/cld/freq/irregular": "Irregular",
-    
+
   }
 
 
@@ -1007,3 +1007,41 @@ includedInDataCatalog:
   description: "SCHEMA: A data catalog which contains this dataset."
   display: "links"
   helpText: "A data catalog which contains this ontology (i.e.: OBOfoundry, aber-owl, EBI, VEST registry...)."
+  enforcedValues: {
+    "bioportal.bioontology.org": "NCBO BioPortal",
+    "agroportal.lirmm.fr": "AgroPortal",
+    "bioportal.lirmm.fr": "SIFR BioPortal",
+    "ebi.ac.uk/ols": "EBI OLS",
+    "ontobee.org": "Ontobee",
+    "ontohub.org": "OntoHub",
+    "aber-owl.net": "AberOWL",
+    "lov.linkeddata.es/dataset/lov": "LOV",
+    "onki.fi": "ONKI Ontology Library Service",
+    "mmisw.org": "MMI ORR",
+    "cor.esipfed.org": "ESIP COR",
+    "ecoportal.lifewatchitaly.eu": "LifeWatch EcoPortal",
+    "matportal.org": "MatPortal",
+    "medportal.bmicc.cn": "MedPortal",
+    "hetop.eu": "CISMeF HeTOP",
+    "finto.fi": "FINTO",
+    "vocabs.ardc.edu.au": "ANDC RVA" ,
+    "vocab.nerc.ac.uk": "NVS" ,
+    "terminologies.gfbio.org": "GFBIO TS",
+    "loterre.fr": "Loterre",
+    "datalab.review.fao.org/datalab/caliper": "Caliper",
+    "cropontology.org": "Crop Ontology Curation Tool",
+    "planteome.org": "Planteome",
+    "obofoundry.org": "OBO Foundry",
+    "vest.agrisemantics.org": "Agrisemantics",
+    "fairsharing.org": "FAIRsharing",
+    "thezfiles.co.za/ROMULUS": "ROMULUS",
+    "daml.org/ontologies": "DAML Ontology Library",
+    "stl.mie.utoronto.ca/colore": "Colore",
+    "bartoc.org": "BARTOC",
+    "taxobank.org": "TaxoBank",
+    "linkeddata.ge.imati.cnr.it": "LusTRE",
+    "lov4iot.appspot.com": "LOV4IoT",
+    "vocab.linkeddata.es": "VOCAB OEG",
+    "liveschema.eu": "LiveSchema",
+    "protegewiki.stanford.edu/wiki/Protege_Ontology_Library": "Protege Ontology Library"
+  }
