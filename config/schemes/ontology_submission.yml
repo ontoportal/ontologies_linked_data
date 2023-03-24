@@ -8,14 +8,12 @@ URI:
 
 homepage:
   extractedMetadata: true
-  description: [ "FOAF: A homepage for something.", "MOD: An unambiguous reference to the resource within a given context.", "DOAP: URI of a blog related to a project.", "CC: The URL the creator of a Work would like used when attributing re-use.", "SCHEMA: Indicates a page (or other CreativeWork) for which this thing is the main entity being described" ]
   metadataMappings: [ "cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage" ]
   helpText: "The URL of the homepage for the ontology."
   label: "Homepage"
 
 hasOntologyLanguage:
   extractedMetadata: false
-  metadataMapping: ["schema:fileFormat","mod1.1:ontologyDesignLanguage"]
   display: 'general'
   description: [ "SCHEMA: Media type, typically MIME format (see IANA site) of the content, e.g. application/zip of a SoftwareApplication binary. In cases where a CreativeWork has several media type representations, 'encoding' can be used to indicate each MediaObject alongside particular fileFormat information. Unregistered or niche file formats can be indicated instead via the most appropriate URL, e.g. defining Web page or a Wikipedia entry.", "MOD: A language that is used to create an ontology." ]
   label: "Language"
@@ -83,7 +81,6 @@ contact:
   helpText: "The people to contact when questions about the ontology. Composed of the contacts name and email."
   label: "Contact"
   description: "DCAT: Relevant contact information for the cataloged resource. Use of vCard is recommended"
-  metadataMappings: ["dcat:contactPoint "]
 
 creationDate:
   extractedMetadata: true
@@ -513,7 +510,7 @@ isIncompatibleWith:
 deprecated:
   extractedMetadata: true
   label: "Deprecated"
-  metadataMappings: [ "idot:obsolete","mod1.1:obsolete " ]
+  metadataMappings: [ "idot:obsolete" ]
   helpText: "To specify if the ontology IRI is deprecated"
   description: [ "DCAT: An annotation with the owl:deprecated annotation property and the value equal to \"true\"^^xsd:boolean can be used to specify that an IRI is deprecated",
                  "OWL: The annotation property that indicates that a given entity has been deprecated.",
@@ -681,6 +678,7 @@ isFormatOf:
   description: "DCTERMS: A related resource that is substantially the same as the described resource, but in another format"
   display: "links"
   helpText: "URL to the original document that describe this ontology in a not ontological format (i.e.: the OBO original file)"
+  
 
 hasFormat:
   extractedMetadata: true
@@ -773,6 +771,7 @@ dataDump:
     "VOID: An RDF dump, partial or complete, of a void:Dataset.",
     "DOAP: Mirror of software download web page.",
     "SCHEMA: A downloadable form of this dataset, at a specific location, in a specific format.
+    metadataMappings: ["schema:distribution", "doap:download-mirror"]
 
 " ]
   metadataMappings: [ "doap:download-mirror", "schema:distribution" ]
@@ -912,7 +911,6 @@ morePermissions:
 
 useGuidelines:
   extractedMetadata: true
-  metadataMappings: ["dcterms:rightsHolder"]
   label: "Use guidelines"
   description: "CC: A related resource which defines non-binding use guidelines for the work"
   display: "community"
@@ -990,6 +988,7 @@ workTranslation:
 " ]
   display: "relations"
   helpText: "A ontology that is a translation of the content of this ontology."
+  metadataMappings: ["mod:translation "]
   label: "Translated from"
 
 
