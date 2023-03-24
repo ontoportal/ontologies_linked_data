@@ -15,6 +15,7 @@ homepage:
 
 hasOntologyLanguage:
   extractedMetadata: false
+  metadataMapping: ["schema:fileFormat","mod1.1:ontologyDesignLanguage"]
   display: 'general'
   description: [ "SCHEMA: Media type, typically MIME format (see IANA site) of the content, e.g. application/zip of a SoftwareApplication binary. In cases where a CreativeWork has several media type representations, 'encoding' can be used to indicate each MediaObject alongside particular fileFormat information. Unregistered or niche file formats can be indicated instead via the most appropriate URL, e.g. defining Web page or a Wikipedia entry.", "MOD: A language that is used to create an ontology." ]
   label: "Language"
@@ -82,6 +83,7 @@ contact:
   helpText: "The people to contact when questions about the ontology. Composed of the contacts name and email."
   label: "Contact"
   description: "DCAT: Relevant contact information for the cataloged resource. Use of vCard is recommended"
+  metadataMappings: ["dcat:contactPoint "]
 
 creationDate:
   extractedMetadata: true
@@ -511,7 +513,7 @@ isIncompatibleWith:
 deprecated:
   extractedMetadata: true
   label: "Deprecated"
-  metadataMappings: [ "idot:obsolete" ]
+  metadataMappings: [ "idot:obsolete","mod1.1:obsolete " ]
   helpText: "To specify if the ontology IRI is deprecated"
   description: [ "DCAT: An annotation with the owl:deprecated annotation property and the value equal to \"true\"^^xsd:boolean can be used to specify that an IRI is deprecated",
                  "OWL: The annotation property that indicates that a given entity has been deprecated.",
@@ -910,6 +912,7 @@ morePermissions:
 
 useGuidelines:
   extractedMetadata: true
+  metadataMappings: ["dcterms:rightsHolder"]
   label: "Use guidelines"
   description: "CC: A related resource which defines non-binding use guidelines for the work"
   display: "community"
