@@ -1171,3 +1171,45 @@ obsoleteParent:
   label: "Root of obsolete branch"
   display: "Content"
   }
+
+maxDepth:
+  extractedMetadata: true
+  description: "MOD: Maximum depth of the hierarchy tree (BioPortal definition)."
+  metadataMappings: "mod:maxDepth"
+  label: "Maximum depth of the hierarchy"
+  display: "Mterics"
+ 
+maxChildCount:
+  extractedMetadata: true
+  description: "MOD: Maximum number of children per class (BioPortal definition)."
+  metadataMappings: "mod:maxChildCount"
+  label: "Maximum number of children per class"
+  display: "Mterics"
+ 
+averageChildCount:
+  extractedMetadata: true
+  description: "MOD: Average number of children per class (BioPortal definition)."
+  metadataMappings: "mod:averageChildCount"
+  label: "Average number of children per class"
+  display: "Mterics"
+  
+classesWithOneChild:
+  extractedMetadata: true
+  description: "MOD: Average number of children per class (BioPortal definition)."
+  metadataMappings: "mod:classesWithOneChild"
+  label: "Number of classes with a single child"
+  display: "Mterics"
+  
+classesWithMoreThan25Children:
+  extractedMetadata: true
+  description: "MOD: Number of classes that have more than 25 direct subclasses (BioPortal definition)."
+  metadataMappings: "mod:classesWithMoreThan25Children"
+  label: "Number of classes with more than 25 children"
+  display: "Mterics"
+  
+classesWithNoDefinition: 
+  extractedMetadata: true
+  description: "MOD: Number of classes that have no value for the definition property (BioPortal definition). For ontologies in OBO and RRF formats, the property for definition is part of the language. For OWL ontologies, the authors specify this property as part of the ontology metadata (the default is skos:definition)."
+  metadataMappings: "mod:classesWithNoDefinition"
+  label: "Number of classes with no definition"
+  display: "Mterics"
