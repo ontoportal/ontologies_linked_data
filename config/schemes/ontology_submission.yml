@@ -1047,3 +1047,119 @@ includedInDataCatalog:
     "liveschema.eu": "LiveSchema",
     "protegewiki.stanford.edu/wiki/Protege_Ontology_Library": "Protege Ontology Library"
   }
+
+prefLabelProperty:
+  extractedMetadata: true
+  description: "MOD: Property used to specify objects preferred label"
+  label: "Object preferred label property"
+  display: "Object description properties"
+  enforcedValues: {
+   "http://www.w3.org/2004/02/skos/core#prefLabel" :"prefLabel",
+   "http://www.w3.org/2000/01/rdf-schema#label" : "label",
+   "http://schema.org/name" : "name",
+   "http://xmlns.com/foaf/0.1/name" :"name",
+   "http://purl.org/dc/terms/title" : "title"
+  }
+  
+synonymProperty:
+  extractedMetadata: true
+  description: "MOD: Property used to specify objects synonyms"
+  label: "Object synonym property"
+  display: "Object description properties"
+  enforcedValues: {
+   "http://www.w3.org/2004/02/skos/core#altLabel " : "altLabel",
+   "http://purl.org/dc/terms/alternative ": "alternative",
+   "http://schema.org/alternateName": "alternativeName"
+  }
+  
+
+definitionProperty:
+  extractedMetadata: true
+  description: "MOD: Property used to specify objects' definition"
+  label: "Object definition property"
+  display: "Object description properties"
+  enforcedValues: {
+"http://www.w3.org/2004/02/skos/core#definition"  :"definition",
+"http://www.w3.org/2000/01/rdf-schema#comment":"comment",
+"http://purl.org/dc/terms/description ":"description",
+"http://schema.org/description ":"decription"
+  }
+  
+
+authorProperty:
+  extractedMetadata: true
+  description: "MOD: Property used to specify objects's author"
+  label: "Object author property"
+  display: "Object description properties"
+  enforcedValues: {
+"http://purl.org/dc/elements/1.1/creator" : "creator",
+"http://schema.org/author":"author",
+"http://www.w3.org/ns/prov#wasAttributedTo":"wasAttributedTo",
+"http://purl.org/pav/authoredBy":"authoredBy",
+"http://purl.org/pav/createdBy": "createdBy",
+"dcterms:creator",
+"foaf:maker"
+  }
+ 
+obsoleteProperty:
+  extractedMetadata: true
+  description: "MOD: Property used to specify obsolete objects"
+  label: "Object obsolete property"
+  display: "Object description properties"
+  enforcedValues: {
+"http://www.w3.org/2002/07/owl#owl:deprecated":"deprecated",
+"idot:obsolete"
+  }
+
+createdProperty:
+  extractedMetadata: true
+  description: "MOD: Property used to specify the date of creation of a class or another object in the ontology."
+  label: "Object creation date property"
+  display: "Object description properties"
+  enforcedValues: {
+"http://purl.org/dc/terms/created " :"created",
+"http://purl.org/dc/terms/issued ":"issued",
+"http://purl.org/dc/terms/date":"date",
+"http://purl.org/pav/authoredOn ":"authoredOn",
+"http://purl.org/pav/contributedOn":"contributedOn",
+"http://purl.org/pav/createdOn":"createdOn",
+"http://www.isibang.ac.in/ns/mod/1.1/creationDate":"creationDate",
+"http://schema.org/dateCreated ":"dateCreated",
+"http://www.w3.org/ns/prov#generatedAtTime":"generatedAtTime"
+  }
+  
+modifiedProperty:
+  extractedMetadata: true
+  description: "MOD: Property used to specify the date of modification of a class or another object in the ontology."
+  label: "Object modification date property"
+  display: "Object description properties"
+  enforcedValues: {
+"http://purl.org/dc/terms" , 
+"http://schema.org" , 
+"http://purl.org/dc/terms" ,
+"http://purl.org/pav" ,  
+"https://omv2.sourceforge.net"
+  }
+  
+hierarchyProperty:
+  extractedMetadata: true
+  description: "MOD: A property that is used to specify the hierarchy"
+  label: "Hierarchy property"
+  display: "Object description properties"
+  enforcedValues: {
+"https://www.w3.org/TR/rdf-schema/#ch_subclassof" : "rdfs:subClassOf", 
+ "http://www.sparna.fr/skos/SKOS-traduction-francais.html#broader": "skos:broader"
+  }
+  
+pullLocation:
+  extractedMetadata: true
+  description: ["DCAT: A URL of a resource that gives access to a distribution of the dataset. E.g. landing page, feed, SPARQL endpoint.", 
+                "OMV: The location where the ontology can be found.", 
+                 "DOAP:  Web page from which the project software can be downloaded"]
+  metadataMappings: [ "doap: download-page" , "dcat:accessURL" , "omv:resourceLocator" ]
+  label: "Access URL"
+  display: "Links"
+  enforcedValues: {
+"https://www.w3.org/TR/rdf-schema/#ch_subclassof" : "rdfs:subClassOf", 
+ "http://www.sparna.fr/skos/SKOS-traduction-francais.html#broader": "skos:broader"
+  }
