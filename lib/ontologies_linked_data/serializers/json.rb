@@ -27,7 +27,7 @@ module LinkedData
               hash["links"].merge!(generate_links_context(hashed_obj)) if generate_context?(options)
             end
           end
-          
+
           # Generate context
           if current_cls.ancestors.include?(Goo::Base::Resource) && !current_cls.embedded?
             if generate_context?(options)
@@ -40,7 +40,12 @@ module LinkedData
             context = {"@context" => context_hash}
             hash.merge!(context)
           end
-          hash['@context']['@language'] = options[:lang]
+
+          if hash.key?('@context')
+            hash['@context']['@language'] = options[:lang]
+          else
+            hash['@context'] = {'@language' => options[:lang]}
+          end
         end
         MultiJson.dump(hash)
       end
