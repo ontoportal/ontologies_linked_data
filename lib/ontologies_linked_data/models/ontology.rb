@@ -52,7 +52,7 @@ module LinkedData
       attribute :ontologyType, enforce: [:ontology_type], default: lambda { |record| LinkedData::Models::OntologyType.find("ONTOLOGY").include(:code).first }
 
       # Hypermedia settings
-      serialize_default :administeredBy, :acronym, :name, :summaryOnly, :flat, :ontologyType
+      serialize_default :administeredBy, :acronym, :name, :summaryOnly, :ontologyType
       links_load :acronym
       link_to LinkedData::Hypermedia::Link.new("submissions", lambda {|s| "ontologies/#{s.acronym}/submissions"}, LinkedData::Models::OntologySubmission.uri_type),
               LinkedData::Hypermedia::Link.new("properties", lambda {|s| "ontologies/#{s.acronym}/properties"}, "#{Goo.namespaces[:metadata].to_s}Property"),
@@ -70,7 +70,8 @@ module LinkedData
               LinkedData::Hypermedia::Link.new("download", lambda {|s| "ontologies/#{s.acronym}/download"}, self.type_uri),
               LinkedData::Hypermedia::Link.new("views", lambda {|s| "ontologies/#{s.acronym}/views"}, self.type_uri),
               LinkedData::Hypermedia::Link.new("analytics", lambda {|s| "ontologies/#{s.acronym}/analytics"}, "#{Goo.namespaces[:metadata].to_s}Analytics"),
-              LinkedData::Hypermedia::Link.new("ui", lambda {|s| "http://#{LinkedData.settings.ui_host}/ontologies/#{s.acronym}"}, self.uri_type)
+              LinkedData::Hypermedia::Link.new("ui", lambda {|s| "http://#{LinkedData.settings.ui_host}/ontologies/#{s.acronym}"}, self.uri_type),
+              LinkedData::Hypermedia::Link.new("identifier_requests", lambda {|s| "ontologies/#{s.acronym}/identifier_requests"}, LinkedData::Models::IdentifierRequest.uri_type)
 
       # Access control
       read_restriction lambda {|o| !o.viewingRestriction.eql?("public") }

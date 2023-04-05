@@ -81,10 +81,10 @@ GEM
       domain_name (~> 0.5)
     i18n (0.9.5)
       concurrent-ruby (~> 1.0)
-    json (2.6.2)
-    json_pure (2.6.2)
-    launchy (2.5.0)
-      addressable (~> 2.7)
+    json_pure (2.6.1)
+    jwt (2.4.1)
+    launchy (2.4.3)
+      addressable (~> 2.3)
     libxml-ruby (2.9.0)
     logger (1.5.1)
     macaddr (1.7.2)
@@ -103,9 +103,18 @@ GEM
       minitest (>= 2.12, < 5.0)
       powerbar
     multi_json (1.15.0)
-    multipart-post (2.2.3)
+    multi_xml (0.6.0)
+    multipart-post (2.1.1)
+    mysql2 (0.5.2)
     net-http-persistent (2.9.4)
     netrc (0.11.0)
+    oauth2 (2.0.6)
+      faraday (>= 0.17.3, < 3.0)
+      jwt (>= 1.0, < 3.0)
+      multi_xml (~> 0.5)
+      rack (>= 1.2, < 3)
+      rash_alt (>= 0.4, < 1)
+      version_gem (~> 1.1)
     oj (2.18.5)
     omni_logger (0.1.4)
       logger
@@ -125,6 +134,8 @@ GEM
       rack (>= 1.0, < 3)
     rainbow (3.1.1)
     rake (10.5.0)
+    rash_alt (0.4.12)
+      hashie (>= 3.4)
     rdf (1.0.8)
       addressable (>= 2.2)
     redis (4.7.1)
@@ -176,6 +187,7 @@ GEM
     unicode-display_width (2.2.0)
     uuid (2.3.9)
       macaddr (~> 1.0)
+    version_gem (1.1.0)
 
 PLATFORMS
   x86_64-linux
@@ -193,6 +205,8 @@ DEPENDENCIES
   minitest
   minitest-reporters (>= 0.5.0)
   multi_json (~> 1.0)
+  ncbo_resource_index!
+  oauth2 (~> 2.0)
   oj (~> 2.0)
   omni_logger
   pony

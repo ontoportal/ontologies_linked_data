@@ -58,7 +58,7 @@ module LinkedData
             predicate = {"@id" => linked_model.type_uri.to_s, "@type" => "@id"}
           elsif current_cls.model_settings[:attributes][attr][:namespace]
             # predicate with custom namespace
-            predicate = "#{Goo.vocabulary[current_cls.model_settings[:attributes][attr][:namespace]].to_s}#{attr}"
+            predicate = "#{Goo.vocabulary(current_cls.model_settings[:attributes][attr][:namespace]).to_s}#{attr}"
           end
           hash[attr] = predicate unless predicate.nil?
         end

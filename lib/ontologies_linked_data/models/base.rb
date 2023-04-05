@@ -58,12 +58,15 @@ module LinkedData
 
         embed_attrs = {}
         extra_attrs = []
-        if level == 0
+        #if level == 0
+        if level <= 0  #modifica ecoportal
           # Also include attributes that are embedded
+          #ECOPORTAL_LOGGER.debug("    > self: #{self.inspect} \n    > self.hypermedia_settings[:embed]=#{self.hypermedia_settings[:embed].inspect}")
           self.hypermedia_settings[:embed].each do |e|
             next unless default_attrs.include?(e)
             default_attrs.delete(e)
             embed_class = self.range(e)
+            #ECOPORTAL_LOGGER.debug("       > embed_class=#{embed_class.inspect} \n    > embed_class.hypermedia_settings[:embed]=#{embed_class.hypermedia_settings[:embed].inspect}")
             next if embed_class.nil? || !embed_class.ancestors.include?(LinkedData::Models::Base)
             #hack to avoid nested unmapped queries in class
             if (self.model_name == :class)
@@ -72,7 +75,8 @@ module LinkedData
                 attributes.delete :properties
               end
             end
-            embed_attrs[e] = embed_class.goo_attrs_to_load(attributes, level += 1)
+            #embed_attrs[e] = embed_class.goo_attrs_to_load(attributes, level += 1) #original to uncomment
+            embed_attrs[e] = embed_class.goo_attrs_to_load(attributes, level + 1) #modifica ecoportal
           end
         end
 
@@ -137,6 +141,48 @@ module LinkedData
         included_aggregates
       end
 
+      #New Ecoportal
+      #Overwrite of Goo::base::Resource to_hash method. This create hash also for nested object like "LinkedData::Models::Creator" object
+      def to_hash
+        begin
+          #LOGGER.debug "\n\n\n ontologies_linked_data - Base-> to_hash" 
+          attr_hash = {}
+          self.class.attributes.each do |attr|
+            v = self.instance_variable_get("@#{attr}")
+            #begin
+            case v
+            when Base then v = v.to_hash # Base instance? convert deeply
+            when Array # Array? convert elements
+              v = v.map do |e|
+                e.respond_to?(:to_hash) ? e.to_hash : e
+              end          
+            end
+            #end
+            attr_hash[attr]=v unless v.nil?
+          end
+          if @unmapped
+            all_attr_uris = Set.new
+            self.class.attributes.each do |attr|
+              if self.class.collection_opts
+                all_attr_uris << self.class.attribute_uri(attr,self.collection)
+              else
+                all_attr_uris << self.class.attribute_uri(attr)
+              end
+            end
+            @unmapped.each do |attr,values|
+              unless all_attr_uris.include?(attr)
+                attr_hash[attr] = values.map { |v| v.to_s }
+              end
+            end
+          end
+          attr_hash[:id] = @id
+          return attr_hash
+        rescue => e
+          LOGGER.debug "\n\n\n ontologies_linked_data - Base-> to_hash - error: #{e.message}\n#{e.backtrace.join("\n")}"
+          raise e        
+        end
+      end
+
       private
 
       ##
@@ -176,6 +222,7 @@ module LinkedData
               not_loaded << attr unless reference_object.loaded_attributes.include?(attr)
             end
             reference_object.bring(*not_loaded) unless not_loaded.empty?
+            # LOGGER.debug("\n\n LINKDE_DATA - models/base - write_permission_check  - reference_object= #{reference_object.inspect}")
           end
 
           writable = reference_object.writable?(user)

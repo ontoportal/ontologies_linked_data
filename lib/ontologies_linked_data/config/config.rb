@@ -152,22 +152,42 @@ module LinkedData
   # We do this at initial runtime because goo needs namespaces for its DSL
   def goo_namespaces
     Goo.configure do |conf|
+      conf.add_namespace(:adms, RDF::Vocabulary.new("http://www.w3.org/ns/adms#"))
+      conf.add_namespace(:bibo, RDF::Vocabulary.new("http://purl.org/ontology/bibo/"))
+      conf.add_namespace(:cc, RDF::Vocabulary.new("http://creativecommons.org/ns#"))
+      conf.add_namespace(:cclicense, RDF::Vocabulary.new("http://creativecommons.org/licenses/"))
+      conf.add_namespace(:cito, RDF::Vocabulary.new("http://purl.org/spar/cito/"))
+      conf.add_namespace(:dcat, RDF::Vocabulary.new("http://www.w3.org/ns/dcat#"))
+      conf.add_namespace(:doap, RDF::Vocabulary.new("http://usefulinc.com/ns/doap#"))
+      conf.add_namespace(:door, RDF::Vocabulary.new("http://kannel.open.ac.uk/ontology#"))
+      conf.add_namespace(:foaf, RDF::Vocabulary.new("http://xmlns.com/foaf/0.1/"))
+      conf.add_namespace(:idot, RDF::Vocabulary.new("http://identifiers.org/idot/"))
+      conf.add_namespace(:mod, RDF::Vocabulary.new("http://www.isibang.ac.in/ns/mod#"))
+      conf.add_namespace(:nkos, RDF::Vocabulary.new("http://w3id.org/nkos/nkostype#"))
+      conf.add_namespace(:pav, RDF::Vocabulary.new("http://purl.org/pav/"))
+      conf.add_namespace(:prov, RDF::Vocabulary.new("http://www.w3.org/ns/prov#"))
+      conf.add_namespace(:rdf, RDF::Vocabulary.new("http://www.w3.org/1999/02/22-rdf-syntax-ns#"))
+      conf.add_namespace(:schema, RDF::Vocabulary.new("http://schema.org/"))
+      conf.add_namespace(:sd, RDF::Vocabulary.new("http://www.w3.org/ns/sparql-service-description#"))
+      conf.add_namespace(:vann, RDF::Vocabulary.new("http://purl.org/vocab/vann/"))
+      conf.add_namespace(:voaf, RDF::Vocabulary.new("http://purl.org/vocommons/voaf#"))
+      conf.add_namespace(:void, RDF::Vocabulary.new("http://rdfs.org/ns/void#"))
+      conf.add_namespace(:wdrs, RDF::Vocabulary.new("http://www.w3.org/2007/05/powder-s#"))
       conf.add_namespace(:omv, RDF::Vocabulary.new("http://omv.ontoware.org/2005/05/ontology#"))
       conf.add_namespace(:skos, RDF::Vocabulary.new("http://www.w3.org/2004/02/skos/core#"))
       conf.add_namespace(:owl, RDF::Vocabulary.new("http://www.w3.org/2002/07/owl#"))
       conf.add_namespace(:rdfs, RDF::Vocabulary.new("http://www.w3.org/2000/01/rdf-schema#"))
-      conf.add_namespace(:metadata,
-                         RDF::Vocabulary.new("http://data.bioontology.org/metadata/"),
-                         default = true)
-      conf.add_namespace(:metadata_def,
-                         RDF::Vocabulary.new("http://data.bioontology.org/metadata/def/"))
+      conf.add_namespace(:oboInOwl, RDF::Vocabulary.new("http://www.geneontology.org/formats/oboInOwl#"))
+      conf.add_namespace(:metadata, RDF::Vocabulary.new("http://data.bioontology.org/metadata/"), default = true)
+      conf.add_namespace(:metadata_def, RDF::Vocabulary.new("http://data.bioontology.org/metadata/def/"))
       conf.add_namespace(:dc, RDF::Vocabulary.new("http://purl.org/dc/elements/1.1/"))
       conf.add_namespace(:xsd, RDF::Vocabulary.new("http://www.w3.org/2001/XMLSchema#"))
-      conf.add_namespace(:oboinowl_gen,
-                         RDF::Vocabulary.new("http://www.geneontology.org/formats/oboInOwl#"))
+      conf.add_namespace(:oboinowl_gen, RDF::Vocabulary.new("http://www.geneontology.org/formats/oboInOwl#"))
       conf.add_namespace(:obo_purl, RDF::Vocabulary.new("http://purl.obolibrary.org/obo/"))
-      conf.add_namespace(:umls,
-                         RDF::Vocabulary.new("http://bioportal.bioontology.org/ontologies/umls/"))
+      conf.add_namespace(:umls, RDF::Vocabulary.new("http://bioportal.bioontology.org/ontologies/umls/"))
+      conf.add_namespace(:dct, RDF::Vocabulary.new("http://purl.org/dc/terms/"))
+      conf.add_namespace(:dcterms, RDF::Vocabulary.new("http://purl.org/dc/terms/"))
+      conf.add_namespace(:datacite, RDF::Vocabulary.new("http://datacite.org/schema/kernel-4#"))
       conf.id_prefix = "http://data.bioontology.org/"
       conf.pluralize_models(true)
     end

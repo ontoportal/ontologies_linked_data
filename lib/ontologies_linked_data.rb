@@ -4,6 +4,9 @@ require "goo"
 lib_dir = File.dirname(__FILE__)+"/../lib"
 $LOAD_PATH.unshift lib_dir unless $LOAD_PATH.include?(lib_dir)
 
+#Ecoportal debug require
+require "ontologies_linked_data/utils/debug_logger"
+
 # Setup Goo (repo connection and namespaces)
 require "ontologies_linked_data/config/config"
 
