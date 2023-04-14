@@ -1,8 +1,23 @@
 require 'set'
+require 'jwt'
 
 module LinkedData
   module Security
     class Authorization
+      def self.decodeJWT(encodedToken)
+        rsa_public = OpenSSL::X509::Certificate.new(
+          Base64.decode64(LinkedData.settings.oauth2_authorization_server_signature_cert)).public_key
+        decoded_token = JWT.decode encodedToken, rsa_public, true, { algorithm: LinkedData.settings.oauth2_authorization_server_signature_alg,
+                                                                     verify_iat: true,
+                                                                     verify_not_before: true,
+                                                                     verify_expiration: true,
+                                                                     verify_aud: true,
+                                                                     aud: LinkedData.settings.oauth2_audience,
+                                                                     verify_iss: true,
+                                                                     iss: LinkedData.settings.oauth_issuer }
+        decoded_token
+      end
+
       APIKEYS_FOR_AUTHORIZATION = {}
 
       def initialize(app = nil)
@@ -21,66 +36,28 @@ module LinkedData
         params = req.params
         apikey = find_apikey(env, params)
 
-        unless apikey
-          status = 401
-          response = {
-            status: status,
-            error: "You must provide an API Key either using the query-string parameter `apikey` or the `Authorization` header: `Authorization: apikey token=my_apikey`. " + \
-              "Your API Key can be obtained by logging in at #{LinkedData.settings.ui_host}/account"
-          }
-        end
+        accessToken = find_access_token(env, params) if LinkedData.settings.oauth2_enabled
+        apikey = find_apikey(env, params) unless accessToken
 
-          unless introspectionResponse.parsed.active
+        if apikey
+          if !authorized?(apikey, env)
             status = 401
             response = {
               status: status,
-              error: "The provided access token is not valid."
+              error: "You must provide a valid API Key. " + \
+              "Your API Key can be obtained by logging in at #{LinkedData.settings.ui_host}/account"
             }
           end
-
-          if status != 401
-            username = introspectionResponse.parsed.username
-
-            # the token returns a qualified username with source (e.g. LIFEWATCH.EU) and domain (e.g. @carbon)
-            if status != 401 && LinkedData.settings.oauth2_token_username_extractor
-              if usernameMatch = LinkedData.settings.oauth2_token_username_extractor.match(username)
-                username = usernameMatch["username"]
-              else
-                status = 401
-                response = {
-                  status: status,
-                  error: "Username does not match the extraction pattern"
-                }
-              end
-            end
-
-            if status != 401
-              scope = introspectionResponse.parsed.scope
-
-              scopes = []
-              if scope
-                scopes = scope.split()
-              end
-
-              unless !LinkedData.settings.oauth2_token_scope_matcher || scopes.any?(LinkedData.settings.oauth2_token_scope_matcher)
-                status = 401
-                response = {
-                  status: status,
-                  error: "The provided access token doesn't meet the required scope"
-                }
-              end
-
-              user = LinkedData::Models::User.where(username: username).include(LinkedData::Models::User.attributes(:all)).first
-              if user
-                store_user(user, env)
-              else
-                status = 401
-                response = {
-                  status: status,
-                  error: "The user who granted the access token is not recognized"
-                }
-              end
-            end
+        elsif accessToken
+          begin
+            Authorization::decodeJWT(accessToken)
+          rescue JWT::DecodeError => e
+            LOGGER.debug(e.message)
+            status = 401
+            response = {
+              status: status,
+              error: "Failed to decode JWT token: " + e.message
+            }
           end
         else
           status = 401
@@ -129,7 +106,7 @@ module LinkedData
           apikey = params["userapikey"]
         elsif params["apikey"]
           apikey = params["apikey"]
-        elsif apikey.nil? && header_auth
+        elsif apikey.nil? && header_auth && !header_auth.empty?
           token = Rack::Utils.parse_query(header_auth.split(" ")[1])
           # Strip spaces from start and end of string
           apikey = token["token"].gsub(/\"/, "")
