@@ -30,12 +30,65 @@ module LinkedData
           }
         end
 
-        if status != 401 && !authorized?(apikey, env)
+          unless introspectionResponse.parsed.active
+            status = 401
+            response = {
+              status: status,
+              error: "The provided access token is not valid."
+            }
+          end
+
+          if status != 401
+            username = introspectionResponse.parsed.username
+
+            # the token returns a qualified username with source (e.g. LIFEWATCH.EU) and domain (e.g. @carbon)
+            if status != 401 && LinkedData.settings.oauth2_token_username_extractor
+              if usernameMatch = LinkedData.settings.oauth2_token_username_extractor.match(username)
+                username = usernameMatch["username"]
+              else
+                status = 401
+                response = {
+                  status: status,
+                  error: "Username does not match the extraction pattern"
+                }
+              end
+            end
+
+            if status != 401
+              scope = introspectionResponse.parsed.scope
+
+              scopes = []
+              if scope
+                scopes = scope.split()
+              end
+
+              unless !LinkedData.settings.oauth2_token_scope_matcher || scopes.any?(LinkedData.settings.oauth2_token_scope_matcher)
+                status = 401
+                response = {
+                  status: status,
+                  error: "The provided access token doesn't meet the required scope"
+                }
+              end
+
+              user = LinkedData::Models::User.where(username: username).include(LinkedData::Models::User.attributes(:all)).first
+              if user
+                store_user(user, env)
+              else
+                status = 401
+                response = {
+                  status: status,
+                  error: "The user who granted the access token is not recognized"
+                }
+              end
+            end
+          end
+        else
           status = 401
           response = {
             status: status,
-            error: "You must provide a valid API Key. " + \
-              "Your API Key can be obtained by logging in at #{LinkedData.settings.ui_host}/account"
+            error: "You must provide an API Key either using the query-string parameter `apikey` or the `Authorization` header: `Authorization: apikey token=my_apikey`. " + \
+            "Your API Key can be obtained by logging in at #{LinkedData.settings.ui_host}/account" + \
+            "Alternatively, you must supply an OAuth2 access token in the `Authorization` header: `Authorization: Bearer oauth2-access-token`."
           }
         end
 
