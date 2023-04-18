@@ -27,12 +27,10 @@ module LinkedData
       # Override find method to make sure the id matches what is in the RDF store
       # Only do this if the setting is enabled, string comparison sucks
       def self.find(id, *options)
-        if LinkedData.settings.replace_url_prefix && id.to_s.start_with?(LinkedData.settings.rest_url_prefix)
-          id = RDF::IRI.new(id.to_s.sub(LinkedData.settings.rest_url_prefix, LinkedData.settings.id_url_prefix))
-        end
+        id = replace_url_prefix_to_id(id)
 
         # Handle `+` to ` ` conversion here because Sinatra doesn't do it for URI's
-        id = id.gsub("+", " ") unless id.start_with?("http")
+        id = id.gsub('+', ' ') unless id.start_with?('http')
 
         super(id, *options)
       end
@@ -44,17 +42,17 @@ module LinkedData
         raise ArgumentError, "`attributes` should be an array" unless attributes.is_a?(Array)
 
         # Get attributes, either provided, all, or default
-        if !attributes.empty?
-          if attributes.first == :all
-            default_attrs = self.attributes
-          else
-            default_attrs = attributes
-          end
-        elsif self.hypermedia_settings[:serialize_default].empty?
-          default_attrs = self.attributes
-        else
-          default_attrs = self.hypermedia_settings[:serialize_default].dup
-        end
+        default_attrs = if !attributes.empty?
+                          if attributes.first == :all
+                            (self.attributes + self.hypermedia_settings[:serialize_default]).uniq
+                          else
+                            attributes
+                          end
+                        elsif self.hypermedia_settings[:serialize_default].empty?
+                          self.attributes
+                        else
+                          self.hypermedia_settings[:serialize_default].dup
+                        end
 
         embed_attrs = {}
         extra_attrs = []
@@ -105,7 +103,7 @@ module LinkedData
         # Add extra attrs to appropriate group (embed Hash vs default Array)
         extra_attrs.each do |attr|
           if attr.is_a?(Hash)
-            attr.each do |k,v|
+            attr.each do |k, v|
               if embed_attrs.key?(k)
                 embed_attrs[k].concat(v).uniq!
               else
@@ -141,49 +139,32 @@ module LinkedData
         included_aggregates
       end
 
-      #New Ecoportal
-      #Overwrite of Goo::base::Resource to_hash method. This create hash also for nested object like "LinkedData::Models::Creator" object
-      def to_hash
-        begin
-          #LOGGER.debug "\n\n\n ontologies_linked_data - Base-> to_hash" 
-          attr_hash = {}
-          self.class.attributes.each do |attr|
-            v = self.instance_variable_get("@#{attr}")
-            #begin
-            case v
-            when Base then v = v.to_hash # Base instance? convert deeply
-            when Array # Array? convert elements
-              v = v.map do |e|
-                e.respond_to?(:to_hash) ? e.to_hash : e
-              end          
-            end
-            #end
-            attr_hash[attr]=v unless v.nil?
-          end
-          if @unmapped
-            all_attr_uris = Set.new
-            self.class.attributes.each do |attr|
-              if self.class.collection_opts
-                all_attr_uris << self.class.attribute_uri(attr,self.collection)
-              else
-                all_attr_uris << self.class.attribute_uri(attr)
-              end
-            end
-            @unmapped.each do |attr,values|
-              unless all_attr_uris.include?(attr)
-                attr_hash[attr] = values.map { |v| v.to_s }
-              end
-            end
-          end
-          attr_hash[:id] = @id
-          return attr_hash
-        rescue => e
-          LOGGER.debug "\n\n\n ontologies_linked_data - Base-> to_hash - error: #{e.message}\n#{e.backtrace.join("\n")}"
-          raise e        
+      def self.replace_url_prefix_to_id(id)
+        if replace_url_prefix?(id)
+          id = RDF::IRI.new(id.to_s.sub(LinkedData.settings.rest_url_prefix, LinkedData.settings.id_url_prefix))
+        end
+        id
+      end
+
+      def self.replace_url_id_to_prefix(id)
+        if replace_url_id?(id)
+          id.to_s.gsub(LinkedData.settings.id_url_prefix, LinkedData.settings.rest_url_prefix)
+        else
+          id
         end
       end
 
+      def self.replace_url_prefix?(id)
+        LinkedData.settings.replace_url_prefix && id.to_s.start_with?(LinkedData.settings.rest_url_prefix)
+      end
+
+      def self.replace_url_id?(id)
+        LinkedData.settings.replace_url_prefix && id.to_s.start_with?(LinkedData.settings.id_url_prefix)
+      end
+
       private
+
+
 
       ##
       # Looks for an object 'owner' and looks in Thread.current[:remote_user]
@@ -195,7 +176,7 @@ module LinkedData
         if LinkedData.settings.enable_security
           user = nil
           options_hash = {}
-          args.each {|e| options_hash.merge!(e) if e.is_a?(Hash)}
+          args.each { |e| options_hash.merge!(e) if e.is_a?(Hash) }
           user = options_hash[:user]
 
           # Allow a passed option to short-cut the security process

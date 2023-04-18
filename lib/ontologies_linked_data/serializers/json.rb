@@ -11,11 +11,12 @@ module LinkedData
 
           # Add the id to json-ld attribute
           if current_cls.ancestors.include?(LinkedData::Hypermedia::Resource) && !current_cls.embedded? && hashed_obj.respond_to?(:id)
-            prefixed_id = LinkedData.settings.replace_url_prefix ? hashed_obj.id.to_s.gsub(LinkedData.settings.id_url_prefix, LinkedData.settings.rest_url_prefix) : hashed_obj.id.to_s
-            hash["@id"] = prefixed_id
+            prefixed_id = LinkedData::Models::Base.replace_url_id_to_prefix(hashed_obj.id)
+            hash["@id"] = prefixed_id.to_s
           end
+
           # Add the type
-          hash["@type"] = current_cls.type_uri.to_s if hash["@id"] && current_cls.respond_to?(:type_uri)
+          hash["@type"] = type(current_cls, hashed_obj) if  hash["@id"]
 
           # Generate links
           # NOTE: If this logic changes, also change in xml.rb
@@ -30,16 +31,43 @@ module LinkedData
           # Generate context
           if current_cls.ancestors.include?(Goo::Base::Resource) && !current_cls.embedded?
             if generate_context?(options)
-              context = generate_context(hashed_obj, hash.keys, options) if generate_context?(options)
+              context = generate_context(hashed_obj, hash.keys, options)
               hash.merge!(context)
             end
+          elsif (hashed_obj.instance_of?(LinkedData::Models::ExternalClass) || hashed_obj.instance_of?(LinkedData::Models::InterportalClass)) && !current_cls.embedded?
+            # Add context for ExternalClass
+            context_hash = {"@vocab" => Goo.vocabulary.to_s, "prefLabel" => "http://data.bioontology.org/metadata/skosprefLabel"}
+            context = {"@context" => context_hash}
+            hash.merge!(context)
+          end
+
+          if hash.key?('@context')
+            hash['@context']['@language'] = options[:lang]
+          else
+            hash['@context'] = {'@language' => options[:lang]}
           end
         end
-
         MultiJson.dump(hash)
       end
 
       private
+
+      def self.type(current_cls, hashed_obj)
+        if current_cls.respond_to?(:type_uri)
+          # For internal class
+          proc = current_cls
+        elsif hashed_obj.respond_to?(:type_uri)
+          # For External and Interportal class
+          proc = hashed_obj
+        end
+
+        collection = hashed_obj.respond_to?(:collection) ? hashed_obj.collection : nil
+        if collection
+          proc.type_uri(collection).to_s
+        else
+          proc.type_uri.to_s
+        end
+      end
 
       def self.generate_context(object, serialized_attrs = [], options = {})
         return remove_unused_attrs(CONTEXTS[object.hash], serialized_attrs) unless CONTEXTS[object.hash].nil?
@@ -52,13 +80,15 @@ module LinkedData
             linked_model = current_cls.model_settings[:range][attr]
           end
 
-          predicate = nil
           if linked_model && linked_model.ancestors.include?(Goo::Base::Resource) && !embedded?(object, attr)
             # linked object
             predicate = {"@id" => linked_model.type_uri.to_s, "@type" => "@id"}
-          elsif current_cls.model_settings[:attributes][attr][:namespace]
+          else
+            # use the original predicate property if set
+            predicate_attr =  current_cls.model_settings[:attributes][attr][:property] || attr
             # predicate with custom namespace
-            predicate = "#{Goo.vocabulary(current_cls.model_settings[:attributes][attr][:namespace]).to_s}#{attr}"
+            # if the namespace can be resolved by the namespaces added in Goo then it will be resolved.
+            predicate = "#{Goo.vocabulary(current_cls.model_settings[:attributes][attr][:namespace])&.to_s}#{predicate_attr}"
           end
           hash[attr] = predicate unless predicate.nil?
         end
