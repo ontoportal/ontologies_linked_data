@@ -27,7 +27,7 @@ module LinkedData
               hash["links"].merge!(generate_links_context(hashed_obj)) if generate_context?(options)
             end
           end
-          
+
           # Generate context
           if current_cls.ancestors.include?(Goo::Base::Resource) && !current_cls.embedded?
             if generate_context?(options)
