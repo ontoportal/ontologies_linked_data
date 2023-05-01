@@ -337,6 +337,8 @@ class Object
   end
 
   def add_goo_values(goo_object, embedded_values, attributes_to_embed, options, &block)
+    return if goo_object.nil?
+
     if attributes_to_embed.length > 1
       embedded_values_hash = {}
       attributes_to_embed.each do |a|
