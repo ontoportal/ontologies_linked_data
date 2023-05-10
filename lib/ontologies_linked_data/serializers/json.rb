@@ -6,6 +6,10 @@ module LinkedData
       CONTEXTS = {}
 
       def self.serialize(obj, options = {})
+        
+        submission = obj.respond_to?(:submission) ? obj.submission : nil
+        result_lang = self.get_languages(submission, options[:lang])
+
         hash = obj.to_flex_hash(options) do |hash, hashed_obj|
           current_cls = hashed_obj.respond_to?(:klass) ? hashed_obj.klass : hashed_obj.class
 
@@ -40,12 +44,32 @@ module LinkedData
             context = {"@context" => context_hash}
             hash.merge!(context)
           end
-          hash['@context']['@language'] = options[:lang] if hash['@context']
+          hash['@context']['@language'] = result_lang if hash['@context']
         end
         MultiJson.dump(hash)
       end
 
       private
+
+      def self.get_languages(submission, user_languages)
+        
+        if submission
+          
+          submission.bring :naturalLanguage
+          langauges = get_submission_languages(submission.naturalLanguage)
+                  
+          # intersection of the two arrays , if the requested language is not :all
+          result_lang = user_languages == :all ? langauges : user_languages & langauges
+          result_lang = result_lang.first if result_lang.length == 1
+
+        end
+
+        return result_lang
+      end
+
+      def self.get_submission_languages(submission_natural_language = [])
+        submission_natural_language.map { |natural_language| natural_language["iso639"] && natural_language.split('/').last[0..1].to_sym }.compact
+      end 
 
       def self.type(current_cls, hashed_obj)
         if current_cls.respond_to?(:type_uri)
