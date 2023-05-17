@@ -47,6 +47,26 @@ module LinkedData
 
       private
 
+      def self.get_languages(submission, user_languages)
+        
+        if submission
+          
+          submission.bring :naturalLanguage
+          langauges = get_submission_languages(submission.naturalLanguage)
+                  
+          # intersection of the two arrays , if the requested language is not :all
+          result_lang = user_languages == :all ? langauges : Array(user_languages) & langauges
+          result_lang = result_lang.first if result_lang.length == 1
+
+        end
+
+        return result_lang
+      end
+
+      def self.get_submission_languages(submission_natural_language = [])
+        submission_natural_language.map { |natural_language| natural_language["iso639"] && natural_language.split('/').last[0..1].to_sym }.compact
+      end 
+
       def self.type(current_cls, hashed_obj)
         if current_cls.respond_to?(:type_uri)
           # For internal class
