@@ -59,7 +59,7 @@ module LinkedData
           langauges = get_submission_languages(submission.naturalLanguage)
                   
           # intersection of the two arrays , if the requested language is not :all
-          result_lang = user_languages == :all ? langauges : user_languages & langauges
+          result_lang = user_languages == :all ? langauges : Array(user_languages) & langauges
           result_lang = result_lang.first if result_lang.length == 1
 
         end
