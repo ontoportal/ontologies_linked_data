@@ -218,11 +218,11 @@ module LinkedData
     def model_lifecycle_test(m)
       assert_equal(true, m.is_a?(LinkedData::Models::Base), 'Expected is_a?(LinkedData::Models::Base).')
       assert_equal(true, m.valid?, "Expected valid model: #{m.errors}")
-      assert_equal(false, m.exist?(reload=true), 'Given model is already saved, expected one that is not.')
+      assert_equal(false, m.exist?, 'Given model is already saved, expected one that is not.')
       m.save
-      assert_equal(true, m.exist?(reload=true), 'Failed to save model.')
+      assert_equal(true, m.exist?, 'Failed to save model.')
       m.delete
-      assert_equal(false, m.exist?(reload=true), 'Failed to delete model.')
+      assert_equal(false, m.exist?, 'Failed to delete model.')
     end
 
     def self.count_pattern(pattern)
