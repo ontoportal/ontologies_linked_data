@@ -6,12 +6,11 @@ module LinkedData
       CONTEXTS = {}
 
       def self.serialize(obj, options = {})
-        
-        submission = obj.respond_to?(:submission) ? obj.submission : nil
-        result_lang = self.get_languages(submission, options[:lang])
+
 
         hash = obj.to_flex_hash(options) do |hash, hashed_obj|
           current_cls = hashed_obj.respond_to?(:klass) ? hashed_obj.klass : hashed_obj.class
+          result_lang = self.get_languages(get_object_submission(hashed_obj), options[:lang]) if result_lang.nil?
 
           # Add the id to json-ld attribute
           if current_cls.ancestors.include?(LinkedData::Hypermedia::Resource) && !current_cls.embedded? && hashed_obj.respond_to?(:id)
@@ -51,20 +50,22 @@ module LinkedData
 
       private
 
-      def self.get_languages(submission, user_languages)
-        
-        if submission
-          
-          submission.bring :naturalLanguage
-          langauges = get_submission_languages(submission.naturalLanguage)
-                  
-          # intersection of the two arrays , if the requested language is not :all
-          result_lang = user_languages == :all ? langauges : Array(user_languages) & langauges
-          result_lang = result_lang.first if result_lang.length == 1
+      def self.get_object_submission(obj)
+        obj.class.attributes.include?(:submission) ? obj.submission : nil
+      end
 
+      def self.get_languages(submission, user_languages)
+        result_lang = user_languages
+
+        if submission
+          submission.bring :naturalLanguage
+          languages = get_submission_languages(submission.naturalLanguage)
+          # intersection of the two arrays , if the requested language is not :all
+          result_lang = user_languages == :all ? languages : Array(user_languages) & languages
+          result_lang = result_lang.first if result_lang.length == 1
         end
 
-        return result_lang
+        result_lang
       end
 
       def self.get_submission_languages(submission_natural_language = [])
