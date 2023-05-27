@@ -34,12 +34,14 @@ module LinkedData
       def call(env)
         req = Rack::Request.new(env)
         params = req.params
-        accessToken = nil
-        accessToken = find_access_token(env, params) if LinkedData.settings.oauth2_enabled
-        apikey = find_apikey(env, params) unless accessToken
+        access_token = nil
+        apikey = nil
+
+        access_token = find_access_token(env, params) if LinkedData.settings.oauth2_enabled
+        apikey = find_apikey(env, params) unless access_token
 
         if apikey
-          if !authorized?(apikey, env)
+          unless authorized?(apikey, env)
             status = 401
             response = {
               status: status,
@@ -47,9 +49,9 @@ module LinkedData
               "Your API Key can be obtained by logging in at #{LinkedData.settings.ui_host}/account"
             }
           end
-        elsif accessToken
+        elsif access_token
           begin
-            Authorization::decodeJWT(accessToken)
+            Authorization::decodeJWT(access_token)
           rescue JWT::DecodeError => e
             LOGGER.debug(e.message)
             status = 401
@@ -60,11 +62,16 @@ module LinkedData
           end
         else
           status = 401
+          error_message = "You must provide an API Key either using the query-string parameter `apikey` or the `Authorization` header: `Authorization: apikey token=my_apikey`. " + \
+            "Your API Key can be obtained by logging in at #{LinkedData.settings.ui_host}/account"
+
+          if LinkedData.settings.oauth2_enabled
+            error_message = error_message +  "Alternatively, you must supply an OAuth2 access token in the `Authorization` header: `Authorization: Bearer oauth2-access-token`."
+          end
+
           response = {
             status: status,
-            error: "You must provide an API Key either using the query-string parameter `apikey` or the `Authorization` header: `Authorization: apikey token=my_apikey`. " + \
-            "Your API Key can be obtained by logging in at #{LinkedData.settings.ui_host}/account" + \
-            "Alternatively, you must supply an OAuth2 access token in the `Authorization` header: `Authorization: Bearer oauth2-access-token`."
+            error: error_message
           }
         end
 
