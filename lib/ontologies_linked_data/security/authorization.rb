@@ -34,8 +34,7 @@ module LinkedData
       def call(env)
         req = Rack::Request.new(env)
         params = req.params
-        apikey = find_apikey(env, params)
-
+        accessToken = nil
         accessToken = find_access_token(env, params) if LinkedData.settings.oauth2_enabled
         apikey = find_apikey(env, params) unless accessToken
 
