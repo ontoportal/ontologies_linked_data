@@ -460,7 +460,7 @@ eos
     ontologyFile = "./test/data/ontology_files/pizza.owl.zip"
     archived_submission = nil
     2.times do |i|
-      id = 10 + i
+      id = 20 + i
       ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => id})
       assert (not ont_submision.valid?)
       assert_equal 4, ont_submision.errors.length
