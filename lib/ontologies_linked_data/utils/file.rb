@@ -15,14 +15,6 @@ module LinkedData
         end
       end
       
-      def self.gzip?(file_path)
-        file_path = file_path.to_s
-        unless File.exist? file_path
-          raise ArgumentError, "File path #{file_path} not found"
-        end
-        file_type = `file --mime -b #{Shellwords.escape(file_path)}`
-        return file_type.split(";")[0] == "application/x-gzip"
-      end
 
       def self.zip?(file_path)
         file_path = file_path.to_s
