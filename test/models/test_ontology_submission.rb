@@ -362,6 +362,7 @@ eos
 
     # Process one prior to latest submission.  Some files should be deleted.
     old_sub = sorted_submissions.last
+    old_file_path = old_sub.uploadFilePath
     old_sub.process_submission(Logger.new(old_sub.parsing_log_path), parse_options)
     assert old_sub.archived?
 
@@ -382,6 +383,13 @@ eos
 
     assert_equal false, File.file?(old_sub.parsing_log_path),
       %-File deletion failed for '#{old_sub.parsing_log_path}'-
+
+    assert_equal false, File.file?(old_file_path),
+                 %-File deletion failed for '#{old_file_path}'-
+
+    assert old_sub.zipped?
+    assert File.file?(old_sub.uploadFilePath)
+
   end
 
   def test_submission_diff_across_ontologies
