@@ -333,6 +333,9 @@ eos
     parse_options = { process_rdf: false, index_search: false, index_commit: false,
                       run_metrics: false, reasoning: false, archive: true }
 
+    old_threshold = LinkedData::Models::OntologySubmission::FILE_SIZE_ZIPPING_THRESHOLD
+    LinkedData::Models::OntologySubmission.const_set(:FILE_SIZE_ZIPPING_THRESHOLD, 0)
+
     ont_count, ont_acronyms, ontologies =
       create_ontologies_and_submissions(ont_count: 1, submission_count: 2,
                                         process_submission: true, acronym: 'NCBO-545')
@@ -389,7 +392,7 @@ eos
 
     assert old_sub.zipped?
     assert File.file?(old_sub.uploadFilePath)
-
+    LinkedData::Models::OntologySubmission.const_set(:FILE_SIZE_ZIPPING_THRESHOLD, old_threshold)
   end
 
   def test_submission_diff_across_ontologies
