@@ -362,6 +362,7 @@ eos
 
     # Process one prior to latest submission.  Some files should be deleted.
     old_sub = sorted_submissions.last
+    old_file_path = old_sub.uploadFilePath
     old_sub.process_submission(Logger.new(old_sub.parsing_log_path), parse_options)
     assert old_sub.archived?
 
@@ -382,6 +383,13 @@ eos
 
     assert_equal false, File.file?(old_sub.parsing_log_path),
       %-File deletion failed for '#{old_sub.parsing_log_path}'-
+
+    assert_equal false, File.file?(old_file_path),
+                 %-File deletion failed for '#{old_file_path}'-
+
+    assert old_sub.zipped?
+    assert File.file?(old_sub.uploadFilePath)
+
   end
 
   def test_submission_diff_across_ontologies
@@ -446,6 +454,45 @@ eos
     assert_equal 0, res["response"]["numFound"]
   end
 
+  def test_zipped_submission_process
+    acronym = "PIZZA"
+    name = "PIZZA Ontology"
+    ontologyFile = "./test/data/ontology_files/pizza.owl.zip"
+    archived_submission = nil
+    2.times do |i|
+      id = 20 + i
+      ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => id})
+      assert (not ont_submision.valid?)
+      assert_equal 4, ont_submision.errors.length
+      uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id,ontologyFile)
+      ont_submision.uploadFilePath = uploadFilePath
+      owl, bro, user, contact = submission_dependent_objects("OWL", acronym, "test_linked_models", name)
+      ont_submision.released = DateTime.now - 4
+      ont_submision.hasOntologyLanguage = owl
+      ont_submision.ontology = bro
+      ont_submision.contact = [contact]
+      assert ont_submision.valid?
+      ont_submision.save
+      parse_options = {process_rdf: true, reasoning: true, index_search: false, run_metrics: false, diff: true}
+      begin
+        tmp_log = Logger.new(TestLogFile.new)
+        ont_submision.process_submission(tmp_log, parse_options)
+      rescue Exception => e
+        puts "Error, logged in #{tmp_log.instance_variable_get("@logdev").dev.path}"
+        raise e
+      end
+      archived_submission = ont_submision if i.zero?
+    end
+    parse_options = { process_rdf: false, index_search: false, index_commit: false,
+                      run_metrics: false, reasoning: false, archive: true }
+    archived_submission.process_submission(Logger.new(TestLogFile.new), parse_options)
+
+    assert_equal false, File.file?(archived_submission.zip_folder),
+                 %-File deletion failed for '#{archived_submission.zip_folder}'-
+
+
+
+  end
   def test_submission_parse_zip
     skip if ENV["BP_SKIP_HEAVY_TESTS"] == "1"
 
