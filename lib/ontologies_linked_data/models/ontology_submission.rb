@@ -20,6 +20,7 @@ module LinkedData
       FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
       FOLDERS_TO_DELETE = ['unzipped']
       FLAT_ROOTS_LIMIT = 1000
+      FILE_SIZE_ZIPPING_THRESHOLD = 100 * 1024 * 1024 # 100MB
 
       model :ontology_submission, name_with: lambda { |s| submission_id_generator(s) }
       attribute :submissionId, enforce: [:integer, :existence]
@@ -768,6 +769,10 @@ module LinkedData
 
         return self.uploadFilePath if zipped?
         return self.uploadFilePath if self.uploadFilePath.nil? || self.uploadFilePath.empty?
+
+
+        return self.uploadFilePath if File.size(self.uploadFilePath) < FILE_SIZE_ZIPPING_THRESHOLD
+
 
         old_path = self.uploadFilePath
         new_path = Utils::FileHelpers.zip_file(old_path)
