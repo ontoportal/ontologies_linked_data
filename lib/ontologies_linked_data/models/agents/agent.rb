@@ -3,9 +3,9 @@ module LinkedData
     # An agent (eg. person, group, software or physical artifact)
     class Agent < LinkedData::Models::Base
 
-      model :Agent, namespace: :foaf, name_with: :username
+      model :Agent, namespace: :foaf, name_with: lambda { |cc| uuid_uri_generator(cc) }
       attribute :type, enforce: [:existence], enforcedValues: %w[person organization]
-      attribute :name, namespace: :foaf, enforce: [:existence]
+      attribute :name, namespace: :foaf, enforce: %i[existence unique]
 
       attribute :firstName, namespace: :foaf
       attribute :lastName, namespace: :foaf, property: :surname

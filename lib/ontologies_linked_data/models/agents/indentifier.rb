@@ -6,7 +6,7 @@ module LinkedData
 
       model :Identifier, namespace: :adms, name_with: :notation
 
-      attribute :notation, namespace: :skos, enforce: [:unique, :existence]
+      attribute :notation, namespace: :skos, enforce: %i[unique existence]
       attribute :schemaAgency, namespace: :adms, enforcedValues: IDENTIFIER_SCHEMES.keys, enforce: [:existence]
       attribute :schemeURI, handler: :scheme_uri_infer
 
