@@ -74,7 +74,7 @@ module LinkedData
       attribute :hasLicense, namespace: :omv, type: :uri
       attribute :useGuidelines, namespace: :cc
       attribute :morePermissions, namespace: :cc
-      attribute :copyrightHolder, namespace: :schema
+      attribute :copyrightHolder, namespace: :schema, type: :Agent
 
       # Date metadata
       attribute :released, type: :date_time, enforce: [:existence]
@@ -86,13 +86,13 @@ module LinkedData
 
       # Person and organizations metadata
       attribute :contact, type: %i[contact list], enforce: [:existence]
-      attribute :hasCreator, namespace: :omv, type: :list
-      attribute :hasContributor, namespace: :omv, type: :list
-      attribute :curatedBy, namespace: :pav, type: :list
-      attribute :publisher, namespace: :dct
-      attribute :fundedBy, namespace: :foaf
-      attribute :endorsedBy, namespace: :omv, type: :list
-      attribute :translator, namespace: :schema
+      attribute :hasCreator, namespace: :omv, type: %i[list Agent], enforce: [:person]
+      attribute :hasContributor, namespace: :omv, type: %i[list Agent], enforce: [:person]
+      attribute :curatedBy, namespace: :pav, type: %i[list Agent]
+      attribute :publisher, namespace: :dct, type: %i[list Agent]
+      attribute :fundedBy, namespace: :foaf, type: %i[list Agent], enforce: [:organization]
+      attribute :endorsedBy, namespace: :omv, type: :list, enforce: [:organization]
+      attribute :translator, namespace: :schema, type: %i[list Agent]
 
       # Community metadata
       attribute :audience, namespace: :dct
@@ -181,7 +181,7 @@ module LinkedData
 
       # Hypermedia settings
       embed :contact, :ontology
-      embed_values :submissionStatus => [:code], :hasOntologyLanguage => [:acronym], :metrics => [:classes, :individuals, :properties]
+      embed_values :submissionStatus => [:code], :hasOntologyLanguage => [:acronym], :metrics => %i[classes individuals properties]
       serialize_default :contact, :ontology, :hasOntologyLanguage, :released, :creationDate, :homepage,
                         :publication, :documentation, :version, :description, :status, :submissionId
 
@@ -1187,7 +1187,7 @@ eos
               end
             end
 
-            parsed = ready?(status: [:rdf, :rdf_labels])
+            parsed = ready?(status: %i[rdf rdf_labels])
 
             if index_search
               raise Exception, "The submission #{self.ontology.acronym}/submissions/#{self.submissionId} cannot be indexed because it has not been successfully parsed" unless parsed
@@ -1598,7 +1598,7 @@ eos
         where = LinkedData::Models::Class.in(self).models(classes).include(:prefLabel, :definition, :synonym, :obsolete)
 
         if extra_include
-          [:prefLabel, :definition, :synonym, :obsolete, :childrenCount].each do |x|
+          %i[prefLabel definition synonym obsolete childrenCount].each do |x|
             extra_include.delete x
           end
         end
