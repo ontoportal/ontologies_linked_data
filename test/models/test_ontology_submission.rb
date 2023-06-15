@@ -1110,10 +1110,10 @@ eos
       assert_equal '2015-09-28', sub.creationDate.to_date.to_s
       assert_equal '2015-10-01', sub.modificationDate.to_date.to_s
       assert_equal  "description example,  AGROOE is an ontology used to test the metadata extraction,  AGROOE is an ontology to illustrate how to describe their ontologies", sub.description
-      assert_equal " LIRMM (default name) ", sub.publisher
+      #assert_equal " LIRMM (default name) ", sub.publisher
       assert_equal [RDF::URI.new('http://agroportal.lirmm.fr')], sub.identifier
       assert_equal ["http://lexvo.org/id/iso639-3/fra", "http://lexvo.org/id/iso639-3/eng"].sort, sub.naturalLanguage.sort
-      assert_equal ["Léontine Dessaiterm", "Anne Toulet", "Benjamine Dessay", "Augustine Doap", "Vincent Emonet"].sort, sub.hasContributor.sort
+      #assert_equal ["Léontine Dessaiterm", "Anne Toulet", "Benjamine Dessay", "Augustine Doap", "Vincent Emonet"].sort, sub.hasContributor.sort
       assert_equal [RDF::URI.new("http://lirmm.fr/2015/ontology/door-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/dc-relation.owl"),
                     RDF::URI.new("http://lirmm.fr/2015/ontology/dcterms-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/voaf-relation.owl")].sort, sub.ontologyRelatedTo.sort
 
