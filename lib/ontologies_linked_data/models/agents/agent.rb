@@ -9,7 +9,7 @@ module LinkedData
 
       attribute :firstName, namespace: :foaf
       attribute :lastName, namespace: :foaf, property: :surname
-      attribute :homepage, namespace: :foaf, property: :pageHome
+      attribute :homepage, namespace: :foaf
       attribute :acronym, namespace: :skos, property: :altLabel
       attribute :email, namespace: :foaf, property: :mbox
 
