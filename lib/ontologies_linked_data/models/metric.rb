@@ -8,15 +8,17 @@ module LinkedData
       attribute :created, enforce: [:date_time],
                 :default => lambda { |record| DateTime.now }
 
-      attribute :classes, enforce: [:integer,:existence]
-      attribute :individuals, enforce: [:integer,:existence]
-      attribute :properties, enforce: [:integer,:existence]
-      attribute :maxDepth, enforce: [:integer,:existence]
-      attribute :maxChildCount, enforce: [:integer,:existence]
-      attribute :averageChildCount, enforce: [:integer,:existence]
-      attribute :classesWithOneChild, enforce: [:integer,:existence]
-      attribute :classesWithMoreThan25Children, enforce: [:integer,:existence]
-      attribute :classesWithNoDefinition, enforce: [:integer,:existence]
+      attribute :classes, enforce: %i[integer existence]
+      attribute :individuals, enforce: %i[integer existence]
+      attribute :properties, enforce: %i[integer existence]
+      attribute :maxDepth, enforce: %i[integer existence]
+      attribute :maxChildCount, enforce: %i[integer existence]
+      attribute :averageChildCount, enforce: %i[integer existence]
+      attribute :classesWithOneChild, enforce: %i[integer existence]
+      attribute :classesWithMoreThan25Children, enforce: %i[integer existence]
+      attribute :classesWithNoDefinition, enforce: %i[integer existence]
+      attribute :numberOfAxioms, namespace: :omv, type: :integer
+      attribute :entities, namespace: :void, type: :integer
 
       cache_timeout 14400 # 4 hours
 

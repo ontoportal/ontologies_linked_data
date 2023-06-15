@@ -28,7 +28,12 @@ module LinkedData
             logger.error("Error while setting default metadata: #{e}")
           end
 
-          self.save
+          if self.valid?
+            self.save
+          else
+            logger.error("Error while extracting additional metadata: #{self.errors}")
+          end
+
         end
 
         def extract_version
@@ -100,85 +105,6 @@ module LinkedData
 
         # Set some metadata to default values if nothing extracted
         def set_default_metadata
-
-          self.identifier = uri.to_s if identifier.nil?
-
-          self.deprecated = status.eql?('retired') if deprecated.nil?
-
-          # Add the ontology hasDomain to the submission hasDomain metadata value
-          ontology_domain_list = []
-          ontology.bring(:hasDomain).hasDomain.each do |domain|
-            ontology_domain_list << domain.id
-          end
-
-          self.hasDomain = '' if !ontology_domain_list.empty? && hasDomain.nil?
-
-          self.hasDomain << ontology_domain_list.join(', ') unless hasDomain.nil?
-
-          # Only get the first view because the attribute is not a list
-          ontology_view = ontology.bring(:views).views.first
-          self.hasPart = ontology_view.id if hasPart.nil? && !ontology_view.nil?
-
-          # If no example identifier extracted: take the first class
-          self.exampleIdentifier = LinkedData::Models::Class.in(self).first.id if exampleIdentifier.nil?
-
-          # Metadata specific to BioPortal that have been removed:
-          #if self.hostedBy.nil?
-          #  self.hostedBy = [ RDF::URI.new("http://#{LinkedData.settings.ui_host}") ]
-          #end
-
-          # Add the search endpoint URL
-          if openSearchDescription.nil?
-            self.openSearchDescription = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{ontology.acronym}&q=")
-          end
-
-          # Search allow to search by URI too
-          if uriLookupEndpoint.nil?
-            self.uriLookupEndpoint = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}search?ontologies=#{ontology.acronym}&require_exact_match=true&q=")
-          end
-
-          # Add the dataDump URL
-          if dataDump.nil?
-            self.dataDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{ontology.acronym}/download?download_format=rdf")
-          end
-
-          if csvDump.nil?
-            self.csvDump = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{ontology.acronym}/download?download_format=csv")
-          end
-
-          # Add the previous submission as a prior version
-          if submissionId > 1
-=begin
-          if prior_versions.nil?
-            prior_versions = []
-          else
-            prior_versions = self.hasPriorVersion.dup
-          end
-          prior_versions.push(RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{self.ontology.acronym}/submissions/#{self.submissionId - 1}"))
-          self.hasPriorVersion = prior_versions
-=end
-            self.hasPriorVersion = RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{ontology.acronym}/submissions/#{submissionId - 1}")
-          end
-
-          if hasOntologyLanguage.umls?
-            self.hasOntologySyntax = 'http://www.w3.org/ns/formats/Turtle'
-          elsif hasOntologyLanguage.obo?
-            self.hasOntologySyntax = 'http://purl.obolibrary.org/obo/oboformat/spec.html'
-          end
-
-          # Define default properties for prefLabel, synonyms, definition, author:
-          if hasOntologyLanguage.owl?
-            self.prefLabelProperty = Goo.vocabulary(:skos)[:prefLabel] if prefLabelProperty.nil?
-            self.synonymProperty = Goo.vocabulary(:skos)[:altLabel] if synonymProperty.nil?
-            self.definitionProperty = Goo.vocabulary(:rdfs)[:comment] if definitionProperty.nil?
-            self.authorProperty = Goo.vocabulary(:dc)[:creator] if authorProperty.nil?
-            # Add also hierarchyProperty? Could not find any use of it
-          end
-
-          # Add the sparql endpoint URL
-          if endpoint.nil? && LinkedData.settings.sparql_endpoint_url
-            self.endpoint = RDF::URI.new(LinkedData.settings.sparql_endpoint_url)
-          end
 
         end
 
@@ -284,7 +210,8 @@ eos
             value = sol[:extractedObject]
             if enforce?(attr, :uri)
               # If the attr is enforced as URI then it directly takes the URI
-              hash_results[value] = value if value.is_a?(RDF::URI)
+              uri_value = value ? RDF::URI.new(value.to_s.strip) : nil
+              hash_results[value] = uri_value if uri_value&.valid?
             elsif enforce?(attr, :date_time)
               begin
                 hash_results[value] = DateTime.iso8601(value.to_s)

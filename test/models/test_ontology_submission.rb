@@ -33,9 +33,12 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
     os.uploadFilePath = uploadFilePath
     os.hasOntologyLanguage = owl
     os.ontology = bogus
+    os.URI = RDF::URI.new('https://test.com')
+    os.description = 'description example'
+    os.status = 'beta'
     assert os.valid?
   end
-
+  
   def test_sanity_check_zip
 
     acronym = "ADARTEST"
@@ -49,6 +52,9 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
     uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id, ontologyFile)
     ont_submision.contact = [contact]
     ont_submision.released = DateTime.now - 4
+    ont_submision.URI = RDF::URI.new('https://test.com')
+    ont_submision.description = 'description example'
+    ont_submision.status = 'beta'
     ont_submision.uploadFilePath = uploadFilePath
     ont_submision.hasOntologyLanguage = owl
     ont_submision.ontology = rad
@@ -94,6 +100,9 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
     ont_submision.contact = [contact]
     ont_submision.released = DateTime.now - 4
     ont_submision.hasOntologyLanguage = owl
+    ont_submision.uri = RDF::URI.new('https://test.com')
+    ont_submision.description = 'description example'
+    ont_submision.status = 'beta'
     ont_submision.ontology = dup
     assert (!ont_submision.valid?)
     assert_equal 1, ont_submision.errors.length
@@ -466,7 +475,7 @@ eos
       id = 20 + i
       ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => id})
       assert (not ont_submision.valid?)
-      assert_equal 4, ont_submision.errors.length
+      assert_equal 7, ont_submision.errors.length
       uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id,ontologyFile)
       ont_submision.uploadFilePath = uploadFilePath
       owl, bro, user, contact = submission_dependent_objects("OWL", acronym, "test_linked_models", name)
@@ -474,6 +483,9 @@ eos
       ont_submision.hasOntologyLanguage = owl
       ont_submision.ontology = bro
       ont_submision.contact = [contact]
+      ont_submision.URI = RDF::URI.new("https://test-#{id}.com")
+      ont_submision.description =  "Description #{id}"
+      ont_submision.status = 'production'
       assert ont_submision.valid?
       ont_submision.save
       parse_options = {process_rdf: true, reasoning: true, index_search: false, run_metrics: false, diff: true}
@@ -511,6 +523,9 @@ eos
     LinkedData::TestCase.backend_4s_delete
 
     ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => id,})
+    ont_submision.uri = RDF::URI.new('https://test.com')
+    ont_submision.description = 'description example'
+    ont_submision.status = 'beta'
     assert (not ont_submision.valid?)
     assert_equal 4, ont_submision.errors.length
     uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id,ontologyFile)
@@ -783,6 +798,9 @@ eos
     ont_submision.hasOntologyLanguage = owl
     ont_submision.contact = [contact]
     ont_submision.ontology = sbo
+    ont_submision.uri = RDF::URI.new('https://test.com')
+    ont_submision.description = 'description example'
+    ont_submision.status = 'beta'
     assert (ont_submision.valid?)
     ont_submision.save
     assert_equal true, ont_submision.exist?(reload=true)
@@ -837,6 +855,9 @@ eos
     ont_submision.released = DateTime.now - 4
     ont_submision.hasOntologyLanguage = owl
     ont_submision.ontology = cno
+    ont_submision.uri = RDF::URI.new('https://test.com')
+    ont_submision.description = 'description example'
+    ont_submision.status = 'beta'
     ont_submision.contact = [contact]
     assert (ont_submision.valid?)
     ont_submision.save
@@ -1083,17 +1104,18 @@ eos
                        "./test/data/ontology_files/agrooeMappings-05-05-2016.owl", 1,
                        process_rdf: true, index_search: false,
                        run_metrics: true, reasoning: false)
-      sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission()
+      sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission
       sub.bring_remaining
       assert_equal false, sub.deprecated
-      assert_equal  " AGROOE is an ontology used to test the metadata extraction,  AGROOE is an ontology to illustrate how to describe their ontologies", sub.description
+      assert_equal '2015-09-28', sub.creationDate.to_date.to_s
+      assert_equal '2015-10-01', sub.modificationDate.to_date.to_s
+      assert_equal  "description example,  AGROOE is an ontology used to test the metadata extraction,  AGROOE is an ontology to illustrate how to describe their ontologies", sub.description
       assert_equal " LIRMM (default name) ", sub.publisher
-      assert_equal " URI DC terms identifiers ", sub.identifier
+      assert_equal [RDF::URI.new('http://agroportal.lirmm.fr')], sub.identifier
       assert_equal ["http://lexvo.org/id/iso639-3/fra", "http://lexvo.org/id/iso639-3/eng"].sort, sub.naturalLanguage.sort
-      assert_equal "Vincent Emonet, Anne Toulet, Benjamine Dessay, Léontine Dessaiterm, Augustine Doap", sub.hasContributor
+      assert_equal ["Léontine Dessaiterm", "Anne Toulet", "Benjamine Dessay", "Augustine Doap", "Vincent Emonet"].sort, sub.hasContributor.sort
       assert_equal [RDF::URI.new("http://lirmm.fr/2015/ontology/door-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/dc-relation.owl"),
                     RDF::URI.new("http://lirmm.fr/2015/ontology/dcterms-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/voaf-relation.owl")].sort, sub.ontologyRelatedTo.sort
-      assert_equal 18, sub.numberOfClasses
 
 
       sub.description = "test changed value"

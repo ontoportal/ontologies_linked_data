@@ -13,6 +13,9 @@ module LinkedData
     class OntologySubmission < LinkedData::Models::Base
 
       include LinkedData::Concerns::OntologySubmission::MetadataExtractor
+      include LinkedData::Concerns::OntologySubmission::Validators
+      include LinkedData::Concerns::OntologySubmission::UpdateCallbacks
+      extend LinkedData::Concerns::OntologySubmission::DefaultCallbacks
 
       include SKOS::ConceptSchemes
       include SKOS::RootsFetcher
@@ -22,452 +25,159 @@ module LinkedData
       FLAT_ROOTS_LIMIT = 1000
       FILE_SIZE_ZIPPING_THRESHOLD = 100 * 1024 * 1024 # 100MB
 
-      model :ontology_submission, name_with: lambda { |s| submission_id_generator(s) }
-      attribute :submissionId, enforce: [:integer, :existence]
+      model :ontology_submission, scheme: File.join(__dir__, '../../../config/schemes/ontology_submission.yml'),
+                                  name_with: ->(s) { submission_id_generator(s) }
 
+      attribute :submissionId, type: :integer, enforce: [:existence]
+
+      # Object description properties metadata
       # Configurable properties for processing
-      attribute :prefLabelProperty, enforce: [:uri]
-      attribute :definitionProperty, enforce: [:uri]
-      attribute :synonymProperty, enforce: [:uri]
-      attribute :authorProperty, enforce: [:uri]
-      attribute :classType, enforce: [:uri]
-      attribute :hierarchyProperty, enforce: [:uri]
-      attribute :obsoleteProperty, enforce: [:uri]
-      attribute :obsoleteParent, enforce: [:uri]
+      attribute :prefLabelProperty, type: :uri, default: ->(s) {Goo.vocabulary(:skos)[:prefLabel]}
+      attribute :definitionProperty, type: :uri, default: ->(s) {Goo.vocabulary(:skos)[:definition]}
+      attribute :synonymProperty, type: :uri, default: ->(s) {Goo.vocabulary(:skos)[:altLabel]}
+      attribute :authorProperty, type: :uri, default: ->(s) {Goo.vocabulary(:dc)[:creator]}
+      attribute :classType, type: :uri
+      attribute :hierarchyProperty, type: :uri, default: ->(s) {default_hierarchy_property(s)}
+      attribute :obsoleteProperty, type: :uri, default: ->(s) {Goo.vocabulary(:owl)[:deprecated]}
+      attribute :obsoleteParent, type: :uri, default: ->(s) {RDF::URI.new("http://www.geneontology.org/formats/oboInOwl#ObsoleteClass")}
+      attribute :createdProperty, type: :uri, default: ->(s) {Goo.vocabulary(:dc)[:created]}
+      attribute :modifiedProperty, type: :uri, default: ->(s) {Goo.vocabulary(:dc)[:modified]}
 
       # Ontology metadata
-      attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
-
-      attribute :homepage, namespace: :foaf, extractedMetadata: true, metadataMappings: ["cc:attributionURL", "mod:homepage", "doap:blog", "schema:mainEntityOfPage"],
-                helpText: "The URL of the homepage for the ontology."
-
-      # TODO: change default attribute name
-      attribute :publication, extractedMetadata: true, helpText: "The URL of bibliographic reference for the ontology.",
-                metadataMappings: ["omv:reference", "dct:bibliographicCitation", "foaf:isPrimaryTopicOf", "schema:citation", "cito:citesAsAuthority", "schema:citation"] # TODO: change default attribute name
-
-      # attention, attribute particulier. Je le récupère proprement via OWLAPI
-      # TODO: careful in bioportal_web_ui (submissions_helper.rb) @submission.send("URI") causes a bug! Didn't get why
-      attribute :URI, namespace: :omv, extractedMetadata: true, label: "URI", helpText: "The URI of the ontology which is described by this metadata."
-
-      attribute :naturalLanguage, namespace: :omv, enforce: [:list], extractedMetadata: true,
-                metadataMappings: ["dc:language", "dct:language", "doap:language", "schema:inLanguage"],
-                helpText: "The language of the content of the ontology.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://www.lexvo.org/&quot;&gt;Lexvo URI&lt;/a&gt; with ISO639-3 code.&lt;br&gt;e.g.: http://lexvo.org/id/iso639-3/eng",
-                enforcedValues: {
-                  "http://lexvo.org/id/iso639-3/eng" => "English",
-                  "http://lexvo.org/id/iso639-3/fra" => "French",
-                  "http://lexvo.org/id/iso639-3/spa" => "Spanish",
-                  "http://lexvo.org/id/iso639-3/por" => "Portuguese",
-                  "http://lexvo.org/id/iso639-3/ita" => "Italian",
-                  "http://lexvo.org/id/iso639-3/deu" => "German"
-                }
-
-      attribute :documentation, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["rdfs:seeAlso", "foaf:page", "vann:usageNote", "mod:document", "dcat:landingPage", "doap:wiki"],
-                helpText: "URL for further documentation."
-
-      attribute :version, namespace: :omv, extractedMetadata: true, helpText: "The version of the released ontology",
-                metadataMappings: ["owl:versionInfo", "mod:version", "doap:release", "pav:version", "schema:version", "oboInOwl:data-version", "oboInOwl:version", "adms:last"]
-
-      attribute :description, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, helpText: "Free text description of the ontology.",
-                metadataMappings: ["dc:description", "dct:description", "doap:description", "schema:description", "oboInOwl:remark"]
-
-      attribute :status, namespace: :omv, extractedMetadata: true, metadataMappings: ["adms:status", "idot:state"],
-                helpText: "Information about the ontology status (alpha, beta, production, retired)."
-      # Pas de limitation ici, mais seulement 4 possibilité dans l'UI (alpha, beta, production, retired)
-
-      attribute :contact, enforce: [:existence, :contact, :list], # Careful its special
-                helpText: "The people to contact when questions about the ontology. Composed of the contacts name and email."
-
-      attribute :creationDate, namespace: :omv, enforce: [:date_time], metadataMappings: ["dct:dateSubmitted", "schema:datePublished"],
-                default: lambda { |record| DateTime.now } # Attention c'est généré automatiquement, quand la submission est créée
-      attribute :released, enforce: [:date_time, :existence], extractedMetadata: true, label: "Release date", helpText: "Date of the ontology release.",
-                metadataMappings: ["omv:creationDate", "dc:date", "dct:date", "dct:issued", "mod:creationDate", "doap:created", "schema:dateCreated",
-                                   "prov:generatedAtTime", "pav:createdOn", "pav:authoredOn", "pav:contributedOn", "oboInOwl:date", "oboInOwl:hasDate"]
-      # date de release de l'ontologie par ses développeurs
-
-      # Metrics metadata
-      # LES metrics sont auto calculés par BioPortal (utilisant OWLAPI)
-      attribute :numberOfClasses, namespace: :omv, enforce: [:integer], metadataMappings: ["void:classes", "voaf:classNumber", "mod:noOfClasses"], display: "metrics",
-                helpText: "Number of classes in this ontology. Automatically computed by OWLAPI."
-      attribute :numberOfIndividuals, namespace: :omv, enforce: [:integer], metadataMappings: ["mod:noOfIndividuals"], display: "metrics",
-                helpText: "Number of individuals in this ontology. Automatically computed by OWLAPI."
-      attribute :numberOfProperties, namespace: :omv, enforce: [:integer], metadataMappings: ["void:properties", "voaf:propertyNumber", "mod:noOfProperties"], display: "metrics",
-                helpText: "Number of properties in this ontology. Automatically computed by OWLAPI."
-      attribute :maxDepth, enforce: [:integer]
-      attribute :maxChildCount, enforce: [:integer]
-      attribute :averageChildCount, enforce: [:integer]
-      attribute :classesWithOneChild, enforce: [:integer]
-      attribute :classesWithMoreThan25Children, enforce: [:integer]
-      attribute :classesWithNoDefinition, enforce: [:integer]
-
-      # Complementary omv metadata
-      attribute :modificationDate, namespace: :omv, enforce: [:date_time], extractedMetadata: true,
-                metadataMappings: ["dct:modified", "schema:dateModified", "pav:lastUpdateOn", "mod:updated"], helpText: "Date of the last modification made to the ontology"
-
-      attribute :entities, namespace: :void, enforce: [:integer], extractedMetadata: true, label: "Number of entities", display: "metrics",
-                helpText: "Number of entities in this ontology."
-
-      attribute :numberOfAxioms, namespace: :omv, enforce: [:integer], extractedMetadata: true, metadataMappings: ["mod:noOfAxioms", "void:triples"],
-                display: "metrics", helpText: "Number of axioms in this ontology."
-
-      attribute :keyClasses, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, display: "content",
-                metadataMappings: ["foaf:primaryTopic", "void:exampleResource", "schema:mainEntity"], helptext: "Representative classes in the ontology."
-
-      attribute :keywords, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, helpText: "List of keywords related to the ontology.",
-                metadataMappings: ["mod:keyword", "dcat:keyword", "schema:keywords"] # Attention particulier, ça peut être un simple string avec des virgules
-
-      attribute :knownUsage, namespace: :omv, enforce: [:concatenate, :textarea], extractedMetadata: true, display: "usage",
-                helpText: "The applications where the ontology is being used."
-
-      attribute :notes, namespace: :omv, enforce: [:concatenate, :textarea], extractedMetadata: true, metadataMappings: ["rdfs:comment", "adms:versionNotes"],
-                helpText: "Additional information about the ontology that is not included somewhere else (e.g. information that you do not want to include in the documentation)."
-
-      attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["mod:KnowledgeRepresentationFormalism", "dct:conformsTo"], display: "methodology",
-                helptext: "A representation formalism that is followed to describe knowledge in an ontology. Example includes description logics, first order logic, etc."
-
-      attribute :hasContributor, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Contributors",
-                metadataMappings: ["dc:contributor", "dct:contributor", "doap:helper", "schema:contributor", "pav:contributedBy"],
-                helpText: "Contributors to the creation of the ontology."
-
-      attribute :hasCreator, namespace: :omv, enforce: [:concatenate], extractedMetadata: true, label: "Creators",
-                metadataMappings: ["dc:creator", "dct:creator", "foaf:maker", "prov:wasAttributedTo", "doap:maintainer", "pav:authoredBy", "pav:createdBy", "schema:author", "schema:creator"],
-                helpText: "Main responsible for the creation of the ontology."
-
-      attribute :designedForOntologyTask, namespace: :omv, enforce: [:list], extractedMetadata: true, display: "usage",
-                helpText: "The purpose for which the ontology was originally designed.", enforcedValues: {
-          "http://omv.ontoware.org/2005/05/ontology#AnnotationTask" => "Annotation Task",
-          "http://omv.ontoware.org/2005/05/ontology#ConfigurationTask" => "Configuration Task",
-          "http://omv.ontoware.org/2005/05/ontology#FilteringTask" => "Filtering Task",
-          "http://omv.ontoware.org/2005/05/ontology#IndexingTask" => "Indexing Task",
-          "http://omv.ontoware.org/2005/05/ontology#IntegrationTask" => "Integration Task",
-          "http://omv.ontoware.org/2005/05/ontology#MatchingTask" => "Matching Task",
-          "http://omv.ontoware.org/2005/05/ontology#MediationTask" => "Mediation Task",
-          "http://omv.ontoware.org/2005/05/ontology#PersonalizationTask" => "Personalization Task",
-          "http://omv.ontoware.org/2005/05/ontology#QueryFormulationTask" => "Query Formulation Task",
-          "http://omv.ontoware.org/2005/05/ontology#QueryRewritingTask" => "Query Rewriting Task",
-          "http://omv.ontoware.org/2005/05/ontology#SearchTask" => "Search Task"
-        }
-
-      attribute :wasGeneratedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "people",
-                helpText: "People who generated the ontology."
-
-      attribute :wasInvalidatedBy, namespace: :prov, enforce: [:concatenate], extractedMetadata: true, display: "people",
-                helpText: "People who invalidated the ontology."
-
-      attribute :curatedBy, namespace: :pav, enforce: [:concatenate], extractedMetadata: true, display: "people",
-                metadataMappings: ["mod:evaluatedBy"], helpText: "People who curated the ontology."
-
-      attribute :endorsedBy, namespace: :omv, enforce: [:list], extractedMetadata: true, metadataMappings: ["mod:endorsedBy"],
-                helpText: "The parties that have expressed support or approval to this ontology", display: "people"
-
-      attribute :fundedBy, namespace: :foaf, extractedMetadata: true, metadataMappings: ["mod:sponsoredBy", "schema:sourceOrganization"], display: "people",
-                helpText: "The organization funding the ontology development."
-
-      attribute :translator, namespace: :schema, extractedMetadata: true, metadataMappings: ["doap:translator"], display: "people",
-                helpText: "Organization or person who adapted the ontology to different languages, regional differences and technical requirements"
-
-      attribute :hasDomain, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                helpText: "Typically, the domain can refer to established topic hierarchies such as the general purpose topic hierarchy DMOZ or the domain specific topic hierarchy ACM for the computer science domain",
-                metadataMappings: ["dc:subject", "dct:subject", "foaf:topic", "dcat:theme", "schema:about"], display: "usage"
-
-      attribute :hasFormalityLevel, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:ontologyFormalityLevel"],
-                helpText: "Level of formality of the ontology.", enforcedValues: {
-          "http://w3id.org/nkos/nkostype#classification_schema" => "Classification scheme",
-          "http://w3id.org/nkos/nkostype#dictionary" => "Dictionary",
-          "http://w3id.org/nkos/nkostype#gazetteer" => "Gazetteer",
-          "http://w3id.org/nkos/nkostype#glossary" => "Glossary",
-          "http://w3id.org/nkos/nkostype#list" => "List",
-          "http://w3id.org/nkos/nkostype#name_authority_list" => "Name authority list",
-          "http://w3id.org/nkos/nkostype#ontology" => "Ontology",
-          "http://w3id.org/nkos/nkostype#semantic_network" => "Semantic network",
-          "http://w3id.org/nkos/nkostype#subject_heading_scheme" => "Subject heading scheme",
-          "http://w3id.org/nkos/nkostype#synonym_ring" => "Synonym ring",
-          "http://w3id.org/nkos/nkostype#taxonomy" => "Taxonomy",
-          "http://w3id.org/nkos/nkostype#terminology" => "Terminology",
-          "http://w3id.org/nkos/nkostype#thesaurus" => "Thesaurus"
-        }
-
-      attribute :hasLicense, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["dc:rights", "dct:rights", "dct:license", "cc:license", "schema:license"],
-                helpText: "Underlying license model.&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://rdflicense.appspot.com/&quot;&gt;URI to describe your License&lt;/a&gt;&lt;br&gt;Consider using a &lt;a target=&quot;_blank&quot; href=&quot;http://licentia.inria.fr/&quot;&gt;INRIA licentia&lt;/a&gt; to choose your license",
-                enforcedValues: {
-                  "https://creativecommons.org/licenses/by/4.0/" => "CC Attribution 4.0 International",
-                  "https://creativecommons.org/licenses/by/3.0/" => "CC Attribution 3.0",
-                  "https://creativecommons.org/publicdomain/zero/1.0/" => "CC Public Domain Dedication",
-                  "http://www.gnu.org/licenses/gpl-3.0" => "GNU General Public License 3.0",
-                  "http://www.gnu.org/licenses/gpl-2.0" => "GNU General Public License 2.0",
-                  "https://opensource.org/licenses/Artistic-2.0" => "Open Source Artistic license 2.0",
-                  "https://opensource.org/licenses/MIT" => "MIT License",
-                  "https://opensource.org/licenses/BSD-3-Clause" => "BSD 3-Clause License",
-                  "http://www.apache.org/licenses/LICENSE-2.0" => "Apache License 2.0"
-                }
-
-      attribute :hasOntologySyntax, namespace: :omv, extractedMetadata: true, metadataMappings: ["mod:syntax", "dc:format", "dct:format"], label: "Ontology Syntax",
-                helpText: "The presentation syntax for the ontology langage.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;https://www.w3.org/ns/formats/&quot;&gt;W3C URIs for file format&lt;/a&gt;",
-                enforcedValues: {
-                  "http://www.w3.org/ns/formats/JSON-LD" => "JSON-LD",
-                  "http://www.w3.org/ns/formats/N3" => "N3",
-                  "http://www.w3.org/ns/formats/N-Quads" => "N-Quads",
-                  "http://www.w3.org/ns/formats/LD_Patch" => "LD Patch",
-                  "http://www.w3.org/ns/formats/microdata" => "Microdata",
-                  "http://www.w3.org/ns/formats/OWL_XML" => "OWL XML Serialization",
-                  "http://www.w3.org/ns/formats/OWL_Functional" => "OWL Functional Syntax",
-                  "http://www.w3.org/ns/formats/OWL_Manchester" => "OWL Manchester Syntax",
-                  "http://www.w3.org/ns/formats/POWDER" => "POWDER",
-                  "http://www.w3.org/ns/formats/POWDER-S" => "POWDER-S",
-                  "http://www.w3.org/ns/formats/PROV-N" => "PROV-N",
-                  "http://www.w3.org/ns/formats/PROV-XML" => "PROV-XML",
-                  "http://www.w3.org/ns/formats/RDFa" => "RDFa",
-                  "http://www.w3.org/ns/formats/RDF_JSON" => "RDF/JSON",
-                  "http://www.w3.org/ns/formats/RDF_XML" => "RDF/XML",
-                  "http://www.w3.org/ns/formats/RIF_XML" => "RIF XML Syntax",
-                  "http://www.w3.org/ns/formats/Turtle" => "Turtle",
-                  "http://www.w3.org/ns/formats/TriG" => "TriG",
-                  "http://purl.obolibrary.org/obo/oboformat/spec.html" => "OBO"
-                }
-
-      attribute :isOfType, namespace: :omv, extractedMetadata: true, metadataMappings: ["dc:type", "dct:type"],
-                helpText: "The nature of the content of the ontology.&lt;br&gt;Properties taken from &lt;a target=&quot;_blank&quot; href=&quot;http://wiki.dublincore.org/index.php/NKOS_Vocabularies#KOS_Types_Vocabulary&quot;&gt;DCMI KOS type vocabularies&lt;/a&gt;",
-                enforcedValues: {
-                  "http://omv.ontoware.org/2005/05/ontology#ApplicationOntology" => "Application Ontology",
-                  "http://omv.ontoware.org/2005/05/ontology#CoreOntology" => "Core Ontology",
-                  "http://omv.ontoware.org/2005/05/ontology#DomainOntology" => "Domain Ontology",
-                  "http://omv.ontoware.org/2005/05/ontology#TaskOntology" => "Task Ontology",
-                  "http://omv.ontoware.org/2005/05/ontology#UpperLevelOntology" => "Upper Level Ontology",
-                  "http://omv.ontoware.org/2005/05/ontology#Vocabulary" => "Vocabulary"
-                }
-
-      attribute :usedOntologyEngineeringMethodology, namespace: :omv, enforce: [:concatenate], extractedMetadata: true,
-                metadataMappings: ["mod:methodologyUsed", "adms:representationTechnique", "schema:publishingPrinciples"], display: "methodology",
-                helpText: "Information about the method model used to create the ontology"
-
-      attribute :usedOntologyEngineeringTool, namespace: :omv, extractedMetadata: true,
-                metadataMappings: ["mod:toolUsed", "pav:createdWith", "oboInOwl:auto-generated-by"],
-                helpText: "Information about the tool used to create the ontology", enforcedValues: {
-          "http://protege.stanford.edu" => "Protégé",
-          "OWL API" => "OWL API",
-          "http://oboedit.org/" => "OBO-Edit",
-          "SWOOP" => "SWOOP",
-          "OntoStudio" => "OntoStudio",
-          "Altova" => "Altova",
-          "SemanticWorks" => "SemanticWorks",
-          "OilEd" => "OilEd",
-          "IsaViz" => "IsaViz",
-          "WebODE" => "WebODE",
-          "OntoBuilder" => "OntoBuilder",
-          "WSMO Studio" => "WSMO Studio",
-          "VocBench" => "VocBench",
-          "TopBraid" => "TopBraid",
-          "NeOn-Toolkit" => "NeOn-Toolkit"
-        }
-
-      attribute :useImports, namespace: :omv, enforce: [:list, :uri], extractedMetadata: true,
-                metadataMappings: ["owl:imports", "door:imports", "void:vocabulary", "voaf:extends", "dct:requires", "oboInOwl:import"],
-                helpText: "References another ontology metadata instance that describes an ontology containing definitions, whose meaning is considered to be part of the meaning of the ontology described by this ontology metadata instance"
-
-      attribute :hasPriorVersion, namespace: :omv, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["owl:priorVersion", "dct:isVersionOf", "door:priorVersion", "prov:wasRevisionOf", "adms:prev", "pav:previousVersion", "pav:hasEarlierVersion"],
-                helpText: "An URI to the prior version of the ontology"
-
-      attribute :isBackwardCompatibleWith, namespace: :omv, enforce: [:list, :uri, :isOntology], extractedMetadata: true,
-                metadataMappings: ["owl:backwardCompatibleWith", "door:backwardCompatibleWith"], display: "relations",
-                helpText: "URI of an ontology that has its prior version compatible with the described ontology"
-
-      attribute :isIncompatibleWith, namespace: :omv, enforce: [:list, :uri, :isOntology], extractedMetadata: true,
-                metadataMappings: ["owl:incompatibleWith", "door:owlIncompatibleWith"], display: "relations",
-                helpText: "URI of an ontology that is a prior version of this ontology, but not compatible"
-
-      # New metadata to BioPortal
-      attribute :deprecated, namespace: :owl, enforce: [:boolean], extractedMetadata: true, metadataMappings: ["idot:obsolete"],
-                helpText: "To specify if the ontology IRI is deprecated"
-
-      attribute :versionIRI, namespace: :owl, enforce: [:uri], extractedMetadata: true, display: "links", label: "Version IRI",
-                helpText: "Identifies the version IRI of an ontology."
-
-      # New metadata from DOOR
-      attribute :ontologyRelatedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true,
-                metadataMappings: ["dc:relation", "dct:relation", "voaf:reliesOn"],
-                helpText: "An ontology that uses or extends some class or property of the described ontology"
-
-      attribute :comesFromTheSameDomain, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, display: "relations",
-                helpText: "Ontologies that come from the same domain", label: "From the same domain than"
-
-      attribute :similarTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:similar"], display: "relations",
-                helpText: "Vocabularies that are similar in scope and objectives, independently of the fact that they otherwise refer to each other."
-
-      attribute :isAlignedTo, namespace: :door, enforce: [:list, :uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:hasEquivalencesWith", "nkos:alignedWith"],
-                helpText: "Ontologies that have an alignment which covers a substantial part of the described ontology"
-
-      attribute :explanationEvolution, namespace: :door, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["voaf:specializes", "prov:specializationOf"],
-                display: "relations", label: "Specialization of", helpText: "If the ontology is a latter version that is semantically equivalent to another ontology."
-
-      attribute :generalizes, namespace: :voaf, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations", label: "Generalization of",
-                helpText: "Vocabulary that is generalized by some superclasses or superproperties by the described ontology"
-
-      attribute :hasDisparateModelling, namespace: :door, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations", label: "Disparate modelling with",
-                helpText: "URI of an ontology that is considered to have a different model, because they represent corresponding entities in different ways.&lt;br&gt;e.g. an instance in one case and a class in the other for the same concept"
-
-      # New metadata from SKOS
-      attribute :hiddenLabel, namespace: :skos, extractedMetadata: true,
-                helpText: "The hidden labels are useful when a user is interacting with a knowledge organization system via a text-based search function. The user may, for example, enter mis-spelled words when trying to find a relevant concept. If the mis-spelled query can be matched against a hidden label, the user will be able to find the relevant concept, but the hidden label won't otherwise be visible to the user"
-
-      # New metadata from DC terms
-      attribute :coverage, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:coverage", "schema:spatial"], display: "usage",
-                helpText: "The spatial or temporal topic of the ontology, the spatial applicability of the ontology, or the jurisdiction under which the ontology is relevant."
-
-      attribute :publisher, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:publisher", "schema:publisher"], display: "license",
-                helpText: "An entity responsible for making the ontology available."
-
-      attribute :identifier, namespace: :dct, extractedMetadata: true, metadataMappings: ["dc:identifier", "skos:notation", "adms:identifier"],
-                helpText: "An unambiguous reference to the ontology. Use the ontology URI if not provided in the ontology metadata."
-
-      attribute :source, namespace: :dct, enforce: [:concatenate], extractedMetadata: true, display: "links",
-                metadataMappings: ["dc:source", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "pav:derivedFrom", "schema:isBasedOn", "nkos:basedOn", "mod:sourceOntology"],
-                helpText: "A related resource from which the described resource is derived."
-
-      attribute :abstract, namespace: :dct, extractedMetadata: true, enforce: [:textarea], helpText: "A summary of the ontology"
-
-      attribute :alternative, namespace: :dct, extractedMetadata: true, label: "Alternative name",
-                metadataMappings: ["skos:altLabel", "idot:alternatePrefix", "schema:alternativeHeadline", "schema:alternateName"],
-                helpText: "An alternative title for the ontology"
-
-      attribute :hasPart, namespace: :dct, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["schema:hasPart", "oboInOwl:hasSubset", "adms:includedAsset"], display: "relations",
-                helpText: "A related ontology that is included either physically or logically in the described ontology."
-
-      attribute :isFormatOf, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "links",
-                helpText: "URL to the original document that describe this ontology in a not ontological format (i.e.: the OBO original file)"
-
-      attribute :hasFormat, namespace: :dct, enforce: [:uri], extractedMetadata: true, display: "links",
-                helpText: "URL to a document that describe this ontology in a not ontological format (i.e.: the OBO original file) generated from this ontology."
-
-      attribute :audience, namespace: :dct, extractedMetadata: true, metadataMappings: ["doap:audience", "schema:audience"], display: "community",
-                helpText: "Description of the target user base of the ontology."
-
-      attribute :valid, namespace: :dct, enforce: [:date_time], extractedMetadata: true, label: "Valid until",
-                metadataMappings: ["prov:invaliatedAtTime", "schema:endDate"], display: "dates",
-                helpText: "Date (often a range) of validity of the ontology."
-
-      attribute :accrualMethod, namespace: :dct, extractedMetadata: true, display: "methodology",
-                helpText: "The method by which items are added to the ontology."
-      attribute :accrualPeriodicity, namespace: :dct, extractedMetadata: true, display: "methodology", metadataMappings: ["nkos:updateFrequency"],
-                helpText: "The frequency with which items are added to the ontology."
-      attribute :accrualPolicy, namespace: :dct, extractedMetadata: true, display: "methodology",
-                helpText: "The policy governing the addition of items to the ontology."
-
-      # New metadata from sd
-      attribute :endpoint, namespace: :sd, enforce: [:uri], extractedMetadata: true, metadataMappings: ["void:sparqlEndpoint"], display: "content"
-
-      # New metadata from VOID
-      attribute :dataDump, namespace: :void, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["doap:download-mirror", "schema:distribution"], display: "content"
-
-      attribute :csvDump, enforce: [:uri], display: "content", label: "CSV dump"
-
-      attribute :openSearchDescription, namespace: :void, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["doap:service-endpoint"], display: "content"
-
-      attribute :uriLookupEndpoint, namespace: :void, enforce: [:uri], extractedMetadata: true, display: "content", label: "URI Lookup Endpoint",
-                helpText: "A protocol endpoint for simple URI lookups for the ontology."
-
-      attribute :uriRegexPattern, namespace: :void, enforce: [:uri], extractedMetadata: true,
-                metadataMappings: ["idot:identifierPattern"], display: "content", label: "URI Regex Pattern",
-                helpText: "A regular expression that matches the URIs of the ontology entities."
-
-      # New metadata from foaf
-      attribute :depiction, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["doap:screenshots", "schema:image"], display: "images",
-                helpText: "The URL of an image representing the ontology."
-
-      attribute :logo, namespace: :foaf, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:logo"], display: "images",
-                helpText: "The URL of the ontology logo."
-
-      # New metadata from MOD
-      attribute :competencyQuestion, namespace: :mod, extractedMetadata: true, enforce: [:textarea], display: "methodology",
-                helpText: "A set of questions made to build an ontology at the design time."
-
-      # New metadata from VOAF
-      attribute :usedBy, namespace: :voaf, enforce: [:list, :uri, :isOntology], extractedMetadata: true, display: "relations", # Range : Ontology
-                metadataMappings: ["nkos:usedBy"], helpText: "Ontologies that use the described ontology."
-
-      attribute :metadataVoc, namespace: :voaf, enforce: [:list, :uri], extractedMetadata: true, display: "content", label: "Metadata vocabulary used",
-                metadataMappings: ["mod:vocabularyUsed", "adms:supportedSchema", "schema:schemaVersion"],
-                helpText: "Vocabularies that are used and/or referred to create the described ontology."
-
-      attribute :hasDisjunctionsWith, namespace: :voaf, enforce: [:uri, :isOntology], extractedMetadata: true,
-                helpText: "Ontology that declares some disjunct classes with the described ontology."
-
-      attribute :toDoList, namespace: :voaf, enforce: [:concatenate, :textarea], extractedMetadata: true, display: "community",
-                helpText: "Describes future tasks planned by a resource curator."
-
-      # New metadata from VANN
-      attribute :example, namespace: :vann, enforce: [:uri], extractedMetadata: true, metadataMappings: ["schema:workExample"], display: "usage",
-                helpText: "A reference to a resource that provides an example of how this ontology can be used.", label: "Example of use"
-
-      attribute :preferredNamespaceUri, namespace: :vann, extractedMetadata: true, metadataMappings: ["void:uriSpace"],
-                helpText: "The preferred namespace URI to use when using terms from this ontology."
-
-      attribute :preferredNamespacePrefix, namespace: :vann, extractedMetadata: true,
-                metadataMappings: ["idot:preferredPrefix", "oboInOwl:default-namespace", "oboInOwl:hasDefaultNamespace"],
-                helpText: "The preferred namespace prefix to use when using terms from this ontology."
-
-      # New metadata from CC
-      attribute :morePermissions, namespace: :cc, extractedMetadata: true, display: "license",
-                helpText: "A related resource which describes additional permissions or alternative licenses."
-
-      attribute :useGuidelines, namespace: :cc, extractedMetadata: true, enforce: [:textarea], display: "community",
-                helpText: "A related resource which defines how the ontology should be used. "
-
-      attribute :curatedOn, namespace: :pav, enforce: [:date_time], extractedMetadata: true, display: "dates",
-                helpText: "The date the ontology was curated."
-
-      # New metadata from ADMS and DOAP
-      attribute :repository, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community",
-                helpText: "Link to the source code repository."
-
-      # Should be bug-database and mailing-list but NameError - `@bug-database' is not allowed as an instance variable name
-      attribute :bugDatabase, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community",
-                helpText: "Link to the bug tracker of the ontology (i.e.: GitHub issues)."
-
-      attribute :mailingList, namespace: :doap, enforce: [:uri], extractedMetadata: true, display: "community",
-                helpText: "Mailing list home page or email address."
-
-      # New metadata from Schema and IDOT
-      attribute :exampleIdentifier, namespace: :idot, enforce: [:uri], extractedMetadata: true, display: "content",
-                helpText: "An example identifier used by one item (or record) from a dataset."
-
-      attribute :award, namespace: :schema, extractedMetadata: true, display: "community",
-                helpText: "An award won by this ontology."
-
-      attribute :copyrightHolder, namespace: :schema, extractedMetadata: true, display: "license",
-                helpText: "The party holding the legal copyright to the CreativeWork."
-
-      attribute :associatedMedia, namespace: :schema, extractedMetadata: true, display: "images",
-                helpText: "A media object that encodes this ontology. This property is a synonym for encoding."
-
-      attribute :workTranslation, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, display: "relations",
-                helpText: "A ontology that is a translation of the content of this ontology.", label: "Translated from"
-
-      attribute :translationOfWork, namespace: :schema, enforce: [:uri, :isOntology], extractedMetadata: true, metadataMappings: ["adms:translation"],
-                helpText: "The ontology that this ontology has been translated from.", label: "Translation of", display: "relations"
-
-      attribute :includedInDataCatalog, namespace: :schema, enforce: [:list, :uri], extractedMetadata: true, display: "links",
-                helpText: "A data catalog which contains this ontology (i.e.: OBOfoundry, aber-owl, EBI, VEST registry...)."
-
-      # Internal values for parsing - not definitive
+      # General metadata
+      attribute :URI, namespace: :omv, enforce: %i[existence distinct_of_identifier]
+      attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
+      attribute :version, namespace: :omv
+      attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' },
+                         onUpdate: :retired_previous_align
+      attribute :deprecated, namespace: :owl, type: :boolean, enforce: [:deprecated_retired_align],
+                             onUpdate: :deprecate_previous_submissions, default: ->(x) { false }
+      attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
+      attribute :hasFormalityLevel, namespace: :omv, type: :uri
+      attribute :hasOntologySyntax, namespace: :omv, type: :uri, default: ->(s) {ontology_syntax_default(s)}
+      attribute :naturalLanguage, namespace: :omv, type: %i[list uri], enforce: [:lexvo_language]
+      attribute :isOfType, namespace: :omv, type: :uri
+      attribute :identifier, namespace: :dct, type: %i[list uri], enforce: [:distinct_of_URI]
+
+      # Description metadata
+      attribute :description, namespace: :omv, enforce: %i[concatenate existence]
+      attribute :homepage, namespace: :foaf, type: :uri
+      attribute :documentation, namespace: :omv, type: :uri
+      attribute :notes, namespace: :omv, type: :list
+      attribute :keywords, namespace: :omv, type: :list
+      attribute :hiddenLabel, namespace: :skos, type: :list
+      attribute :alternative, namespace: :dct, type: :list
+      attribute :abstract, namespace: :dct
+      attribute :publication, type: %i[uri list]
+
+      # Licensing metadata
+      attribute :hasLicense, namespace: :omv, type: :uri
+      attribute :useGuidelines, namespace: :cc
+      attribute :morePermissions, namespace: :cc
+      attribute :copyrightHolder, namespace: :schema
+
+      # Date metadata
+      attribute :released, type: :date_time, enforce: [:existence]
+      attribute :valid, namespace: :dct, type: :date_time, enforce: [:validity_date_retired_align]
+      attribute :curatedOn, namespace: :pav, type: %i[date_time list], enforce: [:superior_equal_to_creationDate]
+      attribute :creationDate, namespace: :omv, type: :date_time, default: ->(x) { Date.today.to_datetime }
+      attribute :modificationDate, namespace: :omv, type: :date_time,
+                                   enforce: %i[superior_equal_to_creationDate modification_date_previous_align]
+
+      # Person and organizations metadata
+      attribute :contact, type: %i[contact list], enforce: [:existence]
+      attribute :hasCreator, namespace: :omv, type: :list
+      attribute :hasContributor, namespace: :omv, type: :list
+      attribute :curatedBy, namespace: :pav, type: :list
+      attribute :publisher, namespace: :dct
+      attribute :fundedBy, namespace: :foaf
+      attribute :endorsedBy, namespace: :omv, type: :list
+      attribute :translator, namespace: :schema
+
+      # Community metadata
+      attribute :audience, namespace: :dct
+      attribute :repository, namespace: :doap, type: :uri
+      attribute :bugDatabase, namespace: :doap, type: :uri
+      attribute :mailingList, namespace: :doap, enforce: [:email]
+      attribute :toDoList, namespace: :voaf, type: :list
+      attribute :award, namespace: :schema, type: :list
+
+      # Usage metadata
+      attribute :knownUsage, namespace: :omv, type: :list
+      attribute :designedForOntologyTask, namespace: :omv, type: %i[list uri]
+      attribute :hasDomain, namespace: :omv, type: :list, default: ->(s) {ontology_has_domain(s)}
+      attribute :coverage, namespace: :dct
+      attribute :example, namespace: :vann, type: :list
+
+      # Methodology metadata
+      attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv
+      attribute :usedOntologyEngineeringMethodology, namespace: :omv
+      attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list uri]
+      attribute :accrualMethod, namespace: :dct, type: %i[list uri]
+      attribute :accrualPeriodicity, namespace: :dct
+      attribute :accrualPolicy, namespace: :dct
+      attribute :competencyQuestion, namespace: :mod, type: :list
+      attribute :wasGeneratedBy, namespace: :prov, type: :list
+      attribute :wasInvalidatedBy, namespace: :prov, type: :list
+
+      # Links
+      attribute :pullLocation, type: :uri # URI for pulling ontology
+      attribute :isFormatOf, namespace: :dct, type: :uri
+      attribute :hasFormat, namespace: :dct, type: %i[uri list]
+      attribute :dataDump, namespace: :void, type: :uri, default: -> (s) {data_dump_default(s)}
+      attribute :csvDump, type: :uri, default: -> (s) {csv_dump_default(s)}
+      attribute :uriLookupEndpoint, namespace: :void, type: :uri, default: -> (s) {uri_lookup_default(s)}
+      attribute :openSearchDescription, namespace: :void, type: :uri, default: -> (s) {open_search_default(s)}
+      attribute :source, namespace: :dct, type: :list
+      attribute :endpoint, namespace: :sd, type: %i[uri list],
+                           default: ->(s) {[RDF::URI.new(LinkedData.settings.sparql_endpoint_url)]}
+      attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
+
+      # Relations
+      attribute :hasPriorVersion, namespace: :omv, type: :uri, onUpdate: [:include_previous_submission]
+      attribute :hasPart, namespace: :dct, type: %i[uri list], enforce: %i[include_ontology_views]
+      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :similarTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :isAlignedTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :isBackwardCompatibleWith, namespace: :omv, type: %i[list uri]
+      attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri]
+      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :hasDisjunctionsWith, namespace: :voaf, type: %i[uri list]
+      attribute :generalizes, namespace: :voaf, type: %i[list uri],  onUpdate: :ontology_inverse_of_callback
+      attribute :explanationEvolution, namespace: :door, type: %i[list uri], onUpdate: :ontology_inverse_of_callback
+      attribute :useImports, namespace: :omv, type: %i[list uri], onUpdate: :ontology_inverse_of_callback
+      attribute :usedBy, namespace: :voaf, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
+      attribute :workTranslation, namespace: :schema, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
+      attribute :translationOfWork, namespace: :schema, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
+
+      # Content metadata
+      attribute :uriRegexPattern, namespace: :void, type: :uri
+      attribute :preferredNamespaceUri, namespace: :vann, type: :uri
+      attribute :preferredNamespacePrefix, namespace: :vann
+      attribute :exampleIdentifier, namespace: :idot, type: :class, default: ->(s) { LinkedData::Models::Class.in(s).first }
+      attribute :keyClasses, namespace: :omv, type: %i[list class]
+      attribute :metadataVoc, namespace: :voaf, type: %i[uri list]
       attribute :uploadFilePath
       attribute :diffFilePath
       attribute :masterFileName
-      attribute :submissionStatus, enforce: [:submission_status, :list], default: lambda { |record| [LinkedData::Models::SubmissionStatus.find("UPLOADED").first] }
-      attribute :missingImports, enforce: [:list]
 
-      # URI for pulling ontology
-      attribute :pullLocation, enforce: [:uri]
+      # Media metadata
+      attribute :associatedMedia, namespace: :schema, type: %i[uri list]
+      attribute :depiction, namespace: :foaf, type: %i[uri list]
+      attribute :logo, namespace: :foaf, type: :uri
+
+      # Metrics metadata
+      attribute :metrics, type: :metrics
+
+      # Configuration metadata
+
+      # Internal values for parsing - not definitive
+      attribute :submissionStatus, type: %i[submission_status list], default: ->(record) { [LinkedData::Models::SubmissionStatus.find("UPLOADED").first] }
+      attribute :missingImports, type: :list
 
       # Link to ontology
-      attribute :ontology, enforce: [:existence, :ontology]
-
-      #Link to metrics
-      attribute :metrics, enforce: [:metrics]
+      attribute :ontology, type: :ontology, enforce: [:existence]
 
       # Hypermedia settings
       embed :contact, :ontology
@@ -477,18 +187,18 @@ module LinkedData
 
       # Links
       links_load :submissionId, ontology: [:acronym]
-      link_to LinkedData::Hypermedia::Link.new("metrics", lambda { |s| "#{self.ontology_link(s)}/submissions/#{s.submissionId}/metrics" }, self.type_uri)
-      LinkedData::Hypermedia::Link.new("download", lambda { |s| "#{self.ontology_link(s)}/submissions/#{s.submissionId}/download" }, self.type_uri)
+      link_to LinkedData::Hypermedia::Link.new("metrics", ->(s) { "#{self.ontology_link(s)}/submissions/#{s.submissionId}/metrics" }, self.type_uri)
+      LinkedData::Hypermedia::Link.new("download", ->(s) { "#{self.ontology_link(s)}/submissions/#{s.submissionId}/download" }, self.type_uri)
 
       # HTTP Cache settings
       cache_timeout 3600
-      cache_segment_instance lambda { |sub| segment_instance(sub) }
+      cache_segment_instance ->(sub) { segment_instance(sub) }
       cache_segment_keys [:ontology_submission]
       cache_load ontology: [:acronym]
 
       # Access control
-      read_restriction_based_on lambda { |sub| sub.ontology }
-      access_control_load ontology: [:administeredBy, :acl, :viewingRestriction]
+      read_restriction_based_on ->(sub) { sub.ontology }
+      access_control_load ontology: %i[administeredBy acl viewingRestriction]
 
       def initialize(*args)
         super(*args)
@@ -636,7 +346,7 @@ module LinkedData
         end
 
         zip = zipped?
-        files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
+        files = LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
 
         if not zip and self.masterFileName.nil?
           return true
@@ -696,7 +406,7 @@ module LinkedData
       end
 
       def zip_folder
-         File.join([data_folder, 'unzipped'])
+        File.join([data_folder, 'unzipped'])
       end
 
       def csv_path
@@ -877,7 +587,7 @@ module LinkedData
         end
       end
 
-      def generate_umls_metrics_file(tr_file_path=nil)
+      def generate_umls_metrics_file(tr_file_path = nil)
         tr_file_path ||= self.triples_file_path
         class_count = 0
         indiv_count = 0
@@ -894,7 +604,6 @@ module LinkedData
 
       def generate_rdf(logger, reasoning: true)
         mime_type = nil
-
 
         if self.hasOntologyLanguage.umls?
           triples_file_path = self.triples_file_path
@@ -1590,17 +1299,6 @@ eos
         exist_metrics.delete if exist_metrics
         metrics.save
 
-        # Define metrics in submission metadata
-        self.numberOfClasses = metrics.classes
-        self.numberOfIndividuals = metrics.individuals
-        self.numberOfProperties = metrics.properties
-        self.maxDepth = metrics.maxDepth
-        self.maxChildCount = metrics.maxChildCount
-        self.averageChildCount = metrics.averageChildCount
-        self.classesWithOneChild = metrics.classesWithOneChild
-        self.classesWithMoreThan25Children = metrics.classesWithMoreThan25Children
-        self.classesWithNoDefinition = metrics.classesWithNoDefinition
-
         self.metrics = metrics
         self
       end
@@ -1995,12 +1693,11 @@ eos
         Goo.sparql_data_client.delete_graph(self.id)
       end
 
-
       def master_file_path
         path = if zipped?
                  File.join(self.zip_folder, self.masterFileName)
                else
-                  self.uploadFilePath
+                 self.uploadFilePath
                end
         File.expand_path(path)
       end
@@ -2017,9 +1714,7 @@ eos
         parsable
       end
 
-
       private
-
 
       def owlapi_parser_input
         path = if zipped?
@@ -2029,7 +1724,6 @@ eos
                end
         File.expand_path(path)
       end
-
 
       def owlapi_parser(logger: Logger.new($stdout))
         unzip_submission(logger)
