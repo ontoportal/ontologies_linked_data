@@ -4,7 +4,7 @@ module LinkedData
     class Agent < LinkedData::Models::Base
 
       model :Agent, namespace: :foaf, name_with: lambda { |cc| uuid_uri_generator(cc) }
-      attribute :type, enforce: [:existence], enforcedValues: %w[person organization]
+      attribute :agentType, enforce: [:existence], enforcedValues: %w[person organization]
       attribute :name, namespace: :foaf, enforce: %i[existence unique]
 
       attribute :firstName, namespace: :foaf
