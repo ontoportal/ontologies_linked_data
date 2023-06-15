@@ -475,7 +475,7 @@ eos
       id = 20 + i
       ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => id})
       assert (not ont_submision.valid?)
-      assert_equal 4, ont_submision.errors.length
+      assert_equal 7, ont_submision.errors.length
       uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id,ontologyFile)
       ont_submision.uploadFilePath = uploadFilePath
       owl, bro, user, contact = submission_dependent_objects("OWL", acronym, "test_linked_models", name)
@@ -483,6 +483,9 @@ eos
       ont_submision.hasOntologyLanguage = owl
       ont_submision.ontology = bro
       ont_submision.contact = [contact]
+      ont_submision.URI = RDF::URI.new("https://test-#{id}.com")
+      ont_submision.description =  "Description #{id}"
+      ont_submision.status = 'production'
       assert ont_submision.valid?
       ont_submision.save
       parse_options = {process_rdf: true, reasoning: true, index_search: false, run_metrics: false, diff: true}
@@ -1101,7 +1104,7 @@ eos
                        "./test/data/ontology_files/agrooeMappings-05-05-2016.owl", 1,
                        process_rdf: true, index_search: false,
                        run_metrics: true, reasoning: false)
-      sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission()
+      sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission
       sub.bring_remaining
       assert_equal false, sub.deprecated
       assert_equal '2015-09-28', sub.creationDate.to_date.to_s
