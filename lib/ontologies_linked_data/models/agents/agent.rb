@@ -15,8 +15,12 @@ module LinkedData
 
       attribute :identifiers, namespace: :adms, property: :identifier, enforce: %i[Identifier list]
       attribute :affiliations, enforce: %i[Agent list]
+      attribute :creator, type: :user, enforce: [:existence]
 
       embed :identifiers, :affiliations
+
+      write_access :creator
+      access_control_load :creator
     end
   end
 end

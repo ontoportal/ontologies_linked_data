@@ -9,8 +9,13 @@ module LinkedData
       attribute :notation, namespace: :skos, enforce: %i[unique existence]
       attribute :schemaAgency, namespace: :adms, enforcedValues: IDENTIFIER_SCHEMES.keys, enforce: [:existence]
       attribute :schemeURI, handler: :scheme_uri_infer
+      attribute :creator, type: :user, enforce: [:existence]
 
       embedded true
+
+      write_access :creator
+      access_control_load :creator
+
       def scheme_uri_infer
         self.bring(:schemaAgency) if self.bring?(:schemaAgency)
         IDENTIFIER_SCHEMES[self.schemaAgency.to_sym] if self.schemaAgency
