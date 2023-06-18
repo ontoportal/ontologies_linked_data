@@ -21,7 +21,7 @@ module LinkedData
       access_control_load :creator
 
 
-      def self.is_organization(inst, attr)
+      def is_organization(inst, attr)
         inst.bring(attr) if inst.bring?(attr)
         affiliations = inst.send(attr)
 

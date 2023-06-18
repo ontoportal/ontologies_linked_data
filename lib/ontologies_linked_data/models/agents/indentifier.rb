@@ -16,7 +16,7 @@ module LinkedData
       write_access :creator
       access_control_load :creator
 
-      def self.no_url(inst,attr)
+      def no_url(inst,attr)
         inst.bring(attr) if inst.bring?(attr)
         notation = inst.send(attr)
         return  notation&.start_with?('http') ? [:no_url, "`notation` must not be a URL"]  : []
