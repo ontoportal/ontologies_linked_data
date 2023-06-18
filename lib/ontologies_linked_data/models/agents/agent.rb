@@ -12,13 +12,25 @@ module LinkedData
       attribute :email, namespace: :foaf, property: :mbox
 
       attribute :identifiers, namespace: :adms, property: :identifier, enforce: %i[Identifier list]
-      attribute :affiliations, enforce: %i[Agent list]
+      attribute :affiliations, enforce: %i[Agent list is_organization]
       attribute :creator, type: :user, enforce: [:existence]
 
       embed :identifiers, :affiliations
 
       write_access :creator
       access_control_load :creator
+
+
+      def self.is_organization(inst, attr)
+        inst.bring(attr) if inst.bring?(attr)
+        affiliations = inst.send(attr)
+
+        Array(affiliations).each do |aff|
+          return  [:is_organization, "`affiliations` must contain only agents of type Organization"] unless aff.agentType&.eql?('organization')
+        end
+
+        return []
+      end
     end
   end
 end
