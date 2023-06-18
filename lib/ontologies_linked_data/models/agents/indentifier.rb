@@ -6,7 +6,7 @@ module LinkedData
 
       model :Identifier, namespace: :adms, name_with: :notation
 
-      attribute :notation, namespace: :skos, enforce: %i[unique existence]
+      attribute :notation, namespace: :skos, enforce: %i[unique existence no_url]
       attribute :schemaAgency, namespace: :adms, enforcedValues: IDENTIFIER_SCHEMES.keys, enforce: [:existence]
       attribute :schemeURI, handler: :scheme_uri_infer
       attribute :creator, type: :user, enforce: [:existence]
@@ -15,6 +15,12 @@ module LinkedData
 
       write_access :creator
       access_control_load :creator
+
+      def self.no_url(inst,attr)
+        inst.bring(attr) if inst.bring?(attr)
+        notation = inst.send(attr)
+        return  notation&.start_with?('http') ? [:no_url, "`notation` must not be a URL"]  : []
+      end
 
       def scheme_uri_infer
         self.bring(:schemaAgency) if self.bring?(:schemaAgency)
