@@ -7,8 +7,6 @@ module LinkedData
       attribute :agentType, enforce: [:existence], enforcedValues: %w[person organization]
       attribute :name, namespace: :foaf, enforce: %i[existence unique]
 
-      attribute :firstName, namespace: :foaf
-      attribute :lastName, namespace: :foaf, property: :surname
       attribute :homepage, namespace: :foaf
       attribute :acronym, namespace: :skos, property: :altLabel
       attribute :email, namespace: :foaf, property: :mbox
