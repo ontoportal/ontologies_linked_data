@@ -1,3 +1,5 @@
+require_relative  './indentifier'
+
 module LinkedData
   module Models
     # An agent (eg. person, group, software or physical artifact)
@@ -16,6 +18,7 @@ module LinkedData
       attribute :creator, type: :user, enforce: [:existence]
 
       embed :identifiers, :affiliations
+      embed_values affiliations: LinkedData::Models::Agent.goo_attrs_to_load + [identifiers: LinkedData::Models::AgentIdentifier.goo_attrs_to_load]
 
       write_access :creator
       access_control_load :creator
