@@ -35,6 +35,7 @@ module LinkedData
           query = query.or(identifiers: i)
         end
         existent_agents = query.include(:name).all
+        existent_agents = existent_agents.reject{|a| a.id.eql?(inst.id)}
         return [:unique_identifiers, "`identifiers` already used by other agents: " + existent_agents.map{|x| x.name}.join(', ')] unless existent_agents.empty?
         []
       end

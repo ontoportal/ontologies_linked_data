@@ -58,6 +58,17 @@ class TestAgent < LinkedData::TestCase
     @identifiers.each{|i| i.delete}
   end
 
+  def test_identifier_find
+    id = LinkedData::Models::AgentIdentifier.new(notation: '000h6jb29', schemaAgency: 'ROR', creator: @@user1)
+    id.save
+
+    generated_id = LinkedData::Models::AgentIdentifier.generate_identifier('000h6jb29', 'ROR')
+    id = LinkedData::Models::AgentIdentifier.find(generated_id).first
+
+    refute_nil id
+
+    id.delete
+  end
   def test_identifier_no_valid
     refute LinkedData::Models::AgentIdentifier.new(notation: 'https://ror.org/000h6jb29', schemaAgency: 'ROR', creator: @@user1).valid?
     id = LinkedData::Models::AgentIdentifier.new(notation: '000h6jb29"', schemaAgency: 'ROR', creator: @@user1)
