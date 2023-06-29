@@ -1,4 +1,4 @@
-require_relative  './indentifier'
+require_relative './identifier'
 
 module LinkedData
   module Models
@@ -13,7 +13,7 @@ module LinkedData
       attribute :acronym, namespace: :skos, property: :altLabel
       attribute :email, namespace: :foaf, property: :mbox
 
-      attribute :identifiers, namespace: :adms, property: :identifier, enforce: %i[Identifier list]
+      attribute :identifiers, namespace: :adms, property: :identifier, enforce: %i[Identifier list unique_identifiers]
       attribute :affiliations, enforce: %i[Agent list is_organization]
       attribute :creator, type: :user, enforce: [:existence]
 
@@ -24,6 +24,20 @@ module LinkedData
       access_control_load :creator
 
 
+      def unique_identifiers(inst, attr)
+        inst.bring(attr) if inst.bring?(attr)
+        identifiers = inst.send(attr)
+        return [] if identifiers.nil? || identifiers.empty?
+
+
+        query =  LinkedData::Models::Agent.where(identifiers: identifiers.first)
+        identifiers.drop(0).each do |i|
+          query = query.or(identifiers: i)
+        end
+        existent_agents = query.include(:name).all
+        return [:unique_identifiers, "`identifiers` already used by other agents: " + existent_agents.map{|x| x.name}.join(', ')] unless existent_agents.empty?
+        []
+      end
       def is_organization(inst, attr)
         inst.bring(attr) if inst.bring?(attr)
         affiliations = inst.send(attr)
@@ -32,7 +46,7 @@ module LinkedData
           return  [:is_organization, "`affiliations` must contain only agents of type Organization"] unless aff.agentType&.eql?('organization')
         end
 
-        return []
+        []
       end
     end
   end
