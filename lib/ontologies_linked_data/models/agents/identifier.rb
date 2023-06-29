@@ -4,9 +4,9 @@ module LinkedData
     class AgentIdentifier < LinkedData::Models::Base
       IDENTIFIER_SCHEMES = { ORCID: 'https://orcid.org', ISNI: 'https://isni.org/', ROR: 'https://ror.org/', GRID: 'https://www.grid.ac/' }.freeze
 
-      model :Identifier, namespace: :adms, name_with: :notation
+      model :Identifier, namespace: :adms, name_with: lambda { |i| RDF::URI.new("#{i.schemaAgency}:#{i.notation}") }
 
-      attribute :notation, namespace: :skos, enforce: %i[unique existence no_url]
+      attribute :notation, namespace: :skos, enforce: %i[existence no_url]
       attribute :schemaAgency, namespace: :adms, enforcedValues: IDENTIFIER_SCHEMES.keys, enforce: [:existence]
       attribute :schemeURI, handler: :scheme_uri_infer
       attribute :creator, type: :user, enforce: [:existence]

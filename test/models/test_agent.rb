@@ -38,8 +38,16 @@ class TestAgent < LinkedData::TestCase
   end
 
   def test_identifier_no_valid
-    refute LinkedData::Models::AgentIdentifier.new(notation: 'https://ror.org/000h6jb29"', schemaAgency: 'ROR', creator: @@user1).valid?
-    assert LinkedData::Models::AgentIdentifier.new(notation: '000h6jb29"', schemaAgency: 'ROR', creator: @@user1).valid?
+    refute LinkedData::Models::AgentIdentifier.new(notation: 'https://ror.org/000h6jb29', schemaAgency: 'ROR', creator: @@user1).valid?
+    id = LinkedData::Models::AgentIdentifier.new(notation: '000h6jb29"', schemaAgency: 'ROR', creator: @@user1)
+
+    assert id.valid?
+    id.save
+
+    refute LinkedData::Models::AgentIdentifier.new(notation: '000h6jb29"', schemaAgency: 'ROR', creator: @@user1).valid?
+
+    assert LinkedData::Models::AgentIdentifier.new(notation: '000h6jb29"', schemaAgency: 'ORCID', creator: @@user1).valid?
+    id.delete
   end
 
 end
