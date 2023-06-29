@@ -191,7 +191,7 @@ module LinkedData
       conf.add_namespace(:oboInOwl, RDF::Vocabulary.new("http://www.geneontology.org/formats/oboInOwl#"))
       conf.add_namespace(:idot, RDF::Vocabulary.new("http://identifiers.org/idot/"))
       conf.add_namespace(:sd, RDF::Vocabulary.new("http://www.w3.org/ns/sparql-service-description#"))
-
+      conf.add_namespace(:org, RDF::Vocabulary.new("http://www.w3.org/ns/org#"))
       conf.add_namespace(:cclicense, RDF::Vocabulary.new("http://creativecommons.org/licenses/"))
       conf.add_namespace(:nkos, RDF::Vocabulary.new("http://w3id.org/nkos#"))
       conf.add_namespace(:skosxl, RDF::Vocabulary.new("http://www.w3.org/2008/05/skos-xl#"))

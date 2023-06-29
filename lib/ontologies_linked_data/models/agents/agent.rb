@@ -14,7 +14,7 @@ module LinkedData
       attribute :email, namespace: :foaf, property: :mbox, enforce: %i[existence email unique]
 
       attribute :identifiers, namespace: :adms, property: :identifier, enforce: %i[Identifier list unique_identifiers]
-      attribute :affiliations, enforce: %i[Agent list is_organization]
+      attribute :affiliations, enforce: %i[Agent list is_organization], namespace: :org, property: :memberOf
       attribute :creator, type: :user, enforce: [:existence]
 
       embed :identifiers, :affiliations
