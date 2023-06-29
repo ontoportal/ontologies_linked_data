@@ -7,7 +7,7 @@ module LinkedData
 
       model :Agent, namespace: :foaf, name_with: lambda { |cc| uuid_uri_generator(cc) }
       attribute :agentType, enforce: [:existence], enforcedValues: %w[person organization]
-      attribute :name, namespace: :foaf, enforce: %i[existence unique]
+      attribute :name, namespace: :foaf, enforce: %i[existence]
 
       attribute :homepage, namespace: :foaf
       attribute :acronym, namespace: :skos, property: :altLabel

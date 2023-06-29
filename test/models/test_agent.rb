@@ -19,15 +19,20 @@ class TestAgent < LinkedData::TestCase
 
   def test_agent_no_valid
 
-
-    agents =[
-      LinkedData::Models::Agent.new(name:"name 0", agentType: 'organization',creator: @@user1 ),
-      LinkedData::Models::Agent.new(name:"name 1", agentType: 'person', creator: @@user1 ),
-      LinkedData::Models::Agent.new(name:"name 2", agentType: 'person', creator: @@user1 )
+    @agents =[
+      LinkedData::Models::Agent.new(name:"name 0", email:"test_0@test.com", agentType: 'organization',creator: @@user1 ),
+      LinkedData::Models::Agent.new(name:"name 1", email:"test_1@test.com", agentType: 'person', creator: @@user1 ),
+      LinkedData::Models::Agent.new(name:"name 2", email:"test_2@test.com",  agentType: 'person', creator: @@user1 )
+    ]
+    @identifiers = [
+      LinkedData::Models::AgentIdentifier.new(notation: '000h6jb29', schemaAgency: 'ROR', creator: @@user1),
+      LinkedData::Models::AgentIdentifier.new(notation: '000h6jb29', schemaAgency: 'ORCID', creator: @@user1),
     ]
 
-    affiliations = agents[0..2].map{ |a| a.save }
-    agent = agents.last
+    @identifiers.each {|i| i.save}
+
+    affiliations = @agents[0..2].map{ |a| a.save }
+    agent = @agents.last
     agent.affiliations = affiliations
 
 
@@ -35,6 +40,22 @@ class TestAgent < LinkedData::TestCase
     refute_nil agent.errors[:affiliations][:is_organization]
 
     affiliations.each{|x| x.delete}
+
+
+    agents = @agents[0..2].map do |a|
+      a.identifiers = @identifiers
+      a
+    end
+
+    assert agents.first.valid?
+    agents.first.save
+
+    second_agent = agents.last
+    refute second_agent.valid?
+    refute_nil second_agent.errors[:identifiers][:unique_identifiers]
+
+
+    @identifiers.each{|i| i.delete}
   end
 
   def test_identifier_no_valid
