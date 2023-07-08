@@ -11,7 +11,7 @@ module LinkedData
 
       attribute :homepage, namespace: :foaf
       attribute :acronym, namespace: :skos, property: :altLabel
-      attribute :email, namespace: :foaf, property: :mbox, enforce: %i[existence email unique]
+      attribute :email, namespace: :foaf, property: :mbox, enforce: %i[email unique]
 
       attribute :identifiers, namespace: :adms, property: :identifier, enforce: %i[Identifier list unique_identifiers]
       attribute :affiliations, enforce: %i[Agent list is_organization], namespace: :org, property: :memberOf
