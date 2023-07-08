@@ -90,8 +90,8 @@ module LinkedData
       attribute :hasContributor, namespace: :omv, type: %i[list Agent], enforce: [:person]
       attribute :curatedBy, namespace: :pav, type: %i[list Agent]
       attribute :publisher, namespace: :dct, type: %i[list Agent]
-      attribute :fundedBy, namespace: :foaf, type: %i[list Agent], enforce: [:organization]
-      attribute :endorsedBy, namespace: :omv, type: :list, enforce: [:organization]
+      attribute :fundedBy, namespace: :foaf, type: %i[list Agent], enforce: [:is_organization]
+      attribute :endorsedBy, namespace: :omv, type: :list, enforce: [:is_organization]
       attribute :translator, namespace: :schema, type: %i[list Agent]
 
       # Community metadata

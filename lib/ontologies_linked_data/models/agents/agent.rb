@@ -44,6 +44,7 @@ module LinkedData
         affiliations = inst.send(attr)
 
         Array(affiliations).each do |aff|
+          aff.bring(:agentType) if aff.bring?(:agentType)
           return  [:is_organization, "`affiliations` must contain only agents of type Organization"] unless aff.agentType&.eql?('organization')
         end
 

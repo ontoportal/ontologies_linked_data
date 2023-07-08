@@ -46,6 +46,18 @@ module LinkedData
       module Validators
         include ValidatorsHelpers
 
+        def is_organization(inst, attr)
+          inst.bring(attr) if inst.bring?(attr)
+          affiliations = inst.send(attr)
+
+          Array(affiliations).each do |aff|
+            aff.bring(:agentType) if aff.bring?(:agentType)
+            return  [:is_organization, "`affiliations` must contain only agents of type Organization"] unless aff.agentType&.eql?('organization')
+          end
+
+          []
+        end
+
         def lexvo_language(inst, attr)
           values = Array(attr_value(inst, attr))
 
