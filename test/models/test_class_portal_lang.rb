@@ -4,11 +4,19 @@ class TestClassPortalLang < LinkedData::TestOntologyCommon
   def self.before_suite
     @@old_main_languages = Goo.main_languages
     RequestStore.store[:requested_lang] = nil
+    parse
   end
 
   def self.after_suite
     Goo.main_languages = @@old_main_languages
     RequestStore.store[:requested_lang] = nil
+  end
+
+  def self.parse
+    new('').submission_parse('AGROOE', 'AGROOE Test extract metadata ontology',
+                              './test/data/ontology_files/agrooeMappings-05-05-2016.owl', 1,
+                              process_rdf: true, index_search: false,
+                              run_metrics: false, reasoning: true)
   end
 
   def test_map_attribute_found
@@ -76,11 +84,6 @@ class TestClassPortalLang < LinkedData::TestOntologyCommon
 
   def parse_and_get_class(lang:, klass: 'http://lirmm.fr/2015/resource/AGROOE_c_03')
     portal_lang_set portal_languages: lang
-    submission_parse('AGROOE', 'AGROOE Test extract metadata ontology',
-                     './test/data/ontology_files/agrooeMappings-05-05-2016.owl', 1,
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: true)
-
 
     cls = get_class(klass,'AGROOE')
     assert !cls.nil?
@@ -94,9 +97,6 @@ class TestClassPortalLang < LinkedData::TestOntologyCommon
     RequestStore.store[:requested_lang] = nil
   end
 
-  def get_ontology_last_submission(ont)
-    LinkedData::Models::Ontology.find(ont).first.latest_submission()
-  end
 
   def get_class(cls, ont)
     sub = LinkedData::Models::Ontology.find(ont).first.latest_submission()
