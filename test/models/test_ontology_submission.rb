@@ -33,9 +33,12 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
     os.uploadFilePath = uploadFilePath
     os.hasOntologyLanguage = owl
     os.ontology = bogus
+    os.URI = RDF::URI.new('https://test.com')
+    os.description = 'description example'
+    os.status = 'beta'
     assert os.valid?
   end
-
+  
   def test_sanity_check_zip
 
     acronym = "ADARTEST"
@@ -49,6 +52,9 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
     uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id, ontologyFile)
     ont_submision.contact = [contact]
     ont_submision.released = DateTime.now - 4
+    ont_submision.URI = RDF::URI.new('https://test.com')
+    ont_submision.description = 'description example'
+    ont_submision.status = 'beta'
     ont_submision.uploadFilePath = uploadFilePath
     ont_submision.hasOntologyLanguage = owl
     ont_submision.ontology = rad
@@ -94,6 +100,9 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
     ont_submision.contact = [contact]
     ont_submision.released = DateTime.now - 4
     ont_submision.hasOntologyLanguage = owl
+    ont_submision.uri = RDF::URI.new('https://test.com')
+    ont_submision.description = 'description example'
+    ont_submision.status = 'beta'
     ont_submision.ontology = dup
     assert (!ont_submision.valid?)
     assert_equal 1, ont_submision.errors.length
@@ -333,6 +342,9 @@ eos
     parse_options = { process_rdf: false, index_search: false, index_commit: false,
                       run_metrics: false, reasoning: false, archive: true }
 
+    old_threshold = LinkedData::Models::OntologySubmission::FILE_SIZE_ZIPPING_THRESHOLD
+    LinkedData::Models::OntologySubmission.const_set(:FILE_SIZE_ZIPPING_THRESHOLD, 0)
+
     ont_count, ont_acronyms, ontologies =
       create_ontologies_and_submissions(ont_count: 1, submission_count: 2,
                                         process_submission: true, acronym: 'NCBO-545')
@@ -362,6 +374,7 @@ eos
 
     # Process one prior to latest submission.  Some files should be deleted.
     old_sub = sorted_submissions.last
+    old_file_path = old_sub.uploadFilePath
     old_sub.process_submission(Logger.new(old_sub.parsing_log_path), parse_options)
     assert old_sub.archived?
 
@@ -382,6 +395,13 @@ eos
 
     assert_equal false, File.file?(old_sub.parsing_log_path),
       %-File deletion failed for '#{old_sub.parsing_log_path}'-
+
+    assert_equal false, File.file?(old_file_path),
+                 %-File deletion failed for '#{old_file_path}'-
+
+    assert old_sub.zipped?
+    assert File.file?(old_sub.uploadFilePath)
+    LinkedData::Models::OntologySubmission.const_set(:FILE_SIZE_ZIPPING_THRESHOLD, old_threshold)
   end
 
   def test_submission_diff_across_ontologies
@@ -446,6 +466,48 @@ eos
     assert_equal 0, res["response"]["numFound"]
   end
 
+  def test_zipped_submission_process
+    acronym = "PIZZA"
+    name = "PIZZA Ontology"
+    ontologyFile = "./test/data/ontology_files/pizza.owl.zip"
+    archived_submission = nil
+    2.times do |i|
+      id = 20 + i
+      ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => id})
+      assert (not ont_submision.valid?)
+      assert_equal 7, ont_submision.errors.length
+      uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id,ontologyFile)
+      ont_submision.uploadFilePath = uploadFilePath
+      owl, bro, user, contact = submission_dependent_objects("OWL", acronym, "test_linked_models", name)
+      ont_submision.released = DateTime.now - 4
+      ont_submision.hasOntologyLanguage = owl
+      ont_submision.ontology = bro
+      ont_submision.contact = [contact]
+      ont_submision.URI = RDF::URI.new("https://test-#{id}.com")
+      ont_submision.description =  "Description #{id}"
+      ont_submision.status = 'production'
+      assert ont_submision.valid?
+      ont_submision.save
+      parse_options = {process_rdf: true, reasoning: true, index_search: false, run_metrics: false, diff: true}
+      begin
+        tmp_log = Logger.new(TestLogFile.new)
+        ont_submision.process_submission(tmp_log, parse_options)
+      rescue Exception => e
+        puts "Error, logged in #{tmp_log.instance_variable_get("@logdev").dev.path}"
+        raise e
+      end
+      archived_submission = ont_submision if i.zero?
+    end
+    parse_options = { process_rdf: false, index_search: false, index_commit: false,
+                      run_metrics: false, reasoning: false, archive: true }
+    archived_submission.process_submission(Logger.new(TestLogFile.new), parse_options)
+
+    assert_equal false, File.file?(archived_submission.zip_folder),
+                 %-File deletion failed for '#{archived_submission.zip_folder}'-
+
+
+
+  end
   def test_submission_parse_zip
     skip if ENV["BP_SKIP_HEAVY_TESTS"] == "1"
 
@@ -461,6 +523,9 @@ eos
     LinkedData::TestCase.backend_4s_delete
 
     ont_submision =  LinkedData::Models::OntologySubmission.new({ :submissionId => id,})
+    ont_submision.uri = RDF::URI.new('https://test.com')
+    ont_submision.description = 'description example'
+    ont_submision.status = 'beta'
     assert (not ont_submision.valid?)
     assert_equal 4, ont_submision.errors.length
     uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id,ontologyFile)
@@ -733,6 +798,9 @@ eos
     ont_submision.hasOntologyLanguage = owl
     ont_submision.contact = [contact]
     ont_submision.ontology = sbo
+    ont_submision.uri = RDF::URI.new('https://test.com')
+    ont_submision.description = 'description example'
+    ont_submision.status = 'beta'
     assert (ont_submision.valid?)
     ont_submision.save
     assert_equal true, ont_submision.exist?(reload=true)
@@ -787,6 +855,9 @@ eos
     ont_submision.released = DateTime.now - 4
     ont_submision.hasOntologyLanguage = owl
     ont_submision.ontology = cno
+    ont_submision.uri = RDF::URI.new('https://test.com')
+    ont_submision.description = 'description example'
+    ont_submision.status = 'beta'
     ont_submision.contact = [contact]
     assert (ont_submision.valid?)
     ont_submision.save
@@ -1033,17 +1104,18 @@ eos
                        "./test/data/ontology_files/agrooeMappings-05-05-2016.owl", 1,
                        process_rdf: true, index_search: false,
                        run_metrics: true, reasoning: false)
-      sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission()
+      sub = LinkedData::Models::Ontology.find("AGROOE").first.latest_submission
       sub.bring_remaining
       assert_equal false, sub.deprecated
-      assert_equal  " AGROOE is an ontology used to test the metadata extraction,  AGROOE is an ontology to illustrate how to describe their ontologies", sub.description
+      assert_equal '2015-09-28', sub.creationDate.to_date.to_s
+      assert_equal '2015-10-01', sub.modificationDate.to_date.to_s
+      assert_equal  "description example,  AGROOE is an ontology used to test the metadata extraction,  AGROOE is an ontology to illustrate how to describe their ontologies", sub.description
       assert_equal " LIRMM (default name) ", sub.publisher
-      assert_equal " URI DC terms identifiers ", sub.identifier
+      assert_equal [RDF::URI.new('http://agroportal.lirmm.fr')], sub.identifier
       assert_equal ["http://lexvo.org/id/iso639-3/fra", "http://lexvo.org/id/iso639-3/eng"].sort, sub.naturalLanguage.sort
-      assert_equal "Vincent Emonet, Anne Toulet, Benjamine Dessay, Léontine Dessaiterm, Augustine Doap", sub.hasContributor
+      assert_equal ["Léontine Dessaiterm", "Anne Toulet", "Benjamine Dessay", "Augustine Doap", "Vincent Emonet"].sort, sub.hasContributor.sort
       assert_equal [RDF::URI.new("http://lirmm.fr/2015/ontology/door-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/dc-relation.owl"),
                     RDF::URI.new("http://lirmm.fr/2015/ontology/dcterms-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/voaf-relation.owl")].sort, sub.ontologyRelatedTo.sort
-      assert_equal 18, sub.numberOfClasses
 
 
       sub.description = "test changed value"
