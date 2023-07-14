@@ -146,6 +146,31 @@ module LinkedData
         "#{self.id.to_s}_#{self.submission.ontology.acronym}_#{self.submission.submissionId}"
       end
 
+      def to_hash(include_languages: false)
+        attr_hash = {}
+        self.class.attributes.each do |attr|
+          v = self.instance_variable_get("@#{attr}")
+          attr_hash[attr] = v unless v.nil?
+        end
+        properties_values = properties(include_languages: include_languages)
+        if properties_values
+          all_attr_uris = Set.new
+          self.class.attributes.each do |attr|
+            if self.class.collection_opts
+              all_attr_uris << self.class.attribute_uri(attr, self.collection)
+            else
+              all_attr_uris << self.class.attribute_uri(attr)
+            end
+          end
+          properties_values.each do |attr, values|
+            values = values.values.flatten if values.is_a?(Hash)
+            attr_hash[attr] = values.map { |v| v.to_s } unless all_attr_uris.include?(attr)
+          end
+        end
+        attr_hash[:id] = @id
+        attr_hash
+      end
+
       # to_set is an optional array that allows passing specific
       # field names that require updating
       # if to_set is nil, it's assumed to be a new document for insert
