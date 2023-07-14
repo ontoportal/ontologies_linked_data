@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ontoportal-lirmm/goo.git
-  revision: 10722bee64d970d534b90e7aaf71a4f5d34d98f0
+  revision: 81ce88c6e52f34f9ef5c9ec88abd725c23d1b43a
   branch: development
   specs:
     goo (0.0.2)
@@ -85,7 +85,6 @@ GEM
       concurrent-ruby (~> 1.0)
     json (2.6.3)
     json_pure (2.6.3)
-    language_server-protocol (3.17.0.3)
     launchy (2.5.2)
       addressable (~> 2.8)
     libxml-ruby (2.9.0)
@@ -159,11 +158,10 @@ GEM
     rexml (3.2.5)
     rsolr (1.1.2)
       builder (>= 2.1.2)
-    rubocop (1.54.2)
+    rubocop (1.50.2)
       json (~> 2.3)
-      language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
-      parser (>= 3.2.2.3)
+      parser (>= 3.2.0.0)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 1.8, < 3.0)
       rexml (>= 3.2.5, < 4.0)
