@@ -1,5 +1,5 @@
 require_relative './test_ontology_common'
-class TestClassMainLang < LinkedData::TestOntologyCommon
+class TestClassPortalLang < LinkedData::TestOntologyCommon
 
   def self.before_suite
     @@old_main_languages = Goo.main_languages
@@ -24,7 +24,7 @@ class TestClassMainLang < LinkedData::TestOntologyCommon
     cls = parse_and_get_class lang: [:ES]
     cls.bring :unmapped
     LinkedData::Models::Class.map_attributes(cls)
-    assert_equal ['material detailed entity', 'entité matérielle detaillée'], cls.label
+    assert_empty cls.label
     assert_equal 'skos prefLabel rien', cls.prefLabel
     assert_equal ['entita esp', 'entite rien'], cls.synonym
   end
@@ -33,7 +33,7 @@ class TestClassMainLang < LinkedData::TestOntologyCommon
     cls = parse_and_get_class lang: %i[ES FR]
     cls.bring :unmapped
     LinkedData::Models::Class.map_attributes(cls)
-    assert_equal ['entité matérielle detaillée'], cls.label
+    assert_empty cls.label
     assert_equal 'skos prefLabel rien', cls.prefLabel
     assert_equal ['entita esp', 'entite rien'], cls.synonym
   end
@@ -49,16 +49,17 @@ class TestClassMainLang < LinkedData::TestOntologyCommon
   def test_label_main_lang_not_found
     cls = parse_and_get_class lang: [:ES]
 
-    assert_equal ['material detailed entity', 'entité matérielle detaillée'], cls.label
+    assert_empty cls.label
     assert_equal 'skos prefLabel rien', cls.prefLabel
     assert_equal ['entita esp' , 'entite rien' ], cls.synonym
   end
 
   def test_label_secondary_lang
-    # 'es' will not be found so will take 'fr' if fond or anything else
+    # This feature is obsolete with the request language feature
+    # 'es' will not be found
     cls = parse_and_get_class lang: %i[ES FR]
 
-    assert_equal ['entité matérielle detaillée'], cls.label
+    assert_empty cls.label
     assert_equal 'skos prefLabel rien', cls.prefLabel
     assert_equal ['entita esp', 'entite rien'], cls.synonym
   end
