@@ -3,10 +3,11 @@ require 'request_store'
 
 class TestClassRequestedLang < LinkedData::TestOntologyCommon
 
-
   def self.before_suite
     @@old_main_languages = Goo.main_languages
     RequestStore.store[:requested_lang] = nil
+
+    parse
   end
 
   def self.after_suite
@@ -14,9 +15,19 @@ class TestClassRequestedLang < LinkedData::TestOntologyCommon
     RequestStore.store[:requested_lang] = nil
   end
 
+  def self.parse
+    new('').submission_parse('INRAETHES', 'Testing skos',
+                             'test/data/ontology_files/thesaurusINRAE_nouv_structure.skos', 1,
+                             process_rdf: true, index_search: false,
+                             run_metrics: false, reasoning: false
+    )
+  end
+
+  def teardown
+    reset_lang
+  end
 
   def test_requested_language_found
-    parse
 
     cls = get_class_by_lang('http://opendata.inrae.fr/thesaurusINRAE/c_22817',
                             requested_lang: :FR)
@@ -36,11 +47,9 @@ class TestClassRequestedLang < LinkedData::TestOntologyCommon
     assert_equal ['industrial development'], properties.select { |x| x.to_s['altLabel'] }.values.first.map(&:to_s)
     assert_equal ['industrialization'], properties.select { |x| x.to_s['prefLabel'] }.values.first.map(&:to_s)
 
-    reset_lang
   end
 
   def test_requested_language_not_found
-    parse
 
     cls = get_class_by_lang('http://opendata.inrae.fr/thesaurusINRAE/c_22817',
                             requested_lang: :ES)
@@ -50,19 +59,36 @@ class TestClassRequestedLang < LinkedData::TestOntologyCommon
     properties = cls.properties
     assert_empty properties.select { |x| x.to_s['altLabel'] }.values
     assert_empty properties.select { |x| x.to_s['prefLabel'] }.values
+  end
 
-    reset_lang
+  def test_request_all_languages
+
+    cls = get_class_by_lang('http://opendata.inrae.fr/thesaurusINRAE/c_22817',
+                            requested_lang: :ALL)
+
+    pref_label_all_languages = { en: 'industrialization', fr: 'industrialisation' }
+    assert_includes pref_label_all_languages.values, cls.prefLabel
+    assert_equal pref_label_all_languages, cls.prefLabel(show_languages: true)
+
+    synonym_all_languages = { en: ['industrial development'], fr: ['développement industriel'] }
+
+    assert_equal synonym_all_languages.values.flatten.sort, cls.synonym.sort
+    assert_equal synonym_all_languages, cls.synonym(show_languages: true)
+
+    properties = cls.properties
+
+    assert_equal synonym_all_languages.values.flatten.sort, properties.select { |x| x.to_s['altLabel'] }.values.first.map(&:to_s).sort
+    assert_equal pref_label_all_languages.values.sort, properties.select { |x| x.to_s['prefLabel'] }.values.first.map(&:to_s).sort
+
+    properties = cls.properties(show_languages: true)
+
+    assert_equal synonym_all_languages.stringify_keys,
+                 properties.select { |x| x.to_s['altLabel'] }.values.first.transform_values{|v| v.map(&:object)}
+    assert_equal pref_label_all_languages.stringify_keys,
+                 properties.select { |x| x.to_s['prefLabel'] }.values.first.transform_values{|v| v.first.object}
   end
 
   private
-
-  def parse
-    submission_parse('INRAETHES', 'Testing skos',
-                     'test/data/ontology_files/thesaurusINRAE_nouv_structure.skos',
-                     1,
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: false)
-  end
 
   def lang_set(requested_lang: nil, portal_languages: nil)
     Goo.main_languages = portal_languages if portal_languages

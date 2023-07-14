@@ -283,9 +283,9 @@ module LinkedData
       BAD_PROPERTY_URIS = LinkedData::Mappings.mapping_predicates.values.flatten + ['http://bioportal.bioontology.org/metadata/def/prefLabel']
       EXCEPTION_URIS = ["http://bioportal.bioontology.org/ontologies/umls/cui"]
       BLACKLIST_URIS = BAD_PROPERTY_URIS - EXCEPTION_URIS
-      def properties
-        return nil if self.unmapped.nil?
-        properties = self.unmapped
+      def properties(*args)
+        return nil if self.unmapped(*args).nil?
+        properties = self.unmapped(*args)
         BLACKLIST_URIS.each {|bad_iri| properties.delete(RDF::URI.new(bad_iri))}
         properties
       end
