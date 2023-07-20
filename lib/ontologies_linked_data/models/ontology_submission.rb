@@ -1345,6 +1345,7 @@ eos
                       Thread.current["done"] = true
                     else
                       Thread.current["page"] = page || "nil"
+                      RequestStore.store[:requested_lang] = :ALL
                       page_classes = paging.page(page, size).all
                       count_classes += page_classes.length
                       Thread.current["page_classes"] = page_classes
@@ -1395,7 +1396,7 @@ eos
                   Thread.current["page_classes"].each do |c|
                     begin
                       # this cal is needed for indexing of properties
-                      LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
+                      LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates, include_languages: true )
                     rescue Exception => e
                       i = 0
                       num_calls = LinkedData.settings.num_retries_4store
@@ -1407,7 +1408,7 @@ eos
                         sleep(2)
 
                         begin
-                          LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
+                          LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates, include_languages: true)
                           logger.info("Thread #{num + 1}: Success mapping attributes for #{c.id.to_s} after retrying #{i} times...")
                           success = true
                         rescue Exception => e1

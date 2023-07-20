@@ -262,7 +262,7 @@ class Object
 
       next unless self.respond_to?(attribute)
       begin
-        hash[attribute] = self.send(attribute, show_languages: true)
+        hash[attribute] = self.send(attribute, include_languages: true)
       rescue Goo::Base::AttributeNotLoaded
         next
       rescue ArgumentError

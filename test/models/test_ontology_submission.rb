@@ -466,6 +466,40 @@ eos
     assert_equal 0, res["response"]["numFound"]
   end
 
+  def test_index_multilingual
+
+    submission_parse("BRO", "BRO Ontology",
+                     "./test/data/ontology_files/BRO_v3.5.owl", 1,
+                     process_rdf: true, reasoning: false, index_search: true)
+
+
+    res = LinkedData::Models::Class.search("prefLabel:Activity", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80}, :main)
+    refute_equal 0, res["response"]["numFound"]
+
+    doc = res["response"]["docs"].select{|doc| doc["resource_id"].to_s.eql?('http://bioontology.org/ontologies/Activity.owl#Activity')}.first
+    refute_nil doc
+    assert_equal 30, doc.keys.select{|k| k['prefLabel'] || k['synonym']}.size # test that all the languages are indexed
+
+
+    res = LinkedData::Models::Class.search("prefLabel_none:Activity", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80}, :main)
+    refute_equal 0, res["response"]["numFound"]
+    refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('http://bioontology.org/ontologies/Activity.owl#Activity')}.first
+
+    res = LinkedData::Models::Class.search("prefLabel_fr:Activité", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80}, :main)
+    refute_equal 0, res["response"]["numFound"]
+    refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('http://bioontology.org/ontologies/Activity.owl#Activity')}.first
+
+
+
+    res = LinkedData::Models::Class.search("prefLabel_en:ActivityEnglish", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80}, :main)
+    refute_equal 0, res["response"]["numFound"]
+    refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('http://bioontology.org/ontologies/Activity.owl#Activity')}.first
+
+
+    res = LinkedData::Models::Class.search("prefLabel_fr:Activity", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80}, :main)
+    assert_equal 0, res["response"]["numFound"]
+  end
+
   def test_zipped_submission_process
     acronym = "PIZZA"
     name = "PIZZA Ontology"
