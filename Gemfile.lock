@@ -52,29 +52,10 @@ GEM
       launchy (~> 2.1)
       mail (~> 2.7)
     eventmachine (1.2.7)
-    faraday (1.10.3)
-      faraday-em_http (~> 1.0)
-      faraday-em_synchrony (~> 1.0)
-      faraday-excon (~> 1.1)
-      faraday-httpclient (~> 1.0)
-      faraday-multipart (~> 1.0)
-      faraday-net_http (~> 1.0)
-      faraday-net_http_persistent (~> 1.0)
-      faraday-patron (~> 1.0)
-      faraday-rack (~> 1.0)
-      faraday-retry (~> 1.0)
+    faraday (2.7.10)
+      faraday-net_http (>= 2.0, < 3.1)
       ruby2_keywords (>= 0.0.4)
-    faraday-em_http (1.0.0)
-    faraday-em_synchrony (1.0.0)
-    faraday-excon (1.1.0)
-    faraday-httpclient (1.0.1)
-    faraday-multipart (1.0.4)
-      multipart-post (~> 2)
-    faraday-net_http (1.0.1)
-    faraday-net_http_persistent (1.2.0)
-    faraday-patron (1.0.0)
-    faraday-rack (1.0.0)
-    faraday-retry (1.0.3)
+    faraday-net_http (3.0.2)
     ffi (1.15.5)
     hashie (5.0.0)
     htmlentities (4.3.4)
@@ -109,7 +90,6 @@ GEM
       minitest (>= 2.12, < 5.0)
       powerbar
     multi_json (1.15.0)
-    multipart-post (2.3.0)
     net-http-persistent (2.9.4)
     net-imap (0.3.7)
       date
@@ -211,7 +191,6 @@ DEPENDENCIES
   bcrypt (~> 3.0)
   cube-ruby
   email_spec
-  faraday (~> 1.9)
   ffi
   goo!
   libxml-ruby
