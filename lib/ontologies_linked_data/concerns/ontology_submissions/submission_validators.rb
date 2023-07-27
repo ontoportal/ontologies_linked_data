@@ -183,7 +183,8 @@ module LinkedData
             sub.valid = inst.modificationDate || inst.creationDate || DateTime.now
             changed = true
           end
-          sub.save if changed
+
+          sub.save if changed && sub.valid?
         end
 
         def include_previous_submission(inst, attr)
