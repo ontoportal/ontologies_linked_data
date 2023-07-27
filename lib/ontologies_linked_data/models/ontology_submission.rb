@@ -918,7 +918,7 @@ eos
         # Wrap the whole process so we can email results
         begin
           process_rdf = false
-          generate_labels = true
+          generate_labels = false
           index_search = false
           index_properties = false
           index_commit = false
@@ -929,6 +929,7 @@ eos
 
           if options.empty?
             process_rdf = true
+            generate_labels = true
             index_search = true
             index_properties = true
             index_commit = true
@@ -938,10 +939,14 @@ eos
             archive = false
           else
             process_rdf = options[:process_rdf] == true ? true : false
-            generate_labels = options[:generate_labels] == false ? false : true
+
+            if options.has_key?(:generate_labels)
+              generate_labels = options[:generate_labels] == false ? false : true
+            else
+              generate_labels = process_rdf
+            end
             index_search = options[:index_search] == true ? true : false
             index_properties = options[:index_properties] == true ? true : false
-            index_commit = options[:index_commit] == true ? true : false
             run_metrics = options[:run_metrics] == true ? true : false
 
             if !process_rdf || options[:reasoning] == false
