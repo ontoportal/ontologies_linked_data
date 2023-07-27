@@ -88,7 +88,7 @@ GEM
     language_server-protocol (3.17.0.3)
     launchy (2.5.2)
       addressable (~> 2.8)
-    libxml-ruby (2.9.0)
+    libxml-ruby (4.1.1)
     logger (1.5.3)
     macaddr (1.7.2)
       systemu (~> 2.6.5)
@@ -121,7 +121,7 @@ GEM
     net-smtp (0.3.3)
       net-protocol
     netrc (0.11.0)
-    oj (2.18.5)
+    oj (3.15.0)
     omni_logger (0.1.4)
       logger
     parallel (1.23.0)
@@ -137,7 +137,7 @@ GEM
       method_source (~> 1.0)
     public_suffix (5.0.3)
     racc (1.7.1)
-    rack (1.6.13)
+    rack (2.2.7)
     rack-test (0.8.3)
       rack (>= 1.0, < 3)
     rainbow (3.1.1)
@@ -155,8 +155,9 @@ GEM
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
     rexml (3.2.6)
-    rsolr (1.1.2)
+    rsolr (2.5.0)
       builder (>= 2.1.2)
+      faraday (>= 0.9, < 3, != 2.0.0)
     rubocop (1.55.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
@@ -213,19 +214,19 @@ DEPENDENCIES
   faraday (~> 1.9)
   ffi
   goo!
-  libxml-ruby (~> 2.0)
+  libxml-ruby
   minitest
   minitest-reporters (>= 0.5.0)
   multi_json (~> 1.0)
-  oj (~> 2.0)
+  oj (~> 3.0)
   omni_logger
   pony
   pry
-  rack (~> 1.0)
+  rack
   rack-test (~> 0.6)
   rake (~> 10.0)
   rest-client
-  rsolr (~> 1.0)
+  rsolr
   rubocop
   rubyzip (~> 1.0)
   simplecov
