@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 8a0c14a6e6942b20749894806f1f1f512f9afcfa
+  revision: fb203b0396d03c1df61abfcdbc4070787010f052
   branch: develop
   specs:
     goo (0.0.2)
@@ -111,7 +111,7 @@ GEM
     multi_json (1.15.0)
     multipart-post (2.3.0)
     net-http-persistent (2.9.4)
-    net-imap (0.3.6)
+    net-imap (0.3.7)
       date
       net-protocol
     net-pop (0.1.2)
@@ -154,10 +154,10 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
-    rexml (3.2.5)
+    rexml (3.2.6)
     rsolr (1.1.2)
       builder (>= 2.1.2)
-    rubocop (1.54.2)
+    rubocop (1.55.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
@@ -165,7 +165,7 @@ GEM
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 1.8, < 3.0)
       rexml (>= 3.2.5, < 4.0)
-      rubocop-ast (>= 1.28.0, < 2.0)
+      rubocop-ast (>= 1.28.1, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 3.0)
     rubocop-ast (1.29.0)
