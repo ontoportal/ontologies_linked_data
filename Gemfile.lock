@@ -164,8 +164,6 @@ GEM
     simplecov-html (0.12.3)
     simplecov_json_formatter (0.1.4)
     systemu (2.6.5)
-    test-unit-minitest (0.9.1)
-      minitest (~> 4.7)
     thin (1.8.2)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
@@ -194,7 +192,7 @@ DEPENDENCIES
   ffi
   goo!
   libxml-ruby
-  minitest
+  minitest (~> 4)
   minitest-reporters (>= 0.5.0)
   multi_json (~> 1.0)
   oj (~> 3.0)
@@ -211,8 +209,7 @@ DEPENDENCIES
   simplecov
   simplecov-cobertura
   sparql-client!
-  test-unit-minitest
   thin
 
 BUNDLED WITH
-   2.3.15
+   2.4.17
