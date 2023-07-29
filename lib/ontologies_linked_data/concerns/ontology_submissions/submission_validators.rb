@@ -52,7 +52,23 @@ module LinkedData
 
           Array(affiliations).each do |aff|
             aff.bring(:agentType) if aff.bring?(:agentType)
-            return  [:is_organization, "`affiliations` must contain only agents of type Organization"] unless aff.agentType&.eql?('organization')
+            unless aff.agentType&.eql?('organization')
+              return  [:is_organization, "`#{attr}` must contain only agents of type Organization"]
+            end
+          end
+
+          []
+        end
+
+        def is_person(inst, attr)
+          inst.bring(attr) if inst.bring?(attr)
+          persons = inst.send(attr)
+
+          Array(persons).each do |person|
+            person.bring(:agentType) if person.bring?(:agentType)
+            unless person.agentType&.eql?('person')
+              return  [:persons, "`#{attr}` must contain only agents of type Person"]
+            end
           end
 
           []
