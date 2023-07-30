@@ -201,7 +201,7 @@ conformsToKnowledgeRepresentationParadigm:
   label: "Knowledge representation paradigm"
 
 hasContributor:
-  extractedMetadata: true
+  extractedMetadata: false
   description: [ "DCTERMS: An entity responsible for making contributions to the resource",
     "SCHEMA: A secondary contributor to the CreativeWork or Event.",
     "OMV: Contributors to the creation of the ontology.",
@@ -214,7 +214,7 @@ hasContributor:
   helpText: "Contributors to the creation of the ontology."
 
 hasCreator:
-  extractedMetadata: true
+  extractedMetadata: false
   description: [ "OMV: Main responsible for the creation of the ontology",
                  "DCTERMS: An entity primarily responsible for making the resource",
                  "FOAF: An agent that made this thing",
@@ -263,7 +263,7 @@ wasInvalidatedBy:
   helpText: "People who invalidated the ontology."
 
 curatedBy:
-  extractedMetadata: true
+  extractedMetadata: false
   description: [ "PAV: Specifies an agent specialist responsible for shaping the expression in an appropriate format. Often the primary agent responsible for ensuring the quality of the representation.",
     "MOD: A curator who restructure the previously authored content and shape it to be appropriate for the intended representation (e.g. by normalizing the fields for being represented in a spreadsheet)." ]
   display: "people"
@@ -273,7 +273,7 @@ curatedBy:
   example: 'Yvonne M. Bradford (0000-0002-9900-7880)'
 
 endorsedBy:
-  extractedMetadata: true
+  extractedMetadata: false
   label: "Endorsed by"
   description: [ "MOD: An ontology endorsed by an agent.",
     "OMV: The parties that have expressed support or approval to this ontology." ]
@@ -283,7 +283,7 @@ endorsedBy:
   example: 'INRAE (003vg9w96)'
 
 fundedBy:
-  extractedMetadata: true
+  extractedMetadata: false
   label: "Funded or sponsored by"
   description: [ "MOD: An ontology that is sponsored by and developed under a project.",
     "FOAF: An organization funding a project or person.",
@@ -294,7 +294,7 @@ fundedBy:
   example: [ 'Yvonne M. Bradford (0000-0002-9900-7880','INRAE (003vg9w96)' ]
 
 translator:
-  extractedMetadata: true
+  extractedMetadata: false
   label: "Translator"
   description: "SCHEMA: Organization or person who adapts a creative work to different languages, regional differences and technical requirements of a target market, or that translates during some event."
   metadataMappings: [ "doap:translator" ]
@@ -575,7 +575,7 @@ coverage:
   helpText: "The spatial or temporal topic of the ontology, the spatial applicability of the ontology, or the jurisdiction under which the ontology is relevant."
 
 publisher:
-  extractedMetadata: true
+  extractedMetadata: false
   label: "Publisher"
   description: [ "DCTERMS: An entity responsible for making the resource available.",
                  "SCHEMA: The publisher of creative work.",
@@ -909,7 +909,7 @@ award:
   helpText: "An award won by this ontology."
 
 copyrightHolder:
-  extractedMetadata: true
+  extractedMetadata: false
   label: "Rights holder"
   description: [ "SCHEMA: The party holding the legal copyright to the CreativeWork.",
                  "DCTERMS: A person or organization owning or managing rights over the resource." ]

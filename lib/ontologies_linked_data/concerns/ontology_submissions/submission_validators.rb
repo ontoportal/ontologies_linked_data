@@ -46,6 +46,34 @@ module LinkedData
       module Validators
         include ValidatorsHelpers
 
+        def is_organization(inst, attr)
+          inst.bring(attr) if inst.bring?(attr)
+          affiliations = inst.send(attr)
+
+          Array(affiliations).each do |aff|
+            aff.bring(:agentType) if aff.bring?(:agentType)
+            unless aff.agentType&.eql?('organization')
+              return  [:is_organization, "`#{attr}` must contain only agents of type Organization"]
+            end
+          end
+
+          []
+        end
+
+        def is_person(inst, attr)
+          inst.bring(attr) if inst.bring?(attr)
+          persons = inst.send(attr)
+
+          Array(persons).each do |person|
+            person.bring(:agentType) if person.bring?(:agentType)
+            unless person.agentType&.eql?('person')
+              return  [:persons, "`#{attr}` must contain only agents of type Person"]
+            end
+          end
+
+          []
+        end
+
         def lexvo_language(inst, attr)
           values = Array(attr_value(inst, attr))
 
@@ -155,7 +183,8 @@ module LinkedData
             sub.valid = inst.modificationDate || inst.creationDate || DateTime.now
             changed = true
           end
-          sub.save if changed
+
+          sub.save if changed && sub.valid?
         end
 
         def include_previous_submission(inst, attr)
