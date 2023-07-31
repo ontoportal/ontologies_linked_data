@@ -112,7 +112,7 @@ module LinkedData
       # Methodology metadata
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv
       attribute :usedOntologyEngineeringMethodology, namespace: :omv
-      attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list uri]
+      attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list]
       attribute :accrualMethod, namespace: :dct, type: %i[list uri]
       attribute :accrualPeriodicity, namespace: :dct
       attribute :accrualPolicy, namespace: :dct
