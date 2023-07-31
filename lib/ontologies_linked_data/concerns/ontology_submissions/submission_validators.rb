@@ -46,32 +46,29 @@ module LinkedData
       module Validators
         include ValidatorsHelpers
 
+        def enforce_agent_type(values, type, attr)
+          Array(values).each do |aff|
+            error = ["is_#{type}", "`#{attr}` must contain only agents of type #{type.capitalize}"]
+
+            return error unless aff.is_a?(LinkedData::Models::Agent)
+
+            aff.bring(:agentType) if aff.bring?(:agentType)
+            return error unless aff.agentType&.eql?(type)
+          end
+          []
+        end
+
         def is_organization(inst, attr)
           inst.bring(attr) if inst.bring?(attr)
           affiliations = inst.send(attr)
 
-          Array(affiliations).each do |aff|
-            aff.bring(:agentType) if aff.bring?(:agentType)
-            unless aff.agentType&.eql?('organization')
-              return  [:is_organization, "`#{attr}` must contain only agents of type Organization"]
-            end
-          end
-
-          []
+          enforce_agent_type(affiliations, 'organization', attr)
         end
 
         def is_person(inst, attr)
           inst.bring(attr) if inst.bring?(attr)
           persons = inst.send(attr)
-
-          Array(persons).each do |person|
-            person.bring(:agentType) if person.bring?(:agentType)
-            unless person.agentType&.eql?('person')
-              return  [:persons, "`#{attr}` must contain only agents of type Person"]
-            end
-          end
-
-          []
+          enforce_agent_type(persons, 'person', attr)
         end
 
         def lexvo_language(inst, attr)
