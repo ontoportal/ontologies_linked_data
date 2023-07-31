@@ -123,7 +123,7 @@ module LinkedData
           return if views.nil? || views.empty?
 
           parts = attr_value(inst, :hasPart) || []
-          return if views.all? { |v| parts.include?(v.id) }
+          return if views.all? { |v| parts.include?(LinkedData::Models::Base.replace_url_id_to_prefix(v.id)) }
 
           [:include_ontology_views, "#{attr} needs to include all the views of the ontology"]
 
