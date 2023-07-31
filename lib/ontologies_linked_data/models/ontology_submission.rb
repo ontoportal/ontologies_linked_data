@@ -91,7 +91,7 @@ module LinkedData
       attribute :curatedBy, namespace: :pav, type: %i[list Agent]
       attribute :publisher, namespace: :dct, type: %i[list Agent]
       attribute :fundedBy, namespace: :foaf, type: %i[list Agent], enforce: [:is_organization]
-      attribute :endorsedBy, namespace: :omv, type: :list, enforce: [:is_organization]
+      attribute :endorsedBy, namespace: :omv, type: %i[list Agent], enforce: [:is_organization]
       attribute :translator, namespace: :schema, type: %i[list Agent]
 
       # Community metadata
@@ -112,7 +112,7 @@ module LinkedData
       # Methodology metadata
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv
       attribute :usedOntologyEngineeringMethodology, namespace: :omv
-      attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list uri]
+      attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list]
       attribute :accrualMethod, namespace: :dct, type: %i[list uri]
       attribute :accrualPeriodicity, namespace: :dct
       attribute :accrualPolicy, namespace: :dct
@@ -182,7 +182,7 @@ module LinkedData
 
       def self.agents_attrs
         [:hasCreator, :publisher, :copyrightHolder, :hasContributor,
-         :translator, :endorsedBy, :fundedBy, :publisher, :curatedBy  ]
+         :translator, :endorsedBy, :fundedBy, :curatedBy  ]
       end
       # Hypermedia settings
       embed *[:contact, :ontology]  + agents_attrs
