@@ -155,8 +155,8 @@ module LinkedData
       attribute :uriRegexPattern, namespace: :void, type: :uri
       attribute :preferredNamespaceUri, namespace: :vann, type: :uri
       attribute :preferredNamespacePrefix, namespace: :vann
-      attribute :exampleIdentifier, namespace: :idot, type: :class, default: ->(s) { LinkedData::Models::Class.in(s).first }
-      attribute :keyClasses, namespace: :omv, type: %i[list class]
+      attribute :exampleIdentifier, namespace: :idot, default: ->(s) { LinkedData::Models::Class.in(s).first&.to_s }
+      attribute :keyClasses, namespace: :omv, type: %i[list]
       attribute :metadataVoc, namespace: :voaf, type: %i[uri list]
       attribute :uploadFilePath
       attribute :diffFilePath
