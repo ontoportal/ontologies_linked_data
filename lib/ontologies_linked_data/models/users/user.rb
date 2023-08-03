@@ -73,6 +73,14 @@ module LinkedData
           Ontology.cache_collection_invalidate
           OntologySubmission.cache_collection_invalidate
         end
+
+        if args.include?(:send_notifications) && args[:send_notifications]
+          begin
+            LinkedData::Utils::Notifications.new_user(user)
+          rescue Exception => e
+          end
+        end
+
         super
       end
 
