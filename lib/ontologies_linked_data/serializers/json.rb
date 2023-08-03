@@ -51,7 +51,7 @@ module LinkedData
       private
 
       def self.get_object_submission(obj)
-        obj.class.attributes.include?(:submission) ? obj.submission : nil
+        obj.class.respond_to?(:attributes) && obj.class.attributes.include?(:submission) ? obj.submission : nil
       end
 
       def self.get_languages(submission, user_languages)
