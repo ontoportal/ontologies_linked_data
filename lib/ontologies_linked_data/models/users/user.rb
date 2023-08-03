@@ -9,6 +9,7 @@ module LinkedData
     class User < LinkedData::Models::Base
       include BCrypt
       include LinkedData::Models::Users::Authentication
+      include LinkedData::Models::Users::OAuthAuthentication
 
       attr_accessor :show_apikey
 
