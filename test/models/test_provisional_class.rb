@@ -71,7 +71,7 @@ class TestProvisionalClass < LinkedData::TestOntologyCommon
     pc_array = Array.new(3) { LinkedData::Models::ProvisionalClass.new }
     pc_array.each_with_index do |pc, i|
       pc.label = "Test PC #{i}"
-      pc.creator = LinkedData::Models::User.new({username: creators[i], email: "tester@example.org", password: "password"}).save
+      pc.creator = LinkedData::Models::User.new({username: creators[i], email: "tester#{i}@example.org", password: "password"}).save
       pc.save
       assert pc.valid?, "#{pc.errors}"
     end
@@ -91,7 +91,7 @@ class TestProvisionalClass < LinkedData::TestOntologyCommon
 
   def test_provisional_class_filter_by_creator
     username = "User Testing Filtering"
-    user = LinkedData::Models::User.new({username: username, email: "tester@example.org", password: "password"})
+    user = LinkedData::Models::User.new({username: username, email: "tester#{rand}@example.org", password: "password"})
     user.save
     assert user.valid?, "#{user.errors}"
 

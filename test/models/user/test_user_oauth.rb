@@ -30,10 +30,6 @@ class TestUserOAuthAuthentication < LinkedData::TestCase
     }
   end
 
-  def teardown
-    u = LinkedData::Models::User.find('test_user').first
-    u&.delete
-  end
 
   def test_authentication_new_users
     users = []

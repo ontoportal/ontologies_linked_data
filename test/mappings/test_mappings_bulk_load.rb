@@ -210,7 +210,7 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
     user_name = 'test_mappings_user'
     user = LinkedData::Models::User.where(username: user_name).include(:username).first
     if user.nil?
-      user = LinkedData::Models::User.new(username: user_name, email: 'some@email.org')
+      user = LinkedData::Models::User.new(username: user_name, email: "some#{rand}@email.org")
       user.passwordHash = 'some random pass hash'
       user.save
     end
