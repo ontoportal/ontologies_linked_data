@@ -262,7 +262,11 @@ class Object
 
       next unless self.respond_to?(attribute)
       begin
-        hash[attribute] = self.send(attribute, include_languages: true)
+        if self.method(attribute).parameters.eql?([[:rest, :args]])
+          hash[attribute] = self.send(attribute, include_languages: true)
+        else # a serialized method
+          hash[attribute] = self.send(attribute)
+        end
       rescue Goo::Base::AttributeNotLoaded
         next
       rescue ArgumentError
