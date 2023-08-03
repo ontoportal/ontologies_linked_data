@@ -40,6 +40,8 @@ end
 
 require_relative '../config/config'
 require 'minitest/unit'
+require 'webmock/minitest'
+WebMock.allow_net_connect!
 MiniTest::Unit.autorun
 
 # Check to make sure you want to run if not pointed at localhost
