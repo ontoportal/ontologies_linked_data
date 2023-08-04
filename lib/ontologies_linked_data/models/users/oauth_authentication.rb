@@ -55,7 +55,7 @@ module LinkedData
             user.orcidId = orcid_id if user.orcidId&.empty? && !orcid_id&.empty?
 
 
-            user.save if user.valid?
+            user.save(override_security: true) if user.valid?
             user
           end
 
