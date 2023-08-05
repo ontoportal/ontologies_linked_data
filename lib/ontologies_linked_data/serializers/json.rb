@@ -70,7 +70,7 @@ module LinkedData
 
       def self.get_submission_languages(submission_natural_language = [])
         submission_natural_language = submission_natural_language.values.flatten if submission_natural_language.is_a?(Hash)
-        submission_natural_language.map { |natural_language| natural_language.value["iso639"] && natural_language.value.split('/').last[0..1].to_sym }.compact
+        submission_natural_language.map { |natural_language| natural_language.to_s['iso639'] && natural_language.to_s.split('/').last[0..1].to_sym }.compact
       end 
 
       def self.type(current_cls, hashed_obj)
