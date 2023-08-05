@@ -54,7 +54,7 @@ class Object
     # Add methods
     methods = methods - do_not_serialize_nested(options)
     methods.each do |method|
-      hash[method] = self.send(method.to_s) if self.respond_to?(method) rescue next
+      populate_attribute(hash, method) if self.respond_to?(method) rescue next
     end
 
     # Get rid of everything except the 'only'
