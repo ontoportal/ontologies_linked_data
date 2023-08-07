@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 8a0c14a6e6942b20749894806f1f1f512f9afcfa
+  revision: fb203b0396d03c1df61abfcdbc4070787010f052
   branch: develop
   specs:
     goo (0.0.2)
@@ -52,29 +52,10 @@ GEM
       launchy (~> 2.1)
       mail (~> 2.7)
     eventmachine (1.2.7)
-    faraday (1.10.3)
-      faraday-em_http (~> 1.0)
-      faraday-em_synchrony (~> 1.0)
-      faraday-excon (~> 1.1)
-      faraday-httpclient (~> 1.0)
-      faraday-multipart (~> 1.0)
-      faraday-net_http (~> 1.0)
-      faraday-net_http_persistent (~> 1.0)
-      faraday-patron (~> 1.0)
-      faraday-rack (~> 1.0)
-      faraday-retry (~> 1.0)
+    faraday (2.7.10)
+      faraday-net_http (>= 2.0, < 3.1)
       ruby2_keywords (>= 0.0.4)
-    faraday-em_http (1.0.0)
-    faraday-em_synchrony (1.0.0)
-    faraday-excon (1.1.0)
-    faraday-httpclient (1.0.1)
-    faraday-multipart (1.0.4)
-      multipart-post (~> 2)
-    faraday-net_http (1.0.1)
-    faraday-net_http_persistent (1.2.0)
-    faraday-patron (1.0.0)
-    faraday-rack (1.0.0)
-    faraday-retry (1.0.3)
+    faraday-net_http (3.0.2)
     ffi (1.15.5)
     hashie (5.0.0)
     htmlentities (4.3.4)
@@ -88,7 +69,7 @@ GEM
     language_server-protocol (3.17.0.3)
     launchy (2.5.2)
       addressable (~> 2.8)
-    libxml-ruby (2.9.0)
+    libxml-ruby (4.1.1)
     logger (1.5.3)
     macaddr (1.7.2)
       systemu (~> 2.6.5)
@@ -109,9 +90,8 @@ GEM
       minitest (>= 2.12, < 5.0)
       powerbar
     multi_json (1.15.0)
-    multipart-post (2.3.0)
     net-http-persistent (2.9.4)
-    net-imap (0.3.6)
+    net-imap (0.3.7)
       date
       net-protocol
     net-pop (0.1.2)
@@ -121,7 +101,7 @@ GEM
     net-smtp (0.3.3)
       net-protocol
     netrc (0.11.0)
-    oj (2.18.5)
+    oj (3.15.0)
     omni_logger (0.1.4)
       logger
     parallel (1.23.0)
@@ -137,7 +117,7 @@ GEM
       method_source (~> 1.0)
     public_suffix (5.0.3)
     racc (1.7.1)
-    rack (1.6.13)
+    rack (2.2.7)
     rack-test (0.8.3)
       rack (>= 1.0, < 3)
     rainbow (3.1.1)
@@ -154,10 +134,11 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
-    rexml (3.2.5)
-    rsolr (1.1.2)
+    rexml (3.2.6)
+    rsolr (2.5.0)
       builder (>= 2.1.2)
-    rubocop (1.54.2)
+      faraday (>= 0.9, < 3, != 2.0.0)
+    rubocop (1.55.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
@@ -165,7 +146,7 @@ GEM
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 1.8, < 3.0)
       rexml (>= 3.2.5, < 4.0)
-      rubocop-ast (>= 1.28.0, < 2.0)
+      rubocop-ast (>= 1.28.1, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 3.0)
     rubocop-ast (1.29.0)
@@ -183,8 +164,6 @@ GEM
     simplecov-html (0.12.3)
     simplecov_json_formatter (0.1.4)
     systemu (2.6.5)
-    test-unit-minitest (0.9.1)
-      minitest (~> 4.7)
     thin (1.8.2)
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
@@ -210,29 +189,27 @@ DEPENDENCIES
   bcrypt (~> 3.0)
   cube-ruby
   email_spec
-  faraday (~> 1.9)
   ffi
   goo!
-  libxml-ruby (~> 2.0)
-  minitest
+  libxml-ruby
+  minitest (~> 4)
   minitest-reporters (>= 0.5.0)
   multi_json (~> 1.0)
-  oj (~> 2.0)
+  oj (~> 3.0)
   omni_logger
   pony
   pry
-  rack (~> 1.0)
+  rack
   rack-test (~> 0.6)
   rake (~> 10.0)
   rest-client
-  rsolr (~> 1.0)
+  rsolr
   rubocop
   rubyzip (~> 1.0)
   simplecov
   simplecov-cobertura
   sparql-client!
-  test-unit-minitest
   thin
 
 BUNDLED WITH
-   2.3.15
+   2.4.17
