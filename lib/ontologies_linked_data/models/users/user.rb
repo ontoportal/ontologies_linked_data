@@ -9,12 +9,13 @@ module LinkedData
     class User < LinkedData::Models::Base
       include BCrypt
       include LinkedData::Models::Users::Authentication
+      include LinkedData::Models::Users::OAuthAuthentication
 
       attr_accessor :show_apikey
 
       model :user, name_with: :username
       attribute :username, enforce: [:unique, :existence]
-      attribute :email, enforce: [:existence]
+      attribute :email, enforce: [:unique, :existence]
       attribute :role, enforce: [:role, :list], :default => lambda {|x| [LinkedData::Models::Users::Role.default]}
       attribute :firstName
       attribute :lastName
@@ -73,6 +74,14 @@ module LinkedData
           Ontology.cache_collection_invalidate
           OntologySubmission.cache_collection_invalidate
         end
+
+        if args.include?(:send_notifications) && args[:send_notifications]
+          begin
+            LinkedData::Utils::Notifications.new_user(user)
+          rescue Exception => e
+          end
+        end
+
         super
       end
 
