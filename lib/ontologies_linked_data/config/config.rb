@@ -88,6 +88,7 @@ module LinkedData
     @settings.admin_emails                  ||= []
 
     @settings.interportal_hash              ||= {}
+    @settings.oauth_providers               ||= {}
 
     # number of times to retry a query when empty records are returned
     @settings.num_retries_4store            ||= 10

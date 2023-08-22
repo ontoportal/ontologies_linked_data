@@ -19,6 +19,26 @@ LinkedData.config do |config|
   Goo.configure do |conf|
       conf.main_languages = ['en']
   end
+
+ #oauth
+ config.oauth_providers = {
+    github: {
+      check: :access_token,
+      link: 'https://api.github.com/user'
+    },
+    keycloak: {
+      check: :jwt_token,
+      cert: 'KEYCLOAK_SECRET_KEY'
+    },
+    orcid: {
+      check: :access_token,
+      link: 'https://pub.orcid.org/v3.0/me'
+    },
+    google: {
+       check: :access_token,
+       link: 'https://www.googleapis.com/oauth2/v3/userinfo'
+    }
+ }
 end
 
 #sometimes tmp by default cannot allocate large files

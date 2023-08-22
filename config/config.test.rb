@@ -33,4 +33,22 @@ LinkedData.config do |config|
   config.property_search_server_url    = SOLR_PROP_SEARCH_URL.to_s
   config.sparql_endpoint_url    = "http:://sparql_endpoint.com"
   #  config.enable_notifications          = false
+  config.oauth_providers = {
+    github: {
+      check: :access_token,
+      link: 'https://api.github.com/user'
+    },
+    keycloak: {
+      check: :jwt_token,
+      cert: 'KEYCLOAK_SECRET_KEY'
+    },
+    orcid: {
+      check: :access_token,
+      link: 'https://pub.orcid.org/v3.0/me'
+    },
+    google: {
+      check: :access_token,
+      link: 'https://www.googleapis.com/oauth2/v3/userinfo'
+    }
+  }
 end
