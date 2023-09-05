@@ -102,7 +102,7 @@ GEM
     net-smtp (0.3.3)
       net-protocol
     netrc (0.11.0)
-    oj (3.16.0)
+    oj (3.16.1)
     omni_logger (0.1.4)
       logger
     parallel (1.23.0)
