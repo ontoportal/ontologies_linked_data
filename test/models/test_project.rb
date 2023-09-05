@@ -32,12 +32,12 @@ class TestProject < LinkedData::TestCase
 
   def teardown
     super
-    delete_goo_models(LinkedData::Models::User.where.all)
     delete_goo_models(LinkedData::Models::Ontology.where.all)
     delete_goo_models(LinkedData::Models::Project.where.all)
-    @user = nil
+    delete_goo_models(LinkedData::Models::User.where.all)
     @ont = nil
     @project_params = nil
+    @user = nil
   end
 
   def test_project_acronym
