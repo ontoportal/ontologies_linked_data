@@ -205,7 +205,7 @@ module LinkedData
           return true
         end
 
-        zip = LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
+        zip = zipped?
         files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
 
         if not zip and self.masterFileName.nil?
@@ -261,8 +261,12 @@ module LinkedData
                          self.submissionId.to_s)
       end
 
+      def zipped?(full_file_path = uploadFilePath)
+        LinkedData::Utils::FileHelpers.zip?(full_file_path) || LinkedData::Utils::FileHelpers.gzip?(full_file_path)
+      end
+
       def zip_folder
-        return File.join([self.data_folder, "unzipped"])
+         File.join([data_folder, 'unzipped'])
       end
 
       def csv_path
@@ -286,17 +290,16 @@ module LinkedData
         self.bring(:masterFileName) if self.bring?(:masterFileName)
         triples_file_name = File.basename(self.uploadFilePath.to_s)
         full_file_path = File.join(File.expand_path(self.data_folder.to_s), triples_file_name)
-        zip = LinkedData::Utils::FileHelpers.zip?(full_file_path)
+        zip = zipped? full_file_path
         triples_file_name = File.basename(self.masterFileName.to_s) if zip && self.masterFileName
         file_name = File.join(File.expand_path(self.data_folder.to_s), triples_file_name)
         File.expand_path(file_name)
       end
 
       def unzip_submission(logger)
-        zip = LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
         zip_dst = nil
 
-        if zip
+        if zipped?
           zip_dst = self.zip_folder
 
           if Dir.exist? zip_dst
@@ -311,10 +314,12 @@ module LinkedData
             self.save
           end
 
-          logger.info("Files extracted from zip #{extracted}")
-          logger.flush
+          if logger
+            logger.info("Files extracted from zip #{extracted}")
+            logger.flush
+          end
         end
-        return zip_dst
+        zip_dst
       end
 
       def delete_old_submission_files
@@ -328,17 +333,18 @@ module LinkedData
       # accepts another submission in 'older' (it should be an 'older' ontology version)
       def diff(logger, older)
         begin
-          self.bring_remaining
-          self.bring(:diffFilePath)
-          self.bring(:uploadFilePath)
-          older.bring(:uploadFilePath)
+          bring_remaining
+          bring :diffFilePath if bring? :diffFilePath
+          older.bring :uploadFilePath if older.bring? :uploadFilePath
+
           LinkedData::Diff.logger = logger
           bubastis = LinkedData::Diff::BubastisDiffCommand.new(
-              File.expand_path(older.uploadFilePath),
-              File.expand_path(self.uploadFilePath)
+              File.expand_path(older.master_file_path),
+              File.expand_path(self.master_file_path),
+              data_folder
           )
           self.diffFilePath = bubastis.diff
-          self.save
+          save
           logger.info("Bubastis diff generated successfully for #{self.id}")
           logger.flush
         rescue Exception => e
@@ -436,7 +442,7 @@ module LinkedData
         self.generate_metrics_file(class_count, indiv_count, prop_count)
       end
 
-      def generate_rdf(logger, file_path, reasoning=true)
+      def generate_rdf(logger, reasoning: true)
         mime_type = nil
 
         if self.hasOntologyLanguage.umls?
@@ -458,10 +464,7 @@ module LinkedData
               logger.info("error deleting owlapi.rdf")
             end
           end
-          owlapi = LinkedData::Parser::OWLAPICommand.new(
-              File.expand_path(file_path),
-              File.expand_path(self.data_folder.to_s),
-              master_file: self.masterFileName)
+          owlapi = owlapi_parser(logger: nil)
 
           if !reasoning
             owlapi.disable_reasoner
@@ -998,7 +1001,6 @@ eos
               self.save
 
               # Parse RDF
-              file_path = nil
               begin
                 if not self.valid?
                   error = "Submission is not valid, it cannot be processed. Check errors."
@@ -1010,9 +1012,7 @@ eos
                 end
                 status = LinkedData::Models::SubmissionStatus.find("RDF").first
                 remove_submission_status(status) #remove RDF status before starting
-                zip_dst = unzip_submission(logger)
-                file_path = zip_dst ? zip_dst.to_s : self.uploadFilePath.to_s
-                generate_rdf(logger, file_path, reasoning=reasoning)
+                generate_rdf(logger, reasoning: reasoning)
                 add_submission_status(status)
                 self.save
               rescue Exception => e
@@ -1587,7 +1587,51 @@ eos
         Goo.sparql_data_client.delete_graph(self.id)
       end
 
+
+      def master_file_path
+        path = if zipped?
+                 File.join(self.zip_folder, self.masterFileName)
+               else
+                  self.uploadFilePath
+               end
+        File.expand_path(path)
+      end
+
+      def parsable?(logger: Logger.new($stdout))
+        owlapi = owlapi_parser(logger: logger)
+        owlapi.disable_reasoner
+        parsable = true
+        begin
+          owlapi.parse
+        rescue StandardError => e
+          parsable = false
+        end
+        parsable
+      end
+
+
       private
+
+
+      def owlapi_parser_input
+        path = if zipped?
+                 self.zip_folder
+               else
+                 self.uploadFilePath
+               end
+        File.expand_path(path)
+      end
+
+
+      def owlapi_parser(logger: Logger.new($stdout))
+        unzip_submission(logger)
+        LinkedData::Parser::OWLAPICommand.new(
+          owlapi_parser_input,
+          File.expand_path(self.data_folder.to_s),
+          master_file: self.masterFileName,
+          logger: logger)
+      end
+
 
       def delete_and_append(triples_file_path, logger, mime_type = nil)
         Goo.sparql_data_client.delete_graph(self.id)
