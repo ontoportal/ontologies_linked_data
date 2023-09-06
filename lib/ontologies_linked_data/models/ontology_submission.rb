@@ -1026,7 +1026,7 @@ eos
 
               status = LinkedData::Models::SubmissionStatus.find("OBSOLETE").first
               begin
-                generate_obsolete_classes(logger, file_path)
+                generate_obsolete_classes(logger, self.uploadFilePath.to_s)
                 add_submission_status(status)
                 self.save
               rescue Exception => e
