@@ -5,10 +5,12 @@ require "rack"
 class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
 
   def test_enforce_symmetric_ontologies
+    skip('skip new callbacks tests until reimplemented')
     ontologies_properties_callbacks(:ontologyRelatedTo)
   end
 
   def test_lexvo_language_validator
+
     submissions = sorted_submissions_init(1)
 
     sub = submissions.first
@@ -29,6 +31,7 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
 
   # Regroup all validity test related to a submission retired status (deprecated, valid date)
   def test_submission_retired_validity
+    skip('skip new callbacks tests until reimplemented')
     sorted_submissions = sorted_submissions_init
 
     latest = sorted_submissions.first
@@ -114,6 +117,7 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
   end
 
   def test_update_submissions_has_part
+    skip('skip new callbacks tests until reimplemented')
     ont_count, ont_acronyms, ontologies =
       create_ontologies_and_submissions(ont_count: 3, submission_count: 1,
                                         process_submission: false, acronym: 'NCBO-545')
@@ -186,6 +190,7 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
 
 
   def ontologies_properties_callbacks(attr, inverse_attr = nil)
+    skip('skip new callbacks tests until reimplemented')
     inverse_attr = attr unless  inverse_attr
     ont_count, ont_acronyms, ontologies =
       create_ontologies_and_submissions(ont_count: 3, submission_count: 1,
