@@ -90,7 +90,11 @@ module LinkedData
       end
 
       def to_s
-        self.username.to_s
+        if self.bring?(:username)
+          LinkedData::Utils::Triples.last_iri_fragment self.id.to_s
+        else
+          self.username.to_s
+        end
       end
 
       private

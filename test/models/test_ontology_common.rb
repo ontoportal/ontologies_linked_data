@@ -91,7 +91,7 @@ module LinkedData
 
       ont_submission.save
 
-      assert_equal true, ont_submission.exist?(reload=true)
+      assert_equal true, ont_submission.exist?
       begin
         tmp_log = Logger.new(TestLogFile.new)
         ont_submission.process_submission(tmp_log, parse_options)
@@ -141,7 +141,7 @@ module LinkedData
       ont_submission.authorProperty = RDF::URI.new("http://bioportal.bioontology.org/ontologies/msotes#myAuthor")
       assert (ont_submission.valid?)
       ont_submission.save
-      assert_equal true, ont_submission.exist?(reload=true)
+      assert_equal true, ont_submission.exist?
       parse_options = {process_rdf: true, index_search: true, run_metrics: true, reasoning: true}
       begin
         tmp_log = Logger.new(TestLogFile.new)
