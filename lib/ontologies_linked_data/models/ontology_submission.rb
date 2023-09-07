@@ -45,7 +45,7 @@ module LinkedData
 
       # Ontology metadata
       # General metadata
-      attribute :URI, namespace: :omv, enforce: %i[existence distinct_of_identifier]
+      attribute :URI, namespace: :omv,  type: :uri, enforce: %i[existence distinct_of_identifier]
       attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
       attribute :version, namespace: :omv
       attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' },
