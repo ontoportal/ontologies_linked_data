@@ -508,6 +508,41 @@ eos
     puts "#{ctr} classes with no label"
   end
 
+  def test_submission_parse_gzip
+    skip if ENV["BP_SKIP_HEAVY_TESTS"] == "1"
+
+    acronym = "BROGZ"
+    name = "BRO GZIPPED"
+    ontologyFile = "./test/data/ontology_files/BRO_v3.2.owl.gz"
+    id = 11
+
+    LinkedData::TestCase.backend_4s_delete
+
+    ont_submision = LinkedData::Models::OntologySubmission.new({submissionId: id})
+    refute ont_submision.valid?
+    assert_equal 4, ont_submision.errors.length
+    uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id, ontologyFile)
+    ont_submision.uploadFilePath = uploadFilePath
+    owl, bro, user, contact = submission_dependent_objects("OWL", acronym, "test_linked_models", name)
+    ont_submision.released = DateTime.now - 4
+    ont_submision.hasOntologyLanguage = owl
+    ont_submision.prefLabelProperty = RDF::URI.new("http://bioontology.org/projects/ontologies/radlex/radlexOwl#Preferred_name")
+    ont_submision.ontology = bro
+    ont_submision.contact = [contact]
+    assert ont_submision.valid?
+    ont_submision.save
+    parse_options = {process_rdf: true, reasoning: true, index_search: false, run_metrics: false, diff: false}
+    begin
+      tmp_log = Logger.new(TestLogFile.new)
+      ont_submision.process_submission(tmp_log, parse_options)
+    rescue StandardError => e
+      puts "Error, logged in #{tmp_log.instance_variable_get("@logdev").dev.path}"
+      raise e
+    end
+
+    assert ont_submision.ready?({status: [:uploaded, :rdf, :rdf_labels]})
+  end
+
   def test_download_ontology_file
     begin
       server_port = Random.rand(55000..65535) # http://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers#Dynamic.2C_private_or_ephemeral_ports
