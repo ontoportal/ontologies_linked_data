@@ -1673,7 +1673,7 @@ eos
       end
 
       def uri=(uri)
-        self.URI = uri
+        self.URI = RDF::URI.new(uri)
       end
 
       def roots_sorted(extra_include = nil, concept_schemes: [])
