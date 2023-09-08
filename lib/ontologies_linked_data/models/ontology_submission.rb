@@ -45,13 +45,11 @@ module LinkedData
 
       # Ontology metadata
       # General metadata
-      attribute :URI, namespace: :omv, enforce: %i[existence distinct_of_identifier]
+      attribute :URI, namespace: :omv,  type: :uri, enforce: %i[existence distinct_of_identifier]
       attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
       attribute :version, namespace: :omv
-      attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' },
-                         onUpdate: :retired_previous_align
-      attribute :deprecated, namespace: :owl, type: :boolean, enforce: [:deprecated_retired_align],
-                             onUpdate: :deprecate_previous_submissions, default: ->(x) { false }
+      attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' }
+      attribute :deprecated, namespace: :owl, type: :boolean, enforce: [:deprecated_retired_align], default: ->(x) { false }
       attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
       attribute :hasFormalityLevel, namespace: :omv, type: :uri
       attribute :hasOntologySyntax, namespace: :omv, type: :uri, default: ->(s) {ontology_syntax_default(s)}
@@ -134,22 +132,22 @@ module LinkedData
       attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
 
       # Relations
-      attribute :hasPriorVersion, namespace: :omv, type: :uri, onUpdate: [:include_previous_submission]
-      attribute :hasPart, namespace: :dct, type: %i[uri list], enforce: %i[include_ontology_views]
-      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
-      attribute :similarTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
-      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
-      attribute :isAlignedTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :hasPriorVersion, namespace: :omv, type: :uri
+      attribute :hasPart, namespace: :dct, type: %i[uri list]
+      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri]
+      attribute :similarTo, namespace: :door, type: %i[list uri]
+      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri]
+      attribute :isAlignedTo, namespace: :door, type: %i[list uri]
       attribute :isBackwardCompatibleWith, namespace: :omv, type: %i[list uri]
       attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri]
-      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri]
       attribute :hasDisjunctionsWith, namespace: :voaf, type: %i[uri list]
-      attribute :generalizes, namespace: :voaf, type: %i[list uri],  onUpdate: :ontology_inverse_of_callback
-      attribute :explanationEvolution, namespace: :door, type: %i[list uri], onUpdate: :ontology_inverse_of_callback
-      attribute :useImports, namespace: :omv, type: %i[list uri], onUpdate: :ontology_inverse_of_callback
-      attribute :usedBy, namespace: :voaf, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
-      attribute :workTranslation, namespace: :schema, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
-      attribute :translationOfWork, namespace: :schema, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
+      attribute :generalizes, namespace: :voaf, type: %i[list uri]
+      attribute :explanationEvolution, namespace: :door, type: %i[list uri]
+      attribute :useImports, namespace: :omv, type: %i[list uri]
+      attribute :usedBy, namespace: :voaf, type: %i[uri list]
+      attribute :workTranslation, namespace: :schema, type: %i[uri list]
+      attribute :translationOfWork, namespace: :schema, type: %i[uri list]
 
       # Content metadata
       attribute :uriRegexPattern, namespace: :void, type: :uri
@@ -1675,7 +1673,7 @@ eos
       end
 
       def uri=(uri)
-        self.URI = uri
+        self.URI = RDF::URI.new(uri)
       end
 
       def roots_sorted(extra_include = nil, concept_schemes: [])
