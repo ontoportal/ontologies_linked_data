@@ -20,7 +20,7 @@ module LinkedData
         raise ArgumentError, "File path #{file_path} not found" unless File.exist? file_path
 
         file_type = `file --mime -b #{Shellwords.escape(file_path)}`
-        file_type.split(';')[0] == 'application/x-gzip'
+        file_type.split(';')[0] == 'application/gzip'
       end
 
       def self.files_from_zip(file_path)
