@@ -82,7 +82,7 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
   end
 
   def test_is_gzip
-    gzipfile = "./test/data/ontology_files/BRO_v3.2.gz"
+    gzipfile = "./test/data/ontology_files/BRO_v3.2.owl.gz"
     zipfile = "./test/data/ontology_files/evoc_v2.9.zip"
     assert LinkedData::Utils::FileHelpers.gzip?(gzipfile)
     refute LinkedData::Utils::FileHelpers.gzip?(zipfile)
