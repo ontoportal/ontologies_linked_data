@@ -8,7 +8,7 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
 
     acronym = "BRO-TST"
     name = "SNOMED-CT TEST"
-    ontologyFile = "./test/data/ontology_files/BRO_v3.2.owl"
+    ontologyFile = "./test/data/ontology_files/BRO_v3.2.owl.gz"
     id = 10
 
     owl, bogus, user, contact = submission_dependent_objects("OWL", acronym, "test_linked_models", name)
