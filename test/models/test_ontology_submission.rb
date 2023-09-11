@@ -81,6 +81,13 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
     assert_equal nil, LinkedData::Utils::FileHelpers.automaster(zipfile, ".obo")
   end
 
+  def test_is_gzip
+    gzipfile = "./test/data/ontology_files/BRO_v3.2.owl.gz"
+    zipfile = "./test/data/ontology_files/evoc_v2.9.zip"
+    assert LinkedData::Utils::FileHelpers.gzip?(gzipfile)
+    refute LinkedData::Utils::FileHelpers.gzip?(zipfile)
+  end
+
   def test_duplicated_file_names
 
     acronym = "DUPTEST"
@@ -499,6 +506,43 @@ eos
       # assert_instance_of String, cls.prefLabel
     end
     puts "#{ctr} classes with no label"
+  end
+
+  def test_submission_parse_gzip
+    skip if ENV["BP_SKIP_HEAVY_TESTS"] == "1"
+
+    acronym = "BROGZ"
+    name = "BRO GZIPPED"
+    ontologyFile = "./test/data/ontology_files/BRO_v3.2.owl.gz"
+    id = 11
+
+    LinkedData::TestCase.backend_4s_delete
+
+    ont_submission = LinkedData::Models::OntologySubmission.new({submissionId: id})
+    refute ont_submission.valid?
+    assert_equal 4, ont_submission.errors.length
+    upload_file_path = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id, ontologyFile)
+    ont_submission.uploadFilePath = upload_file_path
+    owl, bro, user, contact = submission_dependent_objects("OWL", acronym, "test_linked_models", name)
+    ont_submission.released = DateTime.now - 4
+    ont_submission.hasOntologyLanguage = owl
+    ont_submission.prefLabelProperty = RDF::URI.new("http://bioontology.org/projects/ontologies/radlex/radlexOwl#Preferred_name")
+    ont_submission.ontology = bro
+    ont_submission.contact = [contact]
+    assert ont_submission.valid?
+    ont_submission.save
+    parse_options = {process_rdf: true, reasoning: true, index_search: false, run_metrics: false, diff: false}
+    begin
+      tmp_log = Logger.new(TestLogFile.new)
+      ont_submission.process_submission(tmp_log, parse_options)
+    rescue StandardError => e
+      puts "Error, logged in #{tmp_log.instance_variable_get("@logdev").dev.path}"
+      raise e
+    end
+
+    assert ont_submission.ready?({status: [:uploaded, :rdf, :rdf_labels]})
+    read_only_classes = LinkedData::Models::Class.in(ont_submission).include(:prefLabel).read_only
+    refute read_only_classes.empty?
   end
 
   def test_download_ontology_file
