@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: cd477a1c71d8c2b2c26c3ea92c9457643a9cc70a
+  revision: daea7822af9e5ca1961d6873a758735133a1b2db
   branch: master
   specs:
     goo (0.0.2)
@@ -139,7 +139,7 @@ GEM
     rsolr (2.5.0)
       builder (>= 2.1.2)
       faraday (>= 0.9, < 3, != 2.0.0)
-    rubocop (1.56.2)
+    rubocop (1.56.3)
       base64 (~> 0.1.1)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
@@ -181,6 +181,7 @@ GEM
       macaddr (~> 1.0)
 
 PLATFORMS
+  aarch64-linux
   arm64-darwin-22
   x86_64-darwin-18
   x86_64-darwin-21
