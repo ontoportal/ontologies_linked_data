@@ -48,10 +48,8 @@ module LinkedData
       attribute :URI, namespace: :omv, enforce: %i[existence distinct_of_identifier]
       attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
       attribute :version, namespace: :omv
-      attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' },
-                         onUpdate: :retired_previous_align
-      attribute :deprecated, namespace: :owl, type: :boolean, enforce: [:deprecated_retired_align],
-                             onUpdate: :deprecate_previous_submissions, default: ->(x) { false }
+      attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' }
+      attribute :deprecated, namespace: :owl, type: :boolean, default: ->(x) { false }
       attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
       attribute :hasFormalityLevel, namespace: :omv, type: :uri
       attribute :hasOntologySyntax, namespace: :omv, type: :uri, default: ->(s) {ontology_syntax_default(s)}
@@ -78,11 +76,10 @@ module LinkedData
 
       # Date metadata
       attribute :released, type: :date_time, enforce: [:existence]
-      attribute :valid, namespace: :dct, type: :date_time, enforce: [:validity_date_retired_align]
-      attribute :curatedOn, namespace: :pav, type: %i[date_time list], enforce: [:superior_equal_to_creationDate]
+      attribute :valid, namespace: :dct, type: :date_time
+      attribute :curatedOn, namespace: :pav, type: %i[date_time list]
       attribute :creationDate, namespace: :omv, type: :date_time, default: ->(x) { Date.today.to_datetime }
-      attribute :modificationDate, namespace: :omv, type: :date_time,
-                                   enforce: %i[superior_equal_to_creationDate modification_date_previous_align]
+      attribute :modificationDate, namespace: :omv, type: :date_time
 
       # Person and organizations metadata
       attribute :contact, type: %i[contact list], enforce: [:existence]
@@ -98,7 +95,7 @@ module LinkedData
       attribute :audience, namespace: :dct
       attribute :repository, namespace: :doap, type: :uri
       attribute :bugDatabase, namespace: :doap, type: :uri
-      attribute :mailingList, namespace: :doap, enforce: [:email]
+      attribute :mailingList, namespace: :doap
       attribute :toDoList, namespace: :voaf, type: :list
       attribute :award, namespace: :schema, type: :list
 
@@ -134,28 +131,28 @@ module LinkedData
       attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
 
       # Relations
-      attribute :hasPriorVersion, namespace: :omv, type: :uri, onUpdate: [:include_previous_submission]
-      attribute :hasPart, namespace: :dct, type: %i[uri list], enforce: %i[include_ontology_views]
-      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
-      attribute :similarTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
-      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
-      attribute :isAlignedTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :hasPriorVersion, namespace: :omv, type: :uri
+      attribute :hasPart, namespace: :dct, type: %i[uri list]
+      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri]
+      attribute :similarTo, namespace: :door, type: %i[list uri]
+      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri]
+      attribute :isAlignedTo, namespace: :door, type: %i[list uri]
       attribute :isBackwardCompatibleWith, namespace: :omv, type: %i[list uri]
       attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri]
-      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri]
       attribute :hasDisjunctionsWith, namespace: :voaf, type: %i[uri list]
-      attribute :generalizes, namespace: :voaf, type: %i[list uri],  onUpdate: :ontology_inverse_of_callback
-      attribute :explanationEvolution, namespace: :door, type: %i[list uri], onUpdate: :ontology_inverse_of_callback
-      attribute :useImports, namespace: :omv, type: %i[list uri], onUpdate: :ontology_inverse_of_callback
-      attribute :usedBy, namespace: :voaf, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
-      attribute :workTranslation, namespace: :schema, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
-      attribute :translationOfWork, namespace: :schema, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
+      attribute :generalizes, namespace: :voaf, type: %i[list uri]
+      attribute :explanationEvolution, namespace: :door, type: %i[list uri]
+      attribute :useImports, namespace: :omv, type: %i[list uri]
+      attribute :usedBy, namespace: :voaf, type: %i[uri list]
+      attribute :workTranslation, namespace: :schema, type: %i[uri list]
+      attribute :translationOfWork, namespace: :schema, type: %i[uri list]
 
       # Content metadata
       attribute :uriRegexPattern, namespace: :void, type: :uri
       attribute :preferredNamespaceUri, namespace: :vann, type: :uri
       attribute :preferredNamespacePrefix, namespace: :vann
-      attribute :exampleIdentifier, namespace: :idot, default: ->(s) { LinkedData::Models::Class.in(s).first&.to_s }
+      attribute :exampleIdentifier, namespace: :idot
       attribute :keyClasses, namespace: :omv, type: %i[list]
       attribute :metadataVoc, namespace: :voaf, type: %i[uri list]
       attribute :uploadFilePath
