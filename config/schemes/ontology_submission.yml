@@ -1099,10 +1099,6 @@ pullLocation:
   metadataMappings: [ "doap:download-page" , "dcat:accessURL" , "omv:resourceLocator" ]
   label: "Access URL"
   display: "Links"
-  enforcedValues: {
-    "https://www.w3.org/TR/rdf-schema/#ch_subclassof": "rdfs:subClassOf",
-    "http://www.sparna.fr/skos/SKOS-traduction-francais.html#broader": "skos:broader"
-  }
 
 obsoleteParent:
   extractedMetadata: true
@@ -1110,7 +1106,6 @@ obsoleteParent:
   metadataMappings: [ "doap:download-page" , "dcat:accessURL" , "omv:resourceLocator" ]
   label: "Root of obsolete branch"
   display: "Content"
-
 
 maxDepth:
   extractedMetadata: true
