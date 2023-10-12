@@ -55,7 +55,7 @@ module LinkedData
                              RDF::URI.new('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
                              RDF::URI.new('http://www.w3.org/2002/07/owl#Ontology')])
           sol = query.each_solution.first || {}
-          sol[:uri]&.to_s
+          RDF::URI.new(sol[:uri]) if sol[:uri]
         end
 
         private

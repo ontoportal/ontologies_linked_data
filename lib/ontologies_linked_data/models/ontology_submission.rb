@@ -45,7 +45,7 @@ module LinkedData
 
       # Ontology metadata
       # General metadata
-      attribute :URI, namespace: :omv, enforce: %i[existence distinct_of_identifier]
+      attribute :URI, namespace: :omv,  type: :uri, enforce: %i[existence distinct_of_identifier]
       attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
       attribute :version, namespace: :omv
       attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' }
@@ -1672,7 +1672,7 @@ eos
       end
 
       def uri=(uri)
-        self.URI = uri
+        self.URI = RDF::URI.new(uri)
       end
 
       def roots_sorted(extra_include = nil, concept_schemes: [])

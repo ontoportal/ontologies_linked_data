@@ -589,10 +589,6 @@ pullLocation:
                  "DOAP:  Web page from which the project software can be downloaded" ]
   metadataMappings: [ "doap:download-page" , "dcat:accessURL" , "omv:resourceLocator" ]
   label: "Access URL"
-  enforcedValues: {
-    "https://www.w3.org/TR/rdf-schema/#ch_subclassof": "rdfs:subClassOf",
-    "http://www.sparna.fr/skos/SKOS-traduction-francais.html#broader": "skos:broader"
-  }
   display: "links"
 
 uriLookupEndpoint:
@@ -1034,9 +1030,10 @@ associatedMedia:
 
 
 # object description properties
+
 prefLabelProperty:
   extractedMetadata: true
-  description: "MOD: Property used to specify objects preferred label"
+  description: "MOD: Property used to specify objects preferred label."
   label: "Object preferred label property"
   enforcedValues: {
     "http://www.w3.org/2004/02/skos/core#prefLabel": "prefLabel",
@@ -1046,10 +1043,10 @@ prefLabelProperty:
     "http://purl.org/dc/terms/title": "title"
   }
   display: "object description properties"
-
+  
 synonymProperty:
   extractedMetadata: true
-  description: "MOD: Property used to specify objects synonyms"
+  description: "MOD: Property used to specify objects synonyms."
   label: "Object synonym property"
   enforcedValues: {
     "http://www.w3.org/2004/02/skos/core#altLabel ": "altLabel",
@@ -1058,10 +1055,9 @@ synonymProperty:
   }
   display: "object description properties"
 
-
 definitionProperty:
   extractedMetadata: true
-  description: "MOD: Property used to specify objects' definition"
+  description: "MOD: Property used to specify objects definition."
   label: "Object definition property"
   enforcedValues: {
     "http://www.w3.org/2004/02/skos/core#definition": "definition",
@@ -1071,10 +1067,9 @@ definitionProperty:
   }
   display: "object description properties"
 
-
 authorProperty:
   extractedMetadata: true
-  description: "MOD: Property used to specify object's author"
+  description: "MOD: Property used to specify object author."
   label: "Object author property"
   enforcedValues: {
     "http://purl.org/dc/elements/1.1/creator": "creator",
@@ -1088,7 +1083,7 @@ authorProperty:
 
 obsoleteProperty:
   extractedMetadata: true
-  description: "MOD: Property used to specify obsolete objects"
+  description: "MOD: Property used to specify obsolete objects."
   label: "Object obsolete property"
   enforcedValues: {
     "http://www.w3.org/2002/07/owl#owl:deprecated": "deprecated",
@@ -1101,15 +1096,14 @@ createdProperty:
   description: "MOD: Property used to specify the date of creation of a class or another object in the ontology."
   label: "Object creation date property"
   enforcedValues: {
-    "http://purl.org/dc/terms/created ": "created",
-    "http://purl.org/dc/terms/issued ": "issued",
-    "http://purl.org/dc/terms/date": "date",
-    "http://purl.org/pav/authoredOn ": "authoredOn",
-    "http://purl.org/pav/contributedOn": "contributedOn",
-    "http://purl.org/pav/createdOn": "createdOn",
-    "http://www.isibang.ac.in/ns/mod/1.1/creationDate": "creationDate",
-    "http://schema.org/dateCreated ": "dateCreated",
-    "http://www.w3.org/ns/prov#generatedAtTime": "generatedAtTime"
+    "http://purl.org/dc/terms/created ": "dcterms:created",
+    "http://purl.org/dc/terms/issued ": "dcterms:issued",
+    "http://purl.org/dc/terms/date": "dcterms:date",
+    "http://purl.org/pav/authoredOn ": "pav:authoredOn",
+    "http://purl.org/pav/contributedOn": "pav:contributedOn",
+    "http://purl.org/pav/createdOn": "pav:createdOn",
+    "http://schema.org/dateCreated": "sdo:dateCreated",
+    "http://www.w3.org/ns/prov#generatedAtTime": "prov:generatedAtTime"
   }
   display: "object description properties"
 
@@ -1118,21 +1112,26 @@ modifiedProperty:
   description: "MOD: Property used to specify the date of modification of a class or another object in the ontology."
   label: "Object modification date property"
   enforcedValues: {
-                    "http://purl.org/dc/terms" ,
-                    "http://schema.org" ,
-                    "http://purl.org/pav" ,
-                    "https://omv2.sourceforge.net"
+    "http://purl.org/dc/terms/modified ": "dc:modified",
+    "http://purl.org/dc/terms/issued ": "dcterms:issued",
+    "http://purl.org/dc/terms/date": "dcterms:date",
+    "http://purl.org/pav/authoredOn ": "pav:authoredOn",
+    "http://purl.org/pav/contributedOn": "pav:contributedOn",
+    "http://purl.org/pav/lastUpdateOn": "pav:lastUpdateOn",
+    "http://schema.org/dateModified": "sdo:dateModified"
+  }
+  display: "object description properties"
+  
+hierarchyProperty:
+  extractedMetadata: true
+  description: "MOD: A property that is used to specify the hierarchy."
+  label: "Hierarchy property"
+  enforcedValues: {
+    "http://www.w3.org/2000/01/rdf-schema#subClassOf": "rdfs:subClassOf",
+    "http://www.w3.org/2004/02/skos/core#broader": "skos:broader"
   }
   display: "object description properties"
 
-hierarchyProperty:
-  extractedMetadata: true
-  description: "MOD: A property that is used to specify the hierarchy"
-  label: "Hierarchy property"
-  enforcedValues: {
-    "https://www.w3.org/TR/rdf-schema/#ch_subclassof": "rdfs:subClassOf",
-    "http://www.sparna.fr/skos/SKOS-traduction-francais.html#broader": "skos:broader"
-  }
-  display: "object description properties"
+
 
 

@@ -198,7 +198,7 @@ module LinkedData
         def find_submission_by_ontology_id(ontology_id)
           return nil if ontology_id.nil?
 
-          o = LinkedData::Models::Ontology.where(submissions: { URI: ontology_id })
+          o = LinkedData::Models::Ontology.where(submissions: { URI: RDF::URI.new(ontology_id) })
                                           .include(submissions: %i[submissionId submissionStatus URI])
                                           .first
           o.nil? ? nil : o.latest_submission
