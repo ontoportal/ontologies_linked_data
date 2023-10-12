@@ -5,7 +5,7 @@ require "rack"
 class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
 
   def test_enforce_symmetric_ontologies
-    skip('skip new callbacks tests until reimplemented')
+    skip 'complex validators disabled'
     ontologies_properties_callbacks(:ontologyRelatedTo)
   end
 
@@ -18,7 +18,7 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
     sub.bring_remaining
     assert sub.valid?
 
-    sub.naturalLanguage = ["fr" , "http://iso639-3/eng"]
+    sub.naturalLanguage = ["fr", "http://iso639-3/eng"]
 
     refute sub.valid?
     assert sub.errors[:naturalLanguage][:lexvo_language]
@@ -31,7 +31,8 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
 
   # Regroup all validity test related to a submission retired status (deprecated, valid date)
   def test_submission_retired_validity
-    skip('skip new callbacks tests until reimplemented')
+    skip 'complex validators disabled'
+
     sorted_submissions = sorted_submissions_init
 
     latest = sorted_submissions.first
@@ -75,6 +76,7 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
   end
 
   def test_modification_date_previous_align
+    skip 'complex validators disabled'
     sorted_submissions = sorted_submissions_init
 
     latest = sorted_submissions[0]
@@ -107,17 +109,21 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
   end
 
   def test_has_prior_version_callback
+    skip 'complex validators disabled'
+
     sorted_submissions = sorted_submissions_init
 
     sorted_submissions.each_cons(2) do |current, previous|
       current.bring :hasPriorVersion
+      refute_nil current.hasPriorVersion
       assert previous.id, current.hasPriorVersion
     end
 
   end
 
   def test_update_submissions_has_part
-    skip('skip new callbacks tests until reimplemented')
+    skip 'complex validators disabled'
+
     ont_count, ont_acronyms, ontologies =
       create_ontologies_and_submissions(ont_count: 3, submission_count: 1,
                                         process_submission: false, acronym: 'NCBO-545')
@@ -169,6 +175,7 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
   end
 
   def test_inverse_use_imports_callback
+    skip 'complex validators disabled'
     ontologies_properties_callbacks(:useImports, :usedBy)
   end
 
@@ -188,14 +195,12 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
     ont.submissions.sort { |a, b| b.submissionId <=> a.submissionId }
   end
 
-
   def ontologies_properties_callbacks(attr, inverse_attr = nil)
     skip('skip new callbacks tests until reimplemented')
     inverse_attr = attr unless  inverse_attr
     ont_count, ont_acronyms, ontologies =
       create_ontologies_and_submissions(ont_count: 3, submission_count: 1,
                                         process_submission: false, acronym: 'NCBO-545')
-
 
     assert_equal 3, ontologies.size
 
@@ -207,7 +212,7 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
 
     assert_empty first_sub.send(attr)
     first_sub.bring_remaining
-    first_sub.send( "#{attr}=",[ontologies[1].id, ontologies[2].id])
+    first_sub.send("#{attr}=", [ontologies[1].id, ontologies[2].id])
 
     assert first_sub.valid?
 
@@ -221,7 +226,7 @@ class TestOntologySubmissionValidators < LinkedData::TestOntologyCommon
       assert_equal [ontologies[0].id], sub.send(inverse_attr)
     end
 
-    #sub is the submission of the ontology 2
+    # sub is the submission of the ontology 2
     sub.bring_remaining
     sub.send("#{inverse_attr}=", [])
     sub.save

@@ -49,7 +49,7 @@ module LinkedData
       attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
       attribute :version, namespace: :omv
       attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' }
-      attribute :deprecated, namespace: :owl, type: :boolean, enforce: [:deprecated_retired_align], default: ->(x) { false }
+      attribute :deprecated, namespace: :owl, type: :boolean, default: ->(x) { false }
       attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
       attribute :hasFormalityLevel, namespace: :omv, type: :uri
       attribute :hasOntologySyntax, namespace: :omv, type: :uri, default: ->(s) {ontology_syntax_default(s)}
@@ -76,11 +76,10 @@ module LinkedData
 
       # Date metadata
       attribute :released, type: :date_time, enforce: [:existence]
-      attribute :valid, namespace: :dct, type: :date_time, enforce: [:validity_date_retired_align]
-      attribute :curatedOn, namespace: :pav, type: %i[date_time list], enforce: [:superior_equal_to_creationDate]
+      attribute :valid, namespace: :dct, type: :date_time
+      attribute :curatedOn, namespace: :pav, type: %i[date_time list]
       attribute :creationDate, namespace: :omv, type: :date_time, default: ->(x) { Date.today.to_datetime }
-      attribute :modificationDate, namespace: :omv, type: :date_time,
-                                   enforce: %i[superior_equal_to_creationDate modification_date_previous_align]
+      attribute :modificationDate, namespace: :omv, type: :date_time
 
       # Person and organizations metadata
       attribute :contact, type: %i[contact list], enforce: [:existence]
@@ -96,7 +95,7 @@ module LinkedData
       attribute :audience, namespace: :dct
       attribute :repository, namespace: :doap, type: :uri
       attribute :bugDatabase, namespace: :doap, type: :uri
-      attribute :mailingList, namespace: :doap, enforce: [:email]
+      attribute :mailingList, namespace: :doap
       attribute :toDoList, namespace: :voaf, type: :list
       attribute :award, namespace: :schema, type: :list
 
@@ -153,7 +152,7 @@ module LinkedData
       attribute :uriRegexPattern, namespace: :void, type: :uri
       attribute :preferredNamespaceUri, namespace: :vann, type: :uri
       attribute :preferredNamespacePrefix, namespace: :vann
-      attribute :exampleIdentifier, namespace: :idot, default: ->(s) { LinkedData::Models::Class.in(s).first&.to_s }
+      attribute :exampleIdentifier, namespace: :idot
       attribute :keyClasses, namespace: :omv, type: %i[list]
       attribute :metadataVoc, namespace: :voaf, type: %i[uri list]
       attribute :uploadFilePath
