@@ -67,11 +67,11 @@ class TestNote < LinkedData::TestCase
         relatedOntology: [@@ontology],
       })
 
-      assert_equal false, n.exist?(reload=true)
+      assert_equal false, n.exist?
       n.save
-      assert_equal true, n.exist?(reload=true)
+      assert_equal true, n.exist?
       n.delete
-      assert_equal false, n.exist?(reload=true)
+      assert_equal false, n.exist?
     ensure
       n.delete if !n.nil? && n.persistent?
     end
