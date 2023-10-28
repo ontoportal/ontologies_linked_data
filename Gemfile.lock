@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: daea7822af9e5ca1961d6873a758735133a1b2db
-  branch: master
+  revision: 83425ba6c05d051d86c6f5775540727ce4238443
+  branch: develop
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
@@ -15,8 +15,8 @@ GIT
 
 GIT
   remote: https://github.com/ncbo/sparql-client.git
-  revision: d418d56a6c9ff5692f925b45739a2a1c66bca851
-  branch: master
+  revision: 55e7dbf858eb571c767bc67868f9af61663859cb
+  branch: develop
   specs:
     sparql-client (1.0.1)
       json_pure (>= 1.4)
@@ -53,11 +53,12 @@ GEM
       launchy (~> 2.1)
       mail (~> 2.7)
     eventmachine (1.2.7)
-    faraday (2.7.10)
+    faraday (2.7.11)
+      base64
       faraday-net_http (>= 2.0, < 3.1)
       ruby2_keywords (>= 0.0.4)
     faraday-net_http (3.0.2)
-    ffi (1.15.5)
+    ffi (1.16.3)
     hashie (5.0.0)
     htmlentities (4.3.4)
     http-accept (1.7.0)
@@ -82,7 +83,7 @@ GEM
     method_source (1.0.0)
     mime-types (3.5.1)
       mime-types-data (~> 3.2015)
-    mime-types-data (3.2023.0808)
+    mime-types-data (3.2023.1003)
     mini_mime (1.1.5)
     minitest (4.7.5)
     minitest-reporters (0.14.24)
@@ -92,21 +93,21 @@ GEM
       powerbar
     multi_json (1.15.0)
     net-http-persistent (2.9.4)
-    net-imap (0.3.7)
+    net-imap (0.4.2)
       date
       net-protocol
     net-pop (0.1.2)
       net-protocol
     net-protocol (0.2.1)
       timeout
-    net-smtp (0.3.3)
+    net-smtp (0.4.0)
       net-protocol
     netrc (0.11.0)
     oj (3.16.1)
     omni_logger (0.1.4)
       logger
     parallel (1.23.0)
-    parser (3.2.2.3)
+    parser (3.2.2.4)
       ast (~> 2.4.1)
       racc
     pony (1.13.1)
@@ -125,11 +126,11 @@ GEM
     rake (10.5.0)
     rdf (1.0.8)
       addressable (>= 2.2)
-    redis (5.0.7)
-      redis-client (>= 0.9.0)
-    redis-client (0.17.0)
+    redis (5.0.8)
+      redis-client (>= 0.17.0)
+    redis-client (0.18.0)
       connection_pool
-    regexp_parser (2.8.1)
+    regexp_parser (2.8.2)
     rest-client (2.1.0)
       http-accept (>= 1.7.0, < 2.0)
       http-cookie (>= 1.0.2, < 2.0)
@@ -139,19 +140,18 @@ GEM
     rsolr (2.5.0)
       builder (>= 2.1.2)
       faraday (>= 0.9, < 3, != 2.0.0)
-    rubocop (1.56.3)
-      base64 (~> 0.1.1)
+    rubocop (1.57.2)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
-      parser (>= 3.2.2.3)
+      parser (>= 3.2.2.4)
       rainbow (>= 2.2.2, < 4.0)
       regexp_parser (>= 1.8, < 3.0)
       rexml (>= 3.2.5, < 4.0)
       rubocop-ast (>= 1.28.1, < 2.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (>= 2.4.0, < 3.0)
-    rubocop-ast (1.29.0)
+    rubocop-ast (1.30.0)
       parser (>= 3.2.1.0)
     ruby-progressbar (1.13.0)
     ruby2_keywords (0.0.5)
@@ -176,7 +176,7 @@ GEM
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.8.2)
-    unicode-display_width (2.4.2)
+    unicode-display_width (2.5.0)
     uuid (2.3.9)
       macaddr (~> 1.0)
 
@@ -216,4 +216,4 @@ DEPENDENCIES
   thin
 
 BUNDLED WITH
-   2.3.15
+   2.4.12
