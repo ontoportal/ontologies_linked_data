@@ -285,9 +285,8 @@ morePermissions:
 #Rights holder
 copyrightHolder:
   display: "licensing"
-  label: ""
-  helpText: ""
-  example: ''
+  label: "Rights holder"
+  helpText: "The party holding the legal copyright to the ontology."
   description: [ 
     "SCHEMA: The party holding the legal copyright to the CreativeWork.",
     "DCTERMS: A person or organization owning or managing rights over the resource." ]
@@ -391,8 +390,7 @@ alternative:
 abstract:
   display: "description" 
   label: "Abstract"
-  helpText: ""
-  example: ''
+  helpText: "A summary or abstrct of the ontology."
   description: [ 
     "DCTERMS: A summary of the resource." ]
   extractedMetadata: true
@@ -466,13 +464,13 @@ curatedOn:
   description: [ 
     "PAV: Specifies the date this resource was curated. pav:curatedBy gives the agents that performed the curation." ]
   extractedMetadata: true
-  metadataMappings: [ "ns:propname", ".." ]
+  metadataMappings: [ "pav:curatedOn" ]
 
 #Submission date 
 released:
   display: "dates"
   label: "Submission date"
-  helpText: "Date of the submission/release in hte portal."
+  helpText: "Date of the submission/release in the portal."
   description: [
     "DCTERMS: Date of submission of the resource.",
     "SCHEMA: Date of first broadcast/publication." ]
@@ -484,7 +482,7 @@ released:
 #Contact
 contact:
   display: "persons and organizations" 
-  label: "Contacts"
+  label: "Contact"
   helpText: "The persons who can be contacted to enquire about an ontology. Composed of the contacts name and email."
   description: [ 
     "DCAT: Relevant contact information for the cataloged resource. Use of vCard is recommended."]
@@ -494,7 +492,7 @@ contact:
 #Creator
 hasCreator:
   display: "persons and organizations" 
-  label: "Creators"
+  label: "Creator"
   helpText: "Main responsible for the creation of the ontology."
   description: [ 
     "OMV: Main responsible for the creation of the ontology",
@@ -512,7 +510,7 @@ hasCreator:
 #Contributor
 hasContributor:
   display: "persons and organizations" 
-  label: "Contributors"
+  label: "Contributor"
   helpText: "Contributors to the creation of the ontology."
   description: [ 
     "DCTERMS: An entity responsible for making contributions to the resource.",
@@ -526,8 +524,8 @@ hasContributor:
 #Curator
 curatedBy:
   display: "persons and organizations" 
-  label: "Curators"
-  helpText: ""
+  label: "Curator"
+  helpText: "Specifies an agent specialist responsible for curating/evaluating the ontology."
   description: [ 
     "PAV: Specifies an agent specialist responsible for shaping the expression in an appropriate format. Often the primary agent responsible for ensuring the quality of the representation.", 
     "MOD: An ontology that is evaluated by an agent." ]
@@ -537,7 +535,7 @@ curatedBy:
 #Translator
 translator:
   display: "persons and organizations" 
-  label: "Translators"
+  label: "Translator"
   helpText: "Organization or person who adapts a creative work to different languages."
   description: [ 
     "SCHEMA: Organization or person who adapts a creative work to different languages, regional differences and technical requirements of a target market, or that translates during some event." ]
@@ -547,8 +545,8 @@ translator:
 #Publisher
 publisher:
   display: "persons and organizations" 
-  label: "Publishers"
-  helpText: ""
+  label: "Publisher"
+  helpText: "An entity responsible for making the ontology available."
   description: [ 
     "DCTERMS: An entity responsible for making the resource available.",
     "SCHEMA: The publisher of creative work.",
@@ -590,10 +588,9 @@ endorsedBy:
 audience:
   display: "community" 
   label: "Audience"
-  helpText: ""
-  example: ''
+  helpText: "A set of users/agents for whom the ontology is intended or useful."
   description: [ 
-    "DCTERMS: a class of entity for whom the resource is intended or useful (public visé ou recommandé pour la ressource).",
+    "DCTERMS: a class of entity for whom the resource is intended or useful.",
     "DOAP: Description of target user base.",
     "SCHEMA: An intended audience, i.e. a group for whom something was created." ]
   extractedMetadata: true
@@ -605,7 +602,7 @@ audience:
 repository:
   display: "community" 
   label: "Repository"
-  helpText: ""
+  helpText: "Ontology source code repository."
   example: 'https://github.com/Planteome/plant-trait-ontology'
   description: [ 
     "DOAP: Source code repository." ]
@@ -621,14 +618,13 @@ bugDatabase:
   description: [ 
     "DOAP: Bug tracker for a project." ]
   extractedMetadata: true
-  metadataMappings: [ "doap:bug-database", ".." ]
+  metadataMappings: [ "doap:bug-database" ]
   
 #Mailing list
-propname:
+mailingList:
   display: "community" 
   label: "Mailing list"
-  helpText: ""
-  example: ''
+  helpText: "Ontology support mailing list or email address."
   description: [ 
     "DOAP: Mailing list home page or email address." ]
   extractedMetadata: true
@@ -672,7 +668,7 @@ knownUsage:
 designedForOntologyTask:
   display: "usage" 
   label: "Designed for task (as defined by OMV)."
-  helpText: ""
+  helpText: "The purpose or tasks for which the ontology was originally designed."
   description: [ 
     "MOD: The purpose or tasks for which the ontology was originally designed.",
     "OMV: The purpose for which the ontology was originally designed." ]
@@ -729,7 +725,7 @@ example:
   extractedMetadata: true
   metadataMappings: [ "vann:example", "schema:workExample" ]
   
-### Methodology
+### Methodology and provenance
 
 #Knowledge representation paradigm
 conformsToKnowledgeRepresentationParadigm:
@@ -951,7 +947,7 @@ authorProperty:
 obsoleteProperty:
   display: "object description properties"
   label: "Object obsolete property"
-  helpText: ""
+  helpText: "Property used to specify obsolete objects."
   description: [ 
     "MOD: Property used to specify obsolete objects." ]
   extractedMetadata: true
@@ -1022,7 +1018,7 @@ hierarchyProperty:
 pullLocation:
   display: "links" 
   label: "Access URL"
-  helpText: ""
+  helpText: "A URL of a resource that gives access to a distribution of the ontology."
   description: [
       "DCAT: A URL of a resource that gives access to a distribution of the dataset. E.g. landing page, feed, SPARQL endpoint.",
       "OMV: The location where the ontology can be found.",
@@ -1113,7 +1109,7 @@ source:
     "NKOS: A resource used as the source for a derivative resource.", 
     "MOD: The ontology(ies) referred to while creating the present ontology." ]
   extractedMetadata: true
-  metadataMappings: [ "ns:propname", ".." ]
+  metadataMappings: [ "dcterms:source", "mod:sourceOntology", "nkos:basedOn", "pav:derivedFrom", "prov:wasInfluencedBy", "prov:wasDerivedFrom", "schema:isBasedOn" ]
 
 #SPARQL endpoint
 endpoint:
@@ -1130,7 +1126,7 @@ endpoint:
 includedInDataCatalog:
   display: "links" 
   label: "Indexed or included in catalog or repository"
-  helpText: "A data catalog which contains this ontology (i.e.: OBOfoundry, aber-owl, EBI, VEST registry...)."
+  helpText: "An ontology library or repository which contains this ontology (e.g., OBO Foundry, NCBO BioPortal, EBI-OLS, FAIRsharing, etc.)."
   description: [ 
     "SCHEMA: A data catalog which contains this dataset." ]
   extractedMetadata: true
@@ -1337,9 +1333,9 @@ isIncompatibleWith:
 hasDisparateModelling:
   display: "relations"
   label: "Disparate modelling with"
-  helpText: ""
+  helpText: "Disagreements related to the conceptualization of the ontologies."
   description: [ 
-    "DOOR: Disagreements related  to  the  conceptualization  of  the  ontologies. Two ontologies are considered to have disparate modeling if they represent corresponding entities in different ways, e.g.  as an instance in one case and a class in the other.",
+    "DOOR: Disagreements related to the conceptualization of the ontologies. Two ontologies are considered to have disparate modeling if they represent corresponding entities in different ways, e.g.  as an instance in one case and a class in the other.",
     "MOD: Ontologies that are considered to have a different model, because they represent corresponding entities in different ways e.g., an instance in one case and a class in the other for the same concept." ]
   extractedMetadata: true
   metadataMappings: [ "door:hasDisparateModelling", "mod:hasDisparateModellingWith" ]
@@ -1358,12 +1354,12 @@ hasDisjunctionsWith:
 #Translation
 workTranslation:
   display: "relations"
-  label: ""
+  label: "Translation"
   helpText: "A work that is a translation of the content of this work."
   description: [
     "MOD: Ontologies which are translations from the described ontology. ",
     "SCHEMA: A work that is a translation of the content of this work.",
-     "ADMS: Links Assets that are translations of each other." ]
+    "ADMS: Links Assets that are translations of each other." ]
   extractedMetadata: true
   metadataMappings: [ "mod:translation", "schema:workTranslation", "adms:translation" ]
   
