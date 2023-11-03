@@ -41,8 +41,7 @@ versionIRI:
   helpText: "The property that identifies the version IRI of an ontology."
   example: 'https://w3id.org/myontology/3.2.0'
   description: [ 
-    "OWL: The property that identifies the version IRI of an ontology.",
-    "ACRO: description." ]
+    "OWL: The property that identifies the version IRI of an ontology." ]
   extractedMetadata: true
 
 #Version information
@@ -65,7 +64,7 @@ version:
 status:
   display: "general"
   label: "Status"
-  helpText: "It specifies the tracking information for the contents of the ontology. Pre-defined values."
+  helpText: "The status of the current version of the ontology (alpha, beta, production, retired)."
   example: 'production'
   description: [ 
     "MOD: The status of the current version of the ontology (alpha, beta, production, retired).",
@@ -1384,7 +1383,7 @@ uriRegexPattern:
   example: 'http://purl.obolibrary.org/obo/ENVO_'
   description: [ 
     "VOID: A regular expression that matches the URIs of a void:Dataset's entities.", 
-    "IDOT: Regular expression describing alphanumeric strings used to identify items (or records) in a dataset.ACRO: description." ]
+    "IDOT: Regular expression describing alphanumeric strings used to identify items (or records) in a dataset." ]
   extractedMetadata: true
   metadataMappings: [ "void:uriRegexPattern", "idot:identifierPattern" ]
 
