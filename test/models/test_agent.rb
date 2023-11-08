@@ -79,10 +79,27 @@ class TestAgent < LinkedData::TestCase
     id.delete
   end
 
-  def test_agent_usages
+  def test_all_agents_usages_load
     count, acronyms, ontologies = create_ontologies_and_submissions(ont_count: 3, submission_count: 1,
                                                                     process_submission: false)
+    agents, sub1, sub2, sub3 = agent_usages_test_setup(ontologies)
+    ## using batch load
+    t1  = Benchmark.measure('batch load') do
+      LinkedData::Models::Agent.load_agents_usages(agents)
+      agent_usages_test(agents, sub1, sub2, sub3)
+    end
 
+    ## using by elems loafing
+    t2 = Benchmark.measure('eager load') do
+      agents, sub1, sub2, sub3 = agent_usages_test_setup(ontologies)
+      agent_usages_test(agents, sub1, sub2, sub3)
+    end
+
+    assert t1.total < t2.total, "batch loading should be more faster than eager loading"
+  end
+  private
+
+  def agent_usages_test_setup(ontologies)
     o1 = ontologies[0]
     o2 = ontologies[1]
     o3 = ontologies[2]
@@ -111,6 +128,9 @@ class TestAgent < LinkedData::TestCase
     assert sub2.valid?
     sub2.save
 
+    [agents, sub1, sub2, sub3]
+  end
+  def agent_usages_test(agents, sub1, sub2, sub3)
     usages = agents[0].usages
 
     assert_equal 2, usages.size
@@ -123,7 +143,7 @@ class TestAgent < LinkedData::TestCase
     sub3.bring_remaining
     sub3.save
 
-    usages = agents[0].usages
+    usages = agents[0].usages(force_update: true)
     assert_equal 3, usages.size
 
     refute_nil usages[sub1.id]
