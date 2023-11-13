@@ -74,9 +74,9 @@ module LinkedData
         def lexvo_language(inst, attr)
           values = Array(attr_value(inst, attr))
 
-          return if values.all? { |x| x&.to_s&.start_with?('http://lexvo.org/id/iso639-3') }
+          return if values.all? { |x| x&.to_s&.start_with?('http://lexvo.org/id/iso') }
 
-          [:lexvo_language, "#{attr} values need to be in the lexvo namespace (e.g http://lexvo.org/id/iso639-3/fra)"]
+          [:lexvo_language, "#{attr} values need to be in the lexvo namespace (e.g http://lexvo.org/id/iso639-1/fr)"]
         end
 
         def deprecated_retired_align(inst, attr)

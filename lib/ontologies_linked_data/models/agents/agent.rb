@@ -23,31 +23,6 @@ module LinkedData
       write_access :creator
       access_control_load :creator
 
-      def usages
-        id = self.id
-        q = Goo.sparql_query_client.select(:id, :property, :status).distinct
-               .from(LinkedData::Models::OntologySubmission.uri_type)
-               .where(
-                 [:id,
-                  RDF::URI.new('http://www.w3.org/1999/02/22-rdf-syntax-ns#type'),
-                  LinkedData::Models::OntologySubmission.uri_type
-                 ],
-                 [:id,
-                  LinkedData::Models::OntologySubmission.attribute_uri(:submissionStatus),
-                  :status
-                 ]
-               )
-
-        q = q.union([[:id, :property, id]])
-        q.filter("?status = <#{RDF::URI.new(LinkedData::Models::SubmissionStatus.id_prefix + 'RDF')}> || ?status = <#{RDF::URI.new(LinkedData::Models::SubmissionStatus.id_prefix + 'UPLOADED')}>")
-        data = q.each_solution.map { |x| [x[:id], x[:property], x[:status]] }
-        data = data.group_by(&:shift)
-        data.transform_values do |values|
-          r = values.select { |value| value.last['RDF'] }
-          r = values.select { |value| value.last['UPLOADED'] } if r.empty?
-          r.map(&:first)
-        end
-      end
 
       def self.load_agents_usages(agents = [])
         is_a = RDF::URI.new('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
