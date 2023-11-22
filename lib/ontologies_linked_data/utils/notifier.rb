@@ -111,7 +111,7 @@ module LinkedData
         }
 
         if LinkedData.settings.smtp_auth_type && LinkedData.settings.smtp_auth_type != :none
-          options.merge({
+          options.merge!({
                           user_name: LinkedData.settings.smtp_user,
                           password: LinkedData.settings.smtp_password,
                           authentication: LinkedData.settings.smtp_auth_type
