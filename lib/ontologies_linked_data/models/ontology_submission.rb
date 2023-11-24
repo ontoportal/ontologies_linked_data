@@ -110,7 +110,7 @@ module LinkedData
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv
       attribute :usedOntologyEngineeringMethodology, namespace: :omv
       attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list]
-      attribute :accrualMethod, namespace: :dct, type: %i[list uri]
+      attribute :accrualMethod, namespace: :dct, type: %i[list]
       attribute :accrualPeriodicity, namespace: :dct
       attribute :accrualPolicy, namespace: :dct
       attribute :competencyQuestion, namespace: :mod, type: :list
