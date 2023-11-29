@@ -205,7 +205,7 @@ module LinkedData
           return true
         end
 
-        zip = LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
+        zip = zipped?
         files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
 
         if not zip and self.masterFileName.nil?
@@ -261,8 +261,12 @@ module LinkedData
                          self.submissionId.to_s)
       end
 
+      def zipped?(full_file_path = uploadFilePath)
+        LinkedData::Utils::FileHelpers.zip?(full_file_path) || LinkedData::Utils::FileHelpers.gzip?(full_file_path)
+      end
+
       def zip_folder
-        return File.join([self.data_folder, "unzipped"])
+         File.join([data_folder, 'unzipped'])
       end
 
       def csv_path
@@ -286,17 +290,16 @@ module LinkedData
         self.bring(:masterFileName) if self.bring?(:masterFileName)
         triples_file_name = File.basename(self.uploadFilePath.to_s)
         full_file_path = File.join(File.expand_path(self.data_folder.to_s), triples_file_name)
-        zip = LinkedData::Utils::FileHelpers.zip?(full_file_path)
+        zip = zipped? full_file_path
         triples_file_name = File.basename(self.masterFileName.to_s) if zip && self.masterFileName
         file_name = File.join(File.expand_path(self.data_folder.to_s), triples_file_name)
         File.expand_path(file_name)
       end
 
       def unzip_submission(logger)
-        zip = LinkedData::Utils::FileHelpers.zip?(self.uploadFilePath)
         zip_dst = nil
 
-        if zip
+        if zipped?
           zip_dst = self.zip_folder
 
           if Dir.exist? zip_dst
@@ -311,10 +314,12 @@ module LinkedData
             self.save
           end
 
-          logger.info("Files extracted from zip #{extracted}")
-          logger.flush
+          if logger
+            logger.info("Files extracted from zip #{extracted}")
+            logger.flush
+          end
         end
-        return zip_dst
+        zip_dst
       end
 
       def delete_old_submission_files
@@ -328,17 +333,18 @@ module LinkedData
       # accepts another submission in 'older' (it should be an 'older' ontology version)
       def diff(logger, older)
         begin
-          self.bring_remaining
-          self.bring(:diffFilePath)
-          self.bring(:uploadFilePath)
-          older.bring(:uploadFilePath)
+          bring_remaining
+          bring :diffFilePath if bring? :diffFilePath
+          older.bring :uploadFilePath if older.bring? :uploadFilePath
+
           LinkedData::Diff.logger = logger
           bubastis = LinkedData::Diff::BubastisDiffCommand.new(
-              File.expand_path(older.uploadFilePath),
-              File.expand_path(self.uploadFilePath)
+              File.expand_path(older.master_file_path),
+              File.expand_path(self.master_file_path),
+              data_folder
           )
           self.diffFilePath = bubastis.diff
-          self.save
+          save
           logger.info("Bubastis diff generated successfully for #{self.id}")
           logger.flush
         rescue Exception => e
@@ -436,7 +442,7 @@ module LinkedData
         self.generate_metrics_file(class_count, indiv_count, prop_count)
       end
 
-      def generate_rdf(logger, file_path, reasoning=true)
+      def generate_rdf(logger, reasoning: true)
         mime_type = nil
 
         if self.hasOntologyLanguage.umls?
@@ -458,10 +464,7 @@ module LinkedData
               logger.info("error deleting owlapi.rdf")
             end
           end
-          owlapi = LinkedData::Parser::OWLAPICommand.new(
-              File.expand_path(file_path),
-              File.expand_path(self.data_folder.to_s),
-              master_file: self.masterFileName)
+          owlapi = owlapi_parser(logger: nil)
 
           if !reasoning
             owlapi.disable_reasoner
@@ -478,8 +481,17 @@ module LinkedData
             self.missingImports = nil
           end
           logger.flush
+          # debug code when you need to avoid re-generating the owlapi.xrdf file,
+          # comment out the block above and uncomment the line below
+          # triples_file_path = output_rdf
         end
-        delete_and_append(triples_file_path, logger, mime_type)
+
+        begin
+          delete_and_append(triples_file_path, logger, mime_type)
+        rescue => e
+          logger.error("Error sending data to triple store - #{e.response.code} #{e.class}: #{e.response.body}") if e.response&.body
+          raise e
+        end
         version_info = extract_version()
 
         if version_info
@@ -612,6 +624,7 @@ eos
             cls_count += page_classes.length unless cls_count_set
 
             page = page_classes.next? ? page + 1 : nil
+            # page = nil if page > 20 # uncomment for testing fewer pages
           end while !page.nil?
 
           callbacks.each { |_, callback| callback[:artifacts][:count_classes] = cls_count }
@@ -635,10 +648,14 @@ eos
         file_path = artifacts[:file_path]
         artifacts[:save_in_file] = File.join(File.dirname(file_path), "labels.ttl")
         artifacts[:save_in_file_mappings] = File.join(File.dirname(file_path), "mappings.ttl")
+        # troubleshooting code to output the class ids used in pagination
+        # class_list_file = File.join(File.dirname(file_path), "class_ids.ttl")
+        # f_class_list = File.open(class_list_file, "w")
+        # artifacts[:class_list] = f_class_list
         property_triples = LinkedData::Utils::Triples.rdf_for_custom_properties(self)
         Goo.sparql_data_client.append_triples(self.id, property_triples, mime_type="application/x-turtle")
         fsave = File.open(artifacts[:save_in_file], "w")
-        fsave.write(property_triples)
+        fsave.write("#{property_triples}\n")
         fsave_mappings = File.open(artifacts[:save_in_file_mappings], "w")
         artifacts[:fsave] = fsave
         artifacts[:fsave_mappings] = fsave_mappings
@@ -651,6 +668,9 @@ eos
 
       def generate_missing_labels_each(artifacts={}, logger, paging, page_classes, page, c)
         prefLabel = nil
+        # troubleshooting code to output the class ids used in pagination
+        # logger.info("Generated label for class: #{c.id.to_s}")
+        # artifacts[:class_list].write(c.id.to_s + "\n")
 
         if c.prefLabel.nil?
           rdfs_labels = c.label
@@ -669,7 +689,8 @@ eos
           label = nil
 
           if rdfs_labels && rdfs_labels.length > 0
-            label = rdfs_labels[0]
+            # this sort is needed for a predictable label selection
+            label = rdfs_labels.sort[0]
           else
             label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
           end
@@ -697,33 +718,20 @@ eos
         artifacts[:mapping_triples].concat(rest_mappings)
 
         if artifacts[:label_triples].length > 0
-          logger.info("Asserting #{artifacts[:label_triples].length} labels in " +
-                          "#{self.id.to_ntriples}")
+          logger.info("Writing #{artifacts[:label_triples].length} labels to file for #{self.id.to_ntriples}")
           logger.flush
           artifacts[:label_triples] = artifacts[:label_triples].join("\n")
           artifacts[:fsave].write(artifacts[:label_triples])
-          t0 = Time.now
-          Goo.sparql_data_client.append_triples(self.id, artifacts[:label_triples], mime_type="application/x-turtle")
-          t1 = Time.now
-          logger.info("Labels asserted in #{t1 - t0} sec.")
-          logger.flush
         else
           logger.info("No labels generated in page #{page}.")
           logger.flush
         end
 
         if artifacts[:mapping_triples].length > 0
-          logger.info("Asserting #{artifacts[:mapping_triples].length} mappings in " +
-                          "#{self.id.to_ntriples}")
+          logger.info("Writing #{artifacts[:mapping_triples].length} mapping labels to file for #{self.id.to_ntriples}")
           logger.flush
           artifacts[:mapping_triples] = artifacts[:mapping_triples].join("\n")
           artifacts[:fsave_mappings].write(artifacts[:mapping_triples])
-
-          t0 = Time.now
-          Goo.sparql_data_client.append_triples(self.id, artifacts[:mapping_triples], mime_type="application/x-turtle")
-          t1 = Time.now
-          logger.info("Mapping labels asserted in #{t1 - t0} sec.")
-          logger.flush
         end
       end
 
@@ -732,7 +740,29 @@ eos
         logger.info("Saved generated labels in #{artifacts[:save_in_file]}")
         artifacts[:fsave].close()
         artifacts[:fsave_mappings].close()
-        logger.flush
+
+        all_labels = File.read(artifacts[:fsave].path)
+
+        unless all_labels.empty?
+          t0 = Time.now
+          Goo.sparql_data_client.append_triples(self.id, all_labels, mime_type="application/x-turtle")
+          t1 = Time.now
+          logger.info("Wrote #{all_labels.lines.count} labels for #{self.id.to_ntriples} to triple store in #{t1 - t0} sec.")
+          logger.flush
+        end
+
+        all_mapping_labels = File.read(artifacts[:fsave_mappings].path)
+
+        unless all_mapping_labels.empty?
+          t0 = Time.now
+          Goo.sparql_data_client.append_triples(self.id, all_mapping_labels, mime_type="application/x-turtle")
+          t1 = Time.now
+          logger.info("Wrote #{all_mapping_labels.lines.count} mapping labels for #{self.id.to_ntriples} to triple store in #{t1 - t0} sec.")
+          logger.flush
+        end
+
+        # troubleshooting code to output the class ids used in pagination
+        # artifacts[:class_list].close()
       end
 
       def generate_obsolete_classes(logger, file_path)
@@ -877,6 +907,7 @@ eos
       ################################################################
       # Possible options with their defaults:
       #   process_rdf       = false
+      #   generate_labels   = true
       #   index_search      = false
       #   index_properties  = false
       #   index_commit      = false
@@ -890,6 +921,7 @@ eos
         # Wrap the whole process so we can email results
         begin
           process_rdf = false
+          generate_labels = false
           index_search = false
           index_properties = false
           index_commit = false
@@ -900,6 +932,7 @@ eos
 
           if options.empty?
             process_rdf = true
+            generate_labels = true
             index_search = true
             index_properties = true
             index_commit = true
@@ -909,9 +942,14 @@ eos
             archive = false
           else
             process_rdf = options[:process_rdf] == true ? true : false
+
+            if options.has_key?(:generate_labels)
+              generate_labels = options[:generate_labels] == false ? false : true
+            else
+              generate_labels = process_rdf
+            end
             index_search = options[:index_search] == true ? true : false
             index_properties = options[:index_properties] == true ? true : false
-            index_commit = options[:index_commit] == true ? true : false
             run_metrics = options[:run_metrics] == true ? true : false
 
             if !process_rdf || options[:reasoning] == false
@@ -963,7 +1001,6 @@ eos
               self.save
 
               # Parse RDF
-              file_path = nil
               begin
                 if not self.valid?
                   error = "Submission is not valid, it cannot be processed. Check errors."
@@ -975,9 +1012,7 @@ eos
                 end
                 status = LinkedData::Models::SubmissionStatus.find("RDF").first
                 remove_submission_status(status) #remove RDF status before starting
-                zip_dst = unzip_submission(logger)
-                file_path = zip_dst ? zip_dst.to_s : self.uploadFilePath.to_s
-                generate_rdf(logger, file_path, reasoning=reasoning)
+                generate_rdf(logger, reasoning: reasoning)
                 add_submission_status(status)
                 self.save
               rescue Exception => e
@@ -989,28 +1024,9 @@ eos
                 raise e
               end
 
-              callbacks = {
-                  missing_labels: {
-                      op_name: "Missing Labels Generation",
-                      required: true,
-                      status: LinkedData::Models::SubmissionStatus.find("RDF_LABELS").first,
-                      artifacts: {
-                          file_path: file_path
-                      },
-                      caller_on_pre: :generate_missing_labels_pre,
-                      caller_on_pre_page: :generate_missing_labels_pre_page,
-                      caller_on_each: :generate_missing_labels_each,
-                      caller_on_post_page: :generate_missing_labels_post_page,
-                      caller_on_post: :generate_missing_labels_post
-                  }
-              }
-
-              raw_paging = LinkedData::Models::Class.in(self).include(:prefLabel, :synonym, :label)
-              loop_classes(logger, raw_paging, callbacks)
-
               status = LinkedData::Models::SubmissionStatus.find("OBSOLETE").first
               begin
-                generate_obsolete_classes(logger, file_path)
+                generate_obsolete_classes(logger, self.uploadFilePath.to_s)
                 add_submission_status(status)
                 self.save
               rescue Exception => e
@@ -1020,6 +1036,38 @@ eos
                 self.save
                 # if obsolete fails the parsing fails
                 raise e
+              end
+            end
+
+            if generate_labels
+              parsed_rdf = ready?(status: [:rdf])
+              raise Exception, "Labels for submission #{self.ontology.acronym}/submissions/#{self.submissionId} cannot be generated because it has not been successfully entered into the triple store" unless parsed_rdf
+              status = LinkedData::Models::SubmissionStatus.find("RDF_LABELS").first
+              begin
+                callbacks = {
+                  missing_labels: {
+                    op_name: "Missing Labels Generation",
+                    required: true,
+                    status: status,
+                    artifacts: {
+                      file_path: self.uploadFilePath.to_s
+                    },
+                    caller_on_pre: :generate_missing_labels_pre,
+                    caller_on_pre_page: :generate_missing_labels_pre_page,
+                    caller_on_each: :generate_missing_labels_each,
+                    caller_on_post_page: :generate_missing_labels_post_page,
+                    caller_on_post: :generate_missing_labels_post
+                  }
+                }
+
+                raw_paging = LinkedData::Models::Class.in(self).include(:prefLabel, :synonym, :label)
+                loop_classes(logger, raw_paging, callbacks)
+              rescue Exception => e
+                logger.error("#{e.class}: #{e.message}\n#{e.backtrace.join("\n\t")}")
+                logger.flush
+                add_submission_status(status.get_error_status)
+              ensure
+                self.save
               end
             end
 
@@ -1376,6 +1424,9 @@ eos
             end
           end
         end
+
+        # delete the folder and files
+        FileUtils.remove_dir(self.data_folder) if Dir.exist?(self.data_folder)
       end
 
       def roots(extra_include=nil, page=nil, pagesize=nil)
@@ -1536,7 +1587,51 @@ eos
         Goo.sparql_data_client.delete_graph(self.id)
       end
 
+
+      def master_file_path
+        path = if zipped?
+                 File.join(self.zip_folder, self.masterFileName)
+               else
+                  self.uploadFilePath
+               end
+        File.expand_path(path)
+      end
+
+      def parsable?(logger: Logger.new($stdout))
+        owlapi = owlapi_parser(logger: logger)
+        owlapi.disable_reasoner
+        parsable = true
+        begin
+          owlapi.parse
+        rescue StandardError => e
+          parsable = false
+        end
+        parsable
+      end
+
+
       private
+
+
+      def owlapi_parser_input
+        path = if zipped?
+                 self.zip_folder
+               else
+                 self.uploadFilePath
+               end
+        File.expand_path(path)
+      end
+
+
+      def owlapi_parser(logger: Logger.new($stdout))
+        unzip_submission(logger)
+        LinkedData::Parser::OWLAPICommand.new(
+          owlapi_parser_input,
+          File.expand_path(self.data_folder.to_s),
+          master_file: self.masterFileName,
+          logger: logger)
+      end
+
 
       def delete_and_append(triples_file_path, logger, mime_type = nil)
         Goo.sparql_data_client.delete_graph(self.id)
