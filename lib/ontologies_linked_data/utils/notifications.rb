@@ -9,13 +9,18 @@ module LinkedData
         note.creator.bring(:username) if note.creator.bring?(:username)
         note.relatedOntology.each { |o| o.bring(:name) if o.bring?(:name); o.bring(:subscriptions) if o.bring?(:subscriptions) }
         ontologies = note.relatedOntology.map { |o| o.name }.join(", ")
-
+        # Fix the note URL when using replace_url_prefix (in another VM than NCBO)
+        if LinkedData.settings.replace_url_prefix == true
+          note_url = "http://#{LinkedData.settings.ui_host}/notes/#{CGI.escape(note.id.to_s.gsub("http://data.bioontology.org", LinkedData.settings.rest_url_prefix))}"
+        else
+          note_url = "http://#{LinkedData.settings.ui_host}/notes/#{CGI.escape(note.id.to_s)}"
+        end
         subject = "[#{LinkedData.settings.ui_name} Notes] [#{ontologies}] #{note.subject}"
         body = NEW_NOTE.gsub("%username%", note.creator.username)
                        .gsub("%ontologies%", ontologies)
                        .gsub("%note_subject%", note.subject || "")
                        .gsub("%note_body%", note.body || "")
-                       .gsub("%note_url%", LinkedData::Hypermedia.generate_links(note)["ui"])
+                       .gsub("%note_url%", note_url)
                        .gsub('%ui_name%', LinkedData.settings.ui_name)
 
         note.relatedOntology.each do |ont|
@@ -101,18 +106,11 @@ module LinkedData
         subject = "[#{ui_name}] User #{user.username} password reset"
         password_url = "https://#{LinkedData.settings.ui_host}/reset_password?tk=#{token}&em=#{CGI.escape(user.email)}&un=#{CGI.escape(user.username)}"
 
-        body = <<~HTML
-          Someone has requested a password reset for user #{user.username}. If this was 
-          you, please click on the link below to reset your password. Otherwise, please 
-          ignore this email.<br/><br/>
+        body =  REST_PASSWORD.gsub('%ui_name%', ui_name)
+                             .gsub('%username%', user.username.to_s)
+                             .gsub('%password_url%', password_url.to_s)
 
-          <a href="#{password_url}">#{password_url}</a><br/><br/>
-
-          Thanks,<br/>
-          BioPortal Team
-          #{ui_name} Team
-        HTML
-        Notifier.notify_mails_separately subject, body, [user.mail]
+        Notifier.notify_mails_separately subject, body, [user.email]
       end
 
       def self.obofoundry_sync(missing_onts, obsolete_onts)
@@ -201,6 +199,17 @@ At <a href="%ont_url%">%ont_url%</a>
 <br><br>
 The %ui_name% Team
 EOS
+
+      REST_PASSWORD = <<~HTML
+        Someone has requested a password reset for user %username% . If this was 
+        you, please click on the link below to reset your password. Otherwise, please 
+        ignore this email.<br/><br/>
+
+        <a href="%password_url%">%password_url%</a><br/><br/>
+
+        Thanks,<br/>
+        %ui_name% Team
+HTML
 
     end
   end
