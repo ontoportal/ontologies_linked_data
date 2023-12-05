@@ -118,26 +118,26 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
 
     sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: "SKOS-TEST"],
                                                        submissionId: 987)
-                                                     .include(:version)
-                                                     .first
+                                                .include(:version)
+                                                .first
     assert sub.roots.map { |x| x.id.to_s}.sort == ["http://www.ebi.ac.uk/efo/EFO_0000311",
-       "http://www.ebi.ac.uk/efo/EFO_0001444",
-        "http://www.ifomis.org/bfo/1.1/snap#Disposition",
-         "http://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:37577",
-          "http://www.ebi.ac.uk/efo/EFO_0000635",
-           "http://www.ebi.ac.uk/efo/EFO_0000324"].sort
+                                                   "http://www.ebi.ac.uk/efo/EFO_0001444",
+                                                   "http://www.ifomis.org/bfo/1.1/snap#Disposition",
+                                                   "http://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:37577",
+                                                   "http://www.ebi.ac.uk/efo/EFO_0000635",
+                                                   "http://www.ebi.ac.uk/efo/EFO_0000324"].sort
     roots = sub.roots
     LinkedData::Models::Class.in(sub).models(roots).include(:children).all
     roots.each do |root|
-q_broader = <<-eos
+      q_broader = <<-eos
 SELECT ?children WHERE {
   ?children #{RDF::SKOS[:broader].to_ntriples} #{root.id.to_ntriples} }
 eos
-    children_query = []
-    Goo.sparql_query_client.query(q_broader).each_solution do |sol|
-      children_query << sol[:children].to_s
-    end
-    assert root.children.map { |x| x.id.to_s }.sort == children_query.sort
+      children_query = []
+      Goo.sparql_query_client.query(q_broader).each_solution do |sol|
+        children_query << sol[:children].to_s
+      end
+      assert root.children.map { |x| x.id.to_s }.sort == children_query.sort
     end
   end
 
@@ -149,11 +149,11 @@ eos
     #test for version info
     sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: "HP-TEST"],
                                                        submissionId: 55)
-                                                     .include(:version)
-                                                     .first
+                                                .include(:version)
+                                                .first
 
     paging = LinkedData::Models::Class.in(sub).page(1,100)
-                                              .include(:unmapped)
+                                      .include(:unmapped)
     found = false
 
     begin
@@ -222,24 +222,24 @@ eos
     #strict comparison to be sure the merge with the tree_view branch goes fine
 
     LinkedData::Models::Class.where.in(sub).include(:prefLabel,:synonym,:notation).each do |cls|
-        assert_instance_of String,cls.prefLabel
-        if cls.notation.nil?
-          assert false,"notation empty"
-        end
-        assert_instance_of String,cls.notation
-        assert cls.notation[-6..-1] == cls.id.to_s[-6..-1]
-        #NCBO-1007 - hasNarrowSynonym
-        if cls.id.to_s["CL_0000003"]
-          assert cls.synonym[0] == "cell in vivo"
-        end
-        #NCBO-1007 - hasBroadSynonym
-        if cls.id.to_s["CL_0000137"]
-          assert cls.synonym[0] == "bone cell"
-        end
-        #NCBO-1007 - hasRelatedSynonym
-        if cls.id.to_s["TAO_0000223"]
-          assert cls.synonym.length == 6
-        end
+      assert_instance_of String,cls.prefLabel
+      if cls.notation.nil?
+        assert false,"notation empty"
+      end
+      assert_instance_of String,cls.notation
+      assert cls.notation[-6..-1] == cls.id.to_s[-6..-1]
+      #NCBO-1007 - hasNarrowSynonym
+      if cls.id.to_s["CL_0000003"]
+        assert cls.synonym[0] == "cell in vivo"
+      end
+      #NCBO-1007 - hasBroadSynonym
+      if cls.id.to_s["CL_0000137"]
+        assert cls.synonym[0] == "bone cell"
+      end
+      #NCBO-1007 - hasRelatedSynonym
+      if cls.id.to_s["TAO_0000223"]
+        assert cls.synonym.length == 6
+      end
     end
 
     # This is testing that treeView is used to traverse the hierarchy
@@ -247,17 +247,17 @@ eos
     assert sub.hasOntologyLanguage.tree_property == Goo.vocabulary(:metadata)[:treeView]
 
     bm = LinkedData::Models::Class
-               .find(RDF::URI.new("http://purl.obolibrary.org/obo/GO_0070977"))
-               .in(sub)
-               .include(:prefLabel,:children,:parents)
-               .first
+           .find(RDF::URI.new("http://purl.obolibrary.org/obo/GO_0070977"))
+           .in(sub)
+           .include(:prefLabel,:children,:parents)
+           .first
     assert bm.children.first.id == RDF::URI.new("http://purl.obolibrary.org/obo/GO_0043931")
     assert_equal 2, bm.parents.length
     roots = sub.roots
     assert roots.map { |x| x.id.to_s }.sort ==
-      ["http://purl.obolibrary.org/obo/PATO_0000001",
-      "http://purl.obolibrary.org/obo/CARO_0000000",
-      "http://purl.obolibrary.org/obo/GO_0008150"].sort
+             ["http://purl.obolibrary.org/obo/PATO_0000001",
+              "http://purl.obolibrary.org/obo/CARO_0000000",
+              "http://purl.obolibrary.org/obo/GO_0008150"].sort
   end
 
   def test_submission_parse_subfolders_zip
@@ -280,14 +280,14 @@ eos
     # This one has some nasty looking IRIS with slashes in the anchor
     unless ENV["BP_SKIP_HEAVY_TESTS"] == "1"
       submission_parse("MCCLTEST", "MCCLS TEST",
-                 "./test/data/ontology_files/CellLine_OWL_BioPortal_v1.0.owl", 11,
+                       "./test/data/ontology_files/CellLine_OWL_BioPortal_v1.0.owl", 11,
                        process_rdf: true, index_search: true,
                        run_metrics: false, reasoning: true)
 
       sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: "MCCLTEST"],
                                                          submissionId: 11)
-                                                       .include(:version)
-                                                       .first
+                                                  .include(:version)
+                                                  .first
       assert sub.version == "3.0"
     end
 
@@ -300,8 +300,8 @@ eos
 
     sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: "ONTOMATEST"],
                                                        submissionId: 15)
-                                                     .include(:version)
-                                                     .first
+                                                .include(:version)
+                                                .first
     assert sub.version["Version 1.1"]
     assert sub.version["Date: 11-2011"]
   end
@@ -361,16 +361,16 @@ eos
     assert latest_sub.archived?
 
     assert File.file?(File.join(latest_sub.data_folder, 'labels.ttl')),
-      %-Missing ontology submission file: 'labels.ttl'-
+           %-Missing ontology submission file: 'labels.ttl'-
 
     assert File.file?(File.join(latest_sub.data_folder, 'owlapi.xrdf')),
-      %-Missing ontology submission file: 'owlapi.xrdf'-
+           %-Missing ontology submission file: 'owlapi.xrdf'-
 
     assert File.file?(latest_sub.csv_path),
-      %-Missing ontology submission file: '#{latest_sub.csv_path}'-
+           %-Missing ontology submission file: '#{latest_sub.csv_path}'-
 
     assert File.file?(latest_sub.parsing_log_path),
-      %-Missing ontology submission file: '#{latest_sub.parsing_log_path}'-
+           %-Missing ontology submission file: '#{latest_sub.parsing_log_path}'-
 
     # Process one prior to latest submission.  Some files should be deleted.
     old_sub = sorted_submissions.last
@@ -379,19 +379,19 @@ eos
     assert old_sub.archived?
 
     assert_equal false, File.file?(File.join(old_sub.data_folder, 'labels.ttl')),
-      %-File deletion failed for 'labels.ttl'-
+                 %-File deletion failed for 'labels.ttl'-
 
     assert_equal false, File.file?(File.join(old_sub.data_folder, 'mappings.ttl')),
-      %-File deletion failed for 'mappings.ttl'-
+                 %-File deletion failed for 'mappings.ttl'-
 
     assert_equal false, File.file?(File.join(old_sub.data_folder, 'obsolete.ttl')),
-      %-File deletion failed for 'obsolete.ttl'-
+                 %-File deletion failed for 'obsolete.ttl'-
 
     assert_equal false, File.file?(File.join(old_sub.data_folder, 'owlapi.xrdf')),
-      %-File deletion failed for 'owlapi.xrdf'-
+                 %-File deletion failed for 'owlapi.xrdf'-
 
     assert_equal false, File.file?(old_sub.csv_path),
-      %-File deletion failed for '#{old_sub.csv_path}'-
+                 %-File deletion failed for '#{old_sub.csv_path}'-
 
     assert_equal false, File.file?(old_sub.parsing_log_path),
       %-File deletion failed for '#{old_sub.parsing_log_path}'-
@@ -606,10 +606,10 @@ eos
       server_url = 'http://localhost:' + server_port.to_s
       server_thread = Thread.new do
         Rack::Server.start(
-            app: lambda do |e|
-              [200, {'Content-Type' => 'text/plain'}, ['test file']]
-            end,
-            Port: server_port
+          app: lambda do |e|
+            [200, {'Content-Type' => 'text/plain'}, ['test file']]
+          end,
+          Port: server_port
         )
       end
       Thread.pass
@@ -767,7 +767,7 @@ eos
     acr = "CSTPROPS"
     init_test_ontology_msotest acr
     os = LinkedData::Models::OntologySubmission.where(ontology: [ acronym: acr ], submissionId: 1)
-          .include(LinkedData::Models::OntologySubmission.attributes).all
+                                               .include(LinkedData::Models::OntologySubmission.attributes).all
     assert(os.length == 1)
     os = os[0]
     roots = os.roots
@@ -851,8 +851,8 @@ eos
     end
     assert sub.ready?({status: [:uploaded, :rdf, :rdf_labels]})
     page_classes = LinkedData::Models::Class.in(sub)
-                                             .page(1,1000)
-                                             .include(:prefLabel, :synonym).all
+                                            .page(1,1000)
+                                            .include(:prefLabel, :synonym).all
     page_classes.each do |c|
       if c.id.to_s == "http://purl.obolibrary.org/obo/SBO_0000004"
         assert c.prefLabel == "modelling framework"
@@ -913,7 +913,7 @@ eos
     sub.submissionStatus.select { |x| x.id.to_s["ERROR"] }.length == 0
 
     LinkedData::Models::Class.where.in(sub)
-      .include(:prefLabel, :notation, :prefixIRI).each do |cls|
+                             .include(:prefLabel, :notation, :prefixIRI).each do |cls|
       assert !cls.notation.nil? || !cls.prefixIRI.nil?
       assert !cls.id.to_s.start_with?(":")
     end
@@ -1000,9 +1000,9 @@ eos
     assert count_headers > 2
 
     page_classes = LinkedData::Models::Class.in(sub)
-                                             .page(1,1000)
-                                             .read_only
-                                             .include(:prefLabel, :synonym, :definition).all
+                                            .page(1,1000)
+                                            .read_only
+                                            .include(:prefLabel, :synonym, :definition).all
     page_classes.each do |c|
       if c.id.to_s == "http://purl.obolibrary.org/obo/AERO_0000040"
         assert c.prefLabel == "shaking finding"
@@ -1022,7 +1022,7 @@ eos
 
     #for indexing in search
     paging = LinkedData::Models::Class.in(sub).page(1,100)
-                                              .include(:unmapped)
+                                      .include(:unmapped)
     page = nil
     defs = 0
     syns = 0
