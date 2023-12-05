@@ -15,6 +15,7 @@ LinkedData.config do |config|
   config.purl_password          = ""
   config.purl_maintainers       = ""
   config.purl_target_url_prefix = "http://bioportal.bioontology.org"
+  config.sparql_endpoint_url    = "http:://sparql_endpoint.com"
   Goo.configure do |conf|
       conf.main_languages = ['en']
   end

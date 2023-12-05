@@ -57,6 +57,9 @@ module LinkedData
         end
       end
       ont_submission =  LinkedData::Models::OntologySubmission.new({ :submissionId => id})
+      ont_submission.uri = RDF::URI.new('https://test.com')
+      ont_submission.description = 'description example'
+      ont_submission.status = 'beta'
       assert (not ont_submission.valid?)
       assert_equal 4, ont_submission.errors.length
       uploadFilePath = LinkedData::Models::OntologySubmission.copy_file_repository(acronym, id, ontologyFile)
@@ -109,6 +112,10 @@ module LinkedData
         LinkedData::TestCase.backend_4s_delete
       end
       ont_submission =  LinkedData::Models::OntologySubmission.new({ :submissionId => 1 })
+      ont_submission.uri = RDF::URI.new('https://test.com')
+      ont_submission.description = 'description example'
+      ont_submission.status = 'beta'
+
       assert (not ont_submission.valid?)
       assert_equal 4, ont_submission.errors.length
       if acr["OBS"]

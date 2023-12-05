@@ -59,7 +59,10 @@ class TestOntology < LinkedData::TestOntologyCommon
       pullLocation: RDF::IRI.new("http://localhost:#{@@port}/"),
       submissionId: o.next_submission_id,
       contact: [@contact],
-      released: DateTime.now - 5
+      released: DateTime.now - 5,
+      description: 'description example',
+      URI: RDF::URI.new('https://test.com'),
+      status: 'beta'
     })
     os.save
   end

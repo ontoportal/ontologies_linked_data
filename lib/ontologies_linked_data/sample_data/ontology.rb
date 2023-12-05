@@ -66,7 +66,10 @@ module LinkedData
               submissionId: o.next_submission_id,
               definitionProperty: (RDF::IRI.new "http://bioontology.org/ontologies/biositemap.owl#definition"),
               contact: [contact],
-              released: DateTime.now - 3
+              released: DateTime.now - 3,
+              URI: RDF::URI.new("https://test-#{o.next_submission_id}.com"),
+              description: "Description #{o.next_submission_id}",
+              status: 'production'
             })
 
             if (submissions_to_process.nil? || submissions_to_process.include?(os.submissionId))
