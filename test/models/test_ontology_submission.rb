@@ -38,7 +38,7 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
     os.status = 'beta'
     assert os.valid?
   end
-
+  
   def test_sanity_check_zip
 
     acronym = "ADARTEST"
@@ -342,6 +342,8 @@ eos
     parse_options = { process_rdf: false, index_search: false, index_commit: false,
                       run_metrics: false, reasoning: false, archive: true }
 
+    old_threshold = LinkedData::Models::OntologySubmission::FILE_SIZE_ZIPPING_THRESHOLD
+    LinkedData::Models::OntologySubmission.const_set(:FILE_SIZE_ZIPPING_THRESHOLD, 0)
 
     ont_count, ont_acronyms, ontologies =
       create_ontologies_and_submissions(ont_count: 1, submission_count: 2,
@@ -392,13 +394,14 @@ eos
                  %-File deletion failed for '#{old_sub.csv_path}'-
 
     assert_equal false, File.file?(old_sub.parsing_log_path),
-                 %-File deletion failed for '#{old_sub.parsing_log_path}'-
+      %-File deletion failed for '#{old_sub.parsing_log_path}'-
 
     assert_equal false, File.file?(old_file_path),
                  %-File deletion failed for '#{old_file_path}'-
 
     assert old_sub.zipped?
     assert File.file?(old_sub.uploadFilePath)
+    LinkedData::Models::OntologySubmission.const_set(:FILE_SIZE_ZIPPING_THRESHOLD, old_threshold)
   end
 
   def test_submission_diff_across_ontologies

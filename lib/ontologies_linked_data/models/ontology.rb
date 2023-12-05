@@ -154,7 +154,7 @@ module LinkedData
 
         sub.bring_remaining
         sub.hasPart = parts
-        sub.save
+        sub.save if sub.valid?
 
         return unless changed && action.eql?(:remove)
 

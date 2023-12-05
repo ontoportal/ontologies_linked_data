@@ -20,6 +20,7 @@ gem 'rsolr', '~> 1.0'
 gem 'rubyzip', '~> 1.0'
 gem 'thin'
 gem 'request_store'
+gem 'jwt'
 
 # Testing
 group :test do
@@ -29,6 +30,7 @@ group :test do
   gem 'simplecov'
   gem 'simplecov-cobertura' # for codecov.io
   gem 'test-unit-minitest'
+  gem 'webmock'
 end
 
 group :development do

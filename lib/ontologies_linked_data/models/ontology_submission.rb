@@ -23,6 +23,7 @@ module LinkedData
       FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
       FOLDERS_TO_DELETE = ['unzipped']
       FLAT_ROOTS_LIMIT = 1000
+      FILE_SIZE_ZIPPING_THRESHOLD = 100 * 1024 * 1024 # 100MB
 
       model :ontology_submission, scheme: File.join(__dir__, '../../../config/schemes/ontology_submission.yml'),
                                   name_with: ->(s) { submission_id_generator(s) }
@@ -44,13 +45,11 @@ module LinkedData
 
       # Ontology metadata
       # General metadata
-      attribute :URI, namespace: :omv, enforce: %i[existence distinct_of_identifier]
+      attribute :URI, namespace: :omv,  type: :uri, enforce: %i[existence distinct_of_identifier]
       attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
       attribute :version, namespace: :omv
-      attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' },
-                         onUpdate: :retired_previous_align
-      attribute :deprecated, namespace: :owl, type: :boolean, enforce: [:deprecated_retired_align],
-                             onUpdate: :deprecate_previous_submissions, default: ->(x) { false }
+      attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' }
+      attribute :deprecated, namespace: :owl, type: :boolean, default: ->(x) { false }
       attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
       attribute :hasFormalityLevel, namespace: :omv, type: :uri
       attribute :hasOntologySyntax, namespace: :omv, type: :uri, default: ->(s) {ontology_syntax_default(s)}
@@ -77,11 +76,10 @@ module LinkedData
 
       # Date metadata
       attribute :released, type: :date_time, enforce: [:existence]
-      attribute :valid, namespace: :dct, type: :date_time, enforce: [:validity_date_retired_align]
-      attribute :curatedOn, namespace: :pav, type: %i[date_time list], enforce: [:superior_equal_to_creationDate]
+      attribute :valid, namespace: :dct, type: :date_time
+      attribute :curatedOn, namespace: :pav, type: %i[date_time list]
       attribute :creationDate, namespace: :omv, type: :date_time, default: ->(x) { Date.today.to_datetime }
-      attribute :modificationDate, namespace: :omv, type: :date_time,
-                                   enforce: %i[superior_equal_to_creationDate modification_date_previous_align]
+      attribute :modificationDate, namespace: :omv, type: :date_time
 
       # Person and organizations metadata
       attribute :contact, type: %i[contact list], enforce: [:existence]
@@ -90,14 +88,14 @@ module LinkedData
       attribute :curatedBy, namespace: :pav, type: %i[list Agent]
       attribute :publisher, namespace: :dct, type: %i[list Agent]
       attribute :fundedBy, namespace: :foaf, type: %i[list Agent], enforce: [:is_organization]
-      attribute :endorsedBy, namespace: :omv, type: :list, enforce: [:is_organization]
+      attribute :endorsedBy, namespace: :omv, type: %i[list Agent], enforce: [:is_organization]
       attribute :translator, namespace: :schema, type: %i[list Agent]
 
       # Community metadata
       attribute :audience, namespace: :dct
       attribute :repository, namespace: :doap, type: :uri
       attribute :bugDatabase, namespace: :doap, type: :uri
-      attribute :mailingList, namespace: :doap, enforce: [:email]
+      attribute :mailingList, namespace: :doap
       attribute :toDoList, namespace: :voaf, type: :list
       attribute :award, namespace: :schema, type: :list
 
@@ -111,8 +109,8 @@ module LinkedData
       # Methodology metadata
       attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv
       attribute :usedOntologyEngineeringMethodology, namespace: :omv
-      attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list uri]
-      attribute :accrualMethod, namespace: :dct, type: %i[list uri]
+      attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list]
+      attribute :accrualMethod, namespace: :dct, type: %i[list]
       attribute :accrualPeriodicity, namespace: :dct
       attribute :accrualPolicy, namespace: :dct
       attribute :competencyQuestion, namespace: :mod, type: :list
@@ -133,29 +131,29 @@ module LinkedData
       attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
 
       # Relations
-      attribute :hasPriorVersion, namespace: :omv, type: :uri, onUpdate: [:include_previous_submission]
-      attribute :hasPart, namespace: :dct, type: %i[uri list], enforce: %i[include_ontology_views]
-      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
-      attribute :similarTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
-      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
-      attribute :isAlignedTo, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :hasPriorVersion, namespace: :omv, type: :uri
+      attribute :hasPart, namespace: :dct, type: %i[uri list]
+      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri]
+      attribute :similarTo, namespace: :door, type: %i[list uri]
+      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri]
+      attribute :isAlignedTo, namespace: :door, type: %i[list uri]
       attribute :isBackwardCompatibleWith, namespace: :omv, type: %i[list uri]
       attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri]
-      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri], onUpdate: :enforce_symmetric_ontologies
+      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri]
       attribute :hasDisjunctionsWith, namespace: :voaf, type: %i[uri list]
-      attribute :generalizes, namespace: :voaf, type: %i[list uri],  onUpdate: :ontology_inverse_of_callback
-      attribute :explanationEvolution, namespace: :door, type: %i[list uri], onUpdate: :ontology_inverse_of_callback
-      attribute :useImports, namespace: :omv, type: %i[list uri], onUpdate: :ontology_inverse_of_callback
-      attribute :usedBy, namespace: :voaf, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
-      attribute :workTranslation, namespace: :schema, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
-      attribute :translationOfWork, namespace: :schema, type: %i[uri list], onUpdate: :ontology_inverse_of_callback
+      attribute :generalizes, namespace: :voaf, type: %i[list uri]
+      attribute :explanationEvolution, namespace: :door, type: %i[list uri]
+      attribute :useImports, namespace: :omv, type: %i[list uri]
+      attribute :usedBy, namespace: :voaf, type: %i[uri list]
+      attribute :workTranslation, namespace: :schema, type: %i[uri list]
+      attribute :translationOfWork, namespace: :schema, type: %i[uri list]
 
       # Content metadata
       attribute :uriRegexPattern, namespace: :void, type: :uri
       attribute :preferredNamespaceUri, namespace: :vann, type: :uri
       attribute :preferredNamespacePrefix, namespace: :vann
-      attribute :exampleIdentifier, namespace: :idot, type: :class, default: ->(s) { LinkedData::Models::Class.in(s).first }
-      attribute :keyClasses, namespace: :omv, type: %i[list class]
+      attribute :exampleIdentifier, namespace: :idot
+      attribute :keyClasses, namespace: :omv, type: %i[list]
       attribute :metadataVoc, namespace: :voaf, type: %i[uri list]
       attribute :uploadFilePath
       attribute :diffFilePath
@@ -181,14 +179,13 @@ module LinkedData
 
       def self.agents_attrs
         [:hasCreator, :publisher, :copyrightHolder, :hasContributor,
-         :translator, :endorsedBy, :fundedBy, :publisher, :curatedBy  ]
+         :translator, :endorsedBy, :fundedBy, :curatedBy]
       end
       # Hypermedia settings
-      embed *[:contact, :ontology]  + agents_attrs
+      embed *[:contact, :ontology, :metrics]  + agents_attrs
       def self.embed_values_hash
         out = {
-          submissionStatus: [:code], hasOntologyLanguage: [:acronym], metrics: %i[classes individuals properties],
-
+          submissionStatus: [:code], hasOntologyLanguage: [:acronym]
         }
 
         agent_attributes = LinkedData::Models::Agent.goo_attrs_to_load +
@@ -498,6 +495,10 @@ module LinkedData
 
         return self.uploadFilePath if zipped?
         return self.uploadFilePath if self.uploadFilePath.nil? || self.uploadFilePath.empty?
+
+
+        return self.uploadFilePath if File.size(self.uploadFilePath) < FILE_SIZE_ZIPPING_THRESHOLD
+
 
         old_path = self.uploadFilePath
         new_path = Utils::FileHelpers.zip_file(old_path)
@@ -1670,7 +1671,7 @@ eos
       end
 
       def uri=(uri)
-        self.URI = uri
+        self.URI = RDF::URI.new(uri)
       end
 
       def roots_sorted(extra_include = nil, concept_schemes: [])

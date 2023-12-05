@@ -7,7 +7,7 @@ module LinkedData
 
       def self.serialize(obj, options = {})
 
-        result_lang = nil
+
         hash = obj.to_flex_hash(options) do |hash, hashed_obj|
           current_cls = hashed_obj.respond_to?(:klass) ? hashed_obj.klass : hashed_obj.class
           result_lang = self.get_languages(get_object_submission(hashed_obj), options[:lang]) if result_lang.nil?
@@ -71,7 +71,7 @@ module LinkedData
       def self.get_submission_languages(submission_natural_language = [])
         submission_natural_language = submission_natural_language.values.flatten if submission_natural_language.is_a?(Hash)
         submission_natural_language.map { |natural_language| natural_language.to_s['iso639'] && natural_language.to_s.split('/').last[0..1].to_sym }.compact
-      end
+      end 
 
       def self.type(current_cls, hashed_obj)
         if current_cls.respond_to?(:type_uri)

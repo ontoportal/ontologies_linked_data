@@ -54,7 +54,7 @@ class Object
     # Add methods
     methods = methods - do_not_serialize_nested(options)
     methods.each do |method|
-      hash[method] = self.send(method.to_s) if self.respond_to?(method) rescue next
+      populate_attribute(hash, method) if self.respond_to?(method) rescue next
     end
 
     # Get rid of everything except the 'only'
@@ -244,7 +244,7 @@ class Object
 
       attributes.each do |attribute|
         next unless self.respond_to?(attribute)
-        hash[attribute] = self.send(attribute)
+        populate_attribute(hash, attribute)
       end
     elsif !only.empty?
       # Only get stuff we need
@@ -256,13 +256,22 @@ class Object
     hash
   end
 
+  def populate_attribute(hash, attribute)
+    if self.method(attribute).parameters.eql?([[:rest, :args]])
+      hash[attribute] = self.send(attribute, include_languages: true)
+    else
+      # a serialized method
+      hash[attribute] = self.send(attribute)
+    end
+  end
+
   def populate_hash_from_list(hash, attributes)
     attributes.each do |attribute|
       attribute = attribute.to_sym
 
       next unless self.respond_to?(attribute)
       begin
-        hash[attribute] = self.send(attribute, include_languages: true)
+        populate_attribute(hash, attribute)
       rescue Goo::Base::AttributeNotLoaded
         next
       rescue ArgumentError

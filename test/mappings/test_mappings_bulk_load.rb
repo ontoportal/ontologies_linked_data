@@ -221,7 +221,7 @@ class TestMappingBulkLoad < LinkedData::TestOntologyCommon
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
     ct = LinkedData::Models::MappingCount.where.all.length
     assert ct > 2
-    o = LinkedData::Models::Ontology.where(submissions: { URI: ontology_id })
+    o = LinkedData::Models::Ontology.where(submissions: { URI: RDF::URI.new(ontology_id) })
                                     .include(submissions: %i[submissionId submissionStatus])
                                     .first
     latest_sub = o.nil? ? nil : o.latest_submission
