@@ -6,9 +6,11 @@ module LinkedData
       CONTEXTS = {}
 
       def self.serialize(obj, options = {})
+
+
         hash = obj.to_flex_hash(options) do |hash, hashed_obj|
           current_cls = hashed_obj.respond_to?(:klass) ? hashed_obj.klass : hashed_obj.class
-          result_lang = self.get_languages(get_object_submission(hashed_obj), options[:lang])
+          result_lang = self.get_languages(get_object_submission(hashed_obj), options[:lang]) if result_lang.nil?
 
           # Add the id to json-ld attribute
           if current_cls.ancestors.include?(LinkedData::Hypermedia::Resource) && !current_cls.embedded? && hashed_obj.respond_to?(:id)

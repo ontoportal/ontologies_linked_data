@@ -37,19 +37,19 @@ class TestProvisionalClass < LinkedData::TestOntologyCommon
 
     # Before save
     assert_equal LinkedData::Models::ProvisionalClass.where(label: label).all.count, 0
-    assert_equal false, pc.exist?(reload=true)
+    assert_equal false, pc.exist?
 
     pc.save
 
     # After save
     assert_equal LinkedData::Models::ProvisionalClass.where(label: label).all.count, 1
-    assert_equal true, pc.exist?(reload=true)
+    assert_equal true, pc.exist?
 
     pc.delete
 
     # After delete
     assert_equal LinkedData::Models::ProvisionalClass.where(label: label).all.count, 0
-    assert_equal false, pc.exist?(reload=true)
+    assert_equal false, pc.exist?
   end
 
   def test_provisional_class_valid
@@ -292,7 +292,7 @@ class TestProvisionalClass < LinkedData::TestOntologyCommon
     pc.index
     resp = LinkedData::Models::Ontology.search("\"#{pc.label}\"", params)
     assert_equal 1, resp["response"]["numFound"]
-    assert_equal pc.label, resp["response"]["docs"][0]["prefLabel"]
+    assert_equal pc.label, resp["response"]["docs"][0]["prefLabel"].first
     pc.unindex
 
     acr = "CSTPROPS"
@@ -315,7 +315,7 @@ class TestProvisionalClass < LinkedData::TestOntologyCommon
 
     resp = LinkedData::Models::Ontology.search("\"#{pc1.label}\"", params)
     assert_equal 1, resp["response"]["numFound"]
-    assert_equal pc1.label, resp["response"]["docs"][0]["prefLabel"]
+    assert_equal pc1.label, resp["response"]["docs"][0]["prefLabel"].first
     par_len = resp["response"]["docs"][0]["parents"].length
     assert_equal 5, par_len
     assert_equal 1, (resp["response"]["docs"][0]["parents"].select { |x| x == class_id.to_s }).length

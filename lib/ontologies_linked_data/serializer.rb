@@ -84,7 +84,7 @@ module LinkedData
     end
 
     def self.serialize(type, obj, params, request)
-      lang = params['lang'] || Goo.main_languages.first
+      lang = params['lang'] || params['language']|| Goo.main_languages.first
       only = params['display'] || []
       only = only.split(',') unless only.is_a?(Array)
       all = only[0] == 'all'
@@ -104,6 +104,12 @@ module LinkedData
       else
         false
       end
+    end
+
+    def self.get_language(params)
+      lang = params['lang'] || params['language'] ||  Goo.main_languages&.first.to_s || 'en'
+      lang = lang.split(',').map {|l| l.downcase.to_sym}
+      return lang.length == 1 ? lang.first : lang
     end
 
   end

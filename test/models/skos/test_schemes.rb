@@ -10,7 +10,7 @@ class TestSchemes < LinkedData::TestOntologyCommon
 
   def test_schemes_all
     submission_parse('INRAETHES', 'Testing skos',
-                     'test/data/ontology_files/thesaurusINRAE_nouv_structure.rdf',
+                     'test/data/ontology_files/thesaurusINRAE_nouv_structure.skos',
                      1,
                      process_rdf: true, index_search: false,
                      run_metrics: false, reasoning: false)

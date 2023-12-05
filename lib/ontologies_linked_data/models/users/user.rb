@@ -92,7 +92,11 @@ module LinkedData
       end
 
       def to_s
-        self.username.to_s
+        if bring?(:username)
+          self.id.to_s
+        else
+          self.username.to_s
+        end
       end
 
       private
