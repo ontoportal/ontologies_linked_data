@@ -32,7 +32,7 @@ module LinkedData
         submission.bring_remaining
         ontology = submission.ontology
         ontology.bring(:name, :acronym)
-        result = submission.ready? ? 'Success' : 'Failure'
+        result = submission.ready? || submission.archived? ? 'Success' : 'Failure'
         status = LinkedData::Models::SubmissionStatus.readable_statuses(submission.submissionStatus)
 
         subject = "[#{LinkedData.settings.ui_name}] #{ontology.name} Parsing #{result}"

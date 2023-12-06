@@ -149,7 +149,7 @@ module LinkedData
       attribute :translationOfWork, namespace: :schema, type: %i[uri list]
 
       # Content metadata
-      attribute :uriRegexPattern, namespace: :void, type: :uri
+      attribute :uriRegexPattern, namespace: :void
       attribute :preferredNamespaceUri, namespace: :vann, type: :uri
       attribute :preferredNamespacePrefix, namespace: :vann
       attribute :exampleIdentifier, namespace: :idot
