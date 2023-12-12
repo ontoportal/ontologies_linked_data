@@ -61,6 +61,8 @@ class TestRackAuthorization < MiniTest::Unit::TestCase
   def test_authorize
     get "/ontologies"
     assert last_response.status == 401
+    get "/ontologies", {}, {"Authorization" => "bogus auth header"} # W: Space inside } missing.
+    assert_equal 401, last_response.status
     get "/ontologies", {}, {"Authorization" => 'apikey token="'+@apikey+''+'"'}
     assert last_response.status == 200
     apikey = MultiJson.load(last_response.body)
