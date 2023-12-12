@@ -60,33 +60,32 @@ class TestRackAuthorization < MiniTest::Unit::TestCase
 
   def test_authorize
     get "/ontologies"
-    assert last_response.status == 401
-    get "/ontologies", {}, {"Authorization" => "bogus auth header"} # W: Space inside } missing.
+    assert_equal 401, last_response.status
+    get "/ontologies", {}, {"Authorization" => "bogus auth header"}
     assert_equal 401, last_response.status
     get "/ontologies", {}, {"Authorization" => 'apikey token="'+@apikey+''+'"'}
-    assert last_response.status == 200
+    assert_equal 200, last_response.status
     apikey = MultiJson.load(last_response.body)
     assert @apikey.eql?(apikey)
     get "/ontologies", {}, {"Authorization" => "apikey token=#{@apikey}"}
-    assert last_response.status == 200
+    assert_equal 200, last_response.status
     apikey = MultiJson.load(last_response.body)
-    assert @apikey.eql?(apikey)
+    assert_equal @apikey, apikey
     get "/ontologies?apikey=#{@apikey}"
-    assert last_response.status == 200
+    assert_equal 200, last_response.status
     apikey = MultiJson.load(last_response.body)
-    assert @apikey.eql?(apikey)
+    assert_equal @apikey, apikey
     get "/ontologies", {}, {"Authorization" => 'apikey token="'+@apikey+'&userapikey='+@userapikey+'"'}
-    assert last_response.status == 200
+    assert_equal 200, last_response.status
     apikey = MultiJson.load(last_response.body)
-    assert @userapikey.eql?(apikey)
+    assert_equal @userapikey, apikey
     get "/ontologies", {}, {"Authorization" => "apikey token=#{@apikey}&userapikey=#{@userapikey}"}
-    assert last_response.status == 200
+    assert_equal 200, last_response.status
     apikey = MultiJson.load(last_response.body)
-    assert @userapikey.eql?(apikey)
+    assert_equal @userapikey, apikey
     get "/ontologies?apikey=#{@apikey}&userapikey=#{@userapikey}"
-    assert last_response.status == 200
+    assert_equal 200, last_response.status
     apikey = MultiJson.load(last_response.body)
-    assert @userapikey.eql?(apikey)
+    assert_equal @userapikey, apikey
   end
-
 end
