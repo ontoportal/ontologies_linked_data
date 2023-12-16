@@ -224,6 +224,9 @@ module LinkedData
         @mutex.synchronize(&block)
       end
 
+      def self.agents_attr_uris
+        agents_attrs.map{ |x| self.attribute_uri(x) }
+      end
 
       def self.ontology_link(m)
         ontology_link = ""

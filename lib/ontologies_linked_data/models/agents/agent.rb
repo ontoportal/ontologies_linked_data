@@ -24,30 +24,10 @@ module LinkedData
       access_control_load :creator
 
 
-      def self.load_agents_usages(agents = [])
-        is_a = RDF::URI.new('http://www.w3.org/1999/02/22-rdf-syntax-ns#type')
-        q = Goo.sparql_query_client.select(:id, :property, :agent, :status).distinct
-               .from(LinkedData::Models::OntologySubmission.uri_type)
-               .where(
-                 [:id,
-                  is_a,
-                  LinkedData::Models::OntologySubmission.uri_type
-                 ],
-                 [:id,
-                  LinkedData::Models::OntologySubmission.attribute_uri(:submissionStatus),
-                  :status
-                 ]
-               )
-
-
-        q = q.optional([:agent, is_a, LinkedData::Models::Agent.uri_type])
-        q = q.optional([:id, :property, :agent])
-
-        ready_submission_filter = "?status = <#{RDF::URI.new(LinkedData::Models::SubmissionStatus.id_prefix + 'RDF')}> || ?status = <#{RDF::URI.new(LinkedData::Models::SubmissionStatus.id_prefix + 'UPLOADED')}>"
-        q.filter(ready_submission_filter)
-
-
-        q.filter(agents.map{|agent| "?agent = <#{agent.id}>"}.join(' || ')) unless agents.empty?
+      def self.load_agents_usages(agents = [], agent_attributes =  OntologySubmission.agents_attr_uris)
+        q = Goo.sparql_query_client.select(:id, :property, :agent, :status).distinct.from(LinkedData::Models::OntologySubmission.uri_type).where([:id,LinkedData::Models::OntologySubmission.attribute_uri(:submissionStatus),:status], [:id, :property, :agent])
+        q = q.filter("?status = <#{RDF::URI.new(LinkedData::Models::SubmissionStatus.id_prefix + 'RDF')}> || ?status = <#{RDF::URI.new(LinkedData::Models::SubmissionStatus.id_prefix + 'UPLOADED')}>")
+        q = q.filter(agent_attributes.map{|attr| "?property = <#{attr}>"}.join(' || '))
 
         data = q.each_solution.group_by{|x| x[:agent]}
 
