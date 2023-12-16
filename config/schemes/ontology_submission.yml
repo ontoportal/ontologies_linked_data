@@ -412,7 +412,7 @@ publication:
 ### Dates
 
 #Creation date
-creationDate:
+released:
   display: "dates"
   label: "Creation date"
   helpText: "Date of original (or first) creation of the resource."
@@ -466,7 +466,7 @@ curatedOn:
   metadataMappings: [ "pav:curatedOn" ]
 
 #Submission date 
-released:
+creationDate:
   display: "dates"
   label: "Submission date"
   helpText: "Date of the submission/release in the portal."

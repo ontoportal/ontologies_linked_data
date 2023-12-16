@@ -1149,9 +1149,10 @@ eos
       assert_equal ["http://lexvo.org/id/iso639-3/fra", "http://lexvo.org/id/iso639-3/eng"].sort, sub.naturalLanguage.sort
       #assert_equal ["Léontine Dessaiterm", "Anne Toulet", "Benjamine Dessay", "Augustine Doap", "Vincent Emonet"].sort, sub.hasContributor.sort
       assert_equal [RDF::URI.new("http://lirmm.fr/2015/ontology/door-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/dc-relation.owl"),
-                    RDF::URI.new("http://lirmm.fr/2015/ontology/dcterms-relation.owl"), RDF::URI.new("http://lirmm.fr/2015/ontology/voaf-relation.owl")].sort, sub.ontologyRelatedTo.sort
-
-
+                    RDF::URI.new("http://lirmm.fr/2015/ontology/dcterms-relation.owl"),
+                    RDF::URI.new("http://lirmm.fr/2015/ontology/voaf-relation.owl"),
+                    RDF::URI.new("http://lirmm.fr/2015/ontology/void-import.owl")
+                   ].sort, sub.ontologyRelatedTo.sort
       sub.description = "test changed value"
       sub.save
     end

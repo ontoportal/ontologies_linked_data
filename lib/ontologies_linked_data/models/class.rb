@@ -224,7 +224,7 @@ module LinkedData
                 doc[att] = cur_val.values.flatten # index all values of each language
                 cur_val.each { |lang, values| doc["#{att}_#{lang}".to_sym] = values } # index values per language
               else
-                cur_val = cur_val.values.flatten
+                doc[att] = cur_val.values.flatten.first
               end
             end
 

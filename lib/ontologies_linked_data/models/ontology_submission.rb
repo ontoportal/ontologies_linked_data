@@ -149,7 +149,7 @@ module LinkedData
       attribute :translationOfWork, namespace: :schema, type: %i[uri list]
 
       # Content metadata
-      attribute :uriRegexPattern, namespace: :void, type: :uri
+      attribute :uriRegexPattern, namespace: :void
       attribute :preferredNamespaceUri, namespace: :vann, type: :uri
       attribute :preferredNamespacePrefix, namespace: :vann
       attribute :exampleIdentifier, namespace: :idot
@@ -224,6 +224,9 @@ module LinkedData
         @mutex.synchronize(&block)
       end
 
+      def self.agents_attr_uris
+        agents_attrs.map{ |x| self.attribute_uri(x) }
+      end
 
       def self.ontology_link(m)
         ontology_link = ""
