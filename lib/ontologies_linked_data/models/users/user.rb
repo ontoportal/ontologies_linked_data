@@ -10,6 +10,10 @@ module LinkedData
       include BCrypt
       include LinkedData::Models::Users::Authentication
       include LinkedData::Models::Users::OAuthAuthentication
+      include LinkedData::Concerns::Analytics
+
+      ANALYTICS_REDIS_FIELD = "user_analytics"
+      PAGES_ANALYTICS_REDIS_FIELD = "pages_analytics"
 
       attr_accessor :show_apikey
 
@@ -107,6 +111,13 @@ module LinkedData
         else
           self.username.to_s
         end
+      end
+      def self.analytics_redis_key
+        ANALYTICS_REDIS_FIELD
+      end
+
+      def self.page_visits_analytics
+        load_data(PAGES_ANALYTICS_REDIS_FIELD)
       end
 
       private

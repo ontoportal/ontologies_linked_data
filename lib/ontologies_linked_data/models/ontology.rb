@@ -17,6 +17,7 @@ module LinkedData
     class Ontology < LinkedData::Models::Base
       class ParsedSubmissionError < StandardError; end
       class OntologyAnalyticsError < StandardError; end
+      include LinkedData::Concerns::Analytics
 
       ONTOLOGY_ANALYTICS_REDIS_FIELD = "ontology_analytics"
       ONTOLOGY_RANK_REDIS_FIELD = "ontology_rank"
@@ -334,17 +335,8 @@ module LinkedData
 
       # A static method for retrieving Analytics for a combination of ontologies, year, month
       def self.analytics(year=nil, month=nil, acronyms=nil)
-        analytics = self.load_analytics_data
-
-        unless analytics.empty?
-          analytics.delete_if { |acronym, _| !acronyms.include? acronym } unless acronyms.nil?
-          analytics.values.each do |ont_analytics|
-            ont_analytics.delete_if { |key, _| key != year } unless year.nil?
-            ont_analytics.each { |_, val| val.delete_if { |key, __| key != month } } unless month.nil?
-          end
-          # sort results by the highest traffic values
-          analytics = Hash[analytics.sort_by {|_, v| v[year][month]}.reverse] if year && month
-        end
+        analytics = retrieve_analytics(year, month)
+        analytics.delete_if { |acronym, _| !acronyms.include? acronym } unless acronyms.nil?
         analytics
       end
 
@@ -361,20 +353,12 @@ module LinkedData
         ranking
       end
 
-      def self.load_analytics_data
-        self.load_data(ONTOLOGY_ANALYTICS_REDIS_FIELD)
+      def self.analytics_redis_key
+        ONTOLOGY_ANALYTICS_REDIS_FIELD
       end
 
       def self.load_ranking_data
         self.load_data(ONTOLOGY_RANK_REDIS_FIELD)
-      end
-
-      def self.load_data(field_name)
-        @@redis ||= Redis.new(:host => LinkedData.settings.ontology_analytics_redis_host,
-                              :port => LinkedData.settings.ontology_analytics_redis_port,
-                              :timeout => 30)
-        raw_data = @@redis.get(field_name)
-        return raw_data.nil? ? Hash.new : Marshal.load(raw_data)
       end
 
       ##
