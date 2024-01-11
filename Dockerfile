@@ -14,6 +14,10 @@ COPY Gemfile* /srv/ontoportal/ontologies_linked_data/
 
 WORKDIR /srv/ontoportal/ontologies_linked_data
 
+# set rubygem and bundler to the last version supported by ruby 2.7
+# remove version after ruby v3 upgrade
+RUN gem update --system '3.4.22'
+RUN gem install bundler -v 2.4.22
 RUN gem update --system
 RUN gem install bundler
 ENV BUNDLE_PATH=/srv/ontoportal/bundle
