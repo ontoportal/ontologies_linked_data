@@ -11,7 +11,8 @@ DC='docker compose'
 test/solr/generate_ncbo_configsets.sh
 
 # build docker containers
-$DC run --rm ruby bundle exec rake test TESTOPTS='-v'
+#$DC run --rm ruby bundle exec rake test TESTOPTS='-v'
 # run unit test with AG backend
-#$DC run --rm ruby-agraph bundle exec rake test TESTOPTS='-v'
-$DC stop
+$DC run --rm ruby-agraph bundle exec rake test TESTOPTS='-v'
+
+$DC --profile agraph --profile 4store stop
