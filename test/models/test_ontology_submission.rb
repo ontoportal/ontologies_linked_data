@@ -603,7 +603,7 @@ eos
     metrics = sub.metrics_from_file(Logger.new(sub.parsing_log_path))
     assert !metrics.nil?, "Metrics is nil: #{metrics}"
     assert !metrics.empty?, "Metrics is empty: #{metrics}"
-    metrics.each { |m| assert_equal 3, m.length }
+    metrics.each { |m| assert_equal 4, m.length }
     assert_equal "Individual Count", metrics[0][1]
     assert_equal 133, metrics[1][0].to_i
   end
