@@ -1,5 +1,4 @@
 require_relative "../test_case"
-#require "minitest-matchers"
 
 require "email_spec"
 require "logger"
@@ -7,7 +6,6 @@ require "logger"
 
 class TestNotifications < LinkedData::TestCase
   include EmailSpec::Helpers
-#  include EmailSpec::Matchers
 
   def self.before_suite
     @@notifications_enabled = LinkedData.settings.enable_notifications
@@ -90,7 +88,7 @@ class TestNotifications < LinkedData::TestCase
   end
 
   def test_processing_complete_notification
-#    reset_mailer
+    reset_mailer
     options = { ont_count: 1, submission_count: 1, acronym: "NOTIFY" }
     ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(options)[2].first
     subscription = _subscription(ont)
@@ -116,10 +114,22 @@ class TestNotifications < LinkedData::TestCase
   end
 
   def test_disable_administrative_notifications
-    skip 'FIXME: Not implemented yet'
+    reset_mailer
     LinkedData.settings.enable_administrative_notifications = false
+    options = { ont_count: 1, submission_count: 1, acronym: "DONTNOTIFY" }
+    ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(options)[2].first
+    ont.latest_submission(status: :any).process_submission(Logger.new(TestLogFile.new))
+    admin_mails = LinkedData::Utils::Notifier.ontology_admin_emails(ont)
+    assert_equal 1, all_emails.size, 'number of send emails'
+
     refute_match @@support_mails, last_email_sent.to.sort
+    assert_equal admin_mails, last_email_sent.to.sort
+    assert_match ("Parsing Success"), all_emails.last.subject
+    LinkedData.settings.enable_administrative_notifications = true
+  ensure
+    ont.delete if ont
   end
+
 
   def test_remote_ontology_pull_notification
     recipients = ["test@example.org"]
