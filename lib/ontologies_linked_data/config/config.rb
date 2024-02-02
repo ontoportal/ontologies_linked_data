@@ -79,7 +79,6 @@ module LinkedData
     # Support contact email address used in email notification send to ontoportal users.
     @settings.support_contact_email         ||= 'support@example.org'
     # List of contact emails for OntoPortal site administrators
-    #@settings.ontoportal_admin_emails       ||= ['admin@example.org']
     @settings.ontoportal_admin_emails       ||= ['admin@example.org']
     # Send administrative notifications for events including new user and
     # ontology creation to OntoPortal site admins

@@ -31,8 +31,7 @@ module LinkedData
       end
 
       def self.notify_ontoportal_admins_grouped(subject, body)
-        #notify_mails_grouped subject, body, ontoportal_admin_emails if LinkedData.settings.enable_administrative_notifications
-        notify_mails_grouped subject, body, ontoportal_admin_emails
+        notify_mails_grouped subject, body, ontoportal_admin_emails if LinkedData.settings.enable_administrative_notifications
       end
 
       def self.notify_subscribed_separately(subject, body, ontology, notification_type)
@@ -60,7 +59,7 @@ module LinkedData
       end
 
       def self.notify_ontoportal_admins(subject, body)
-        notify_mails_grouped subject, body, ontoportal_admin_emails
+        notify_mails_grouped subject, body, ontoportal_admin_emails if LinkedData.settings.enable_administrative_notifications
       end
 
       def self.ontology_admin_emails(ontology)
