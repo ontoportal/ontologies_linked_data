@@ -1,21 +1,25 @@
 require_relative "../test_case"
+#require "minitest-matchers"
+
 require "email_spec"
 require "logger"
 
+
 class TestNotifications < LinkedData::TestCase
   include EmailSpec::Helpers
+#  include EmailSpec::Matchers
 
   def self.before_suite
     @@notifications_enabled = LinkedData.settings.enable_notifications
     @@disable_override = LinkedData.settings.email_disable_override
-    @@old_support_mails = LinkedData.settings.admin_emails
+    @@old_support_mails = LinkedData.settings.ontoportal_admin_emails
     if @@old_support_mails.nil? || @@old_support_mails.empty?
-      LinkedData.settings.admin_emails  = ["ontoportal-support@mail.com"]
+      LinkedData.settings.ontoportal_admin_emails = ["ontoportal-support@mail.com"]
     end
     LinkedData.settings.email_disable_override = true
     LinkedData.settings.enable_notifications = true
     @@ui_name = LinkedData.settings.ui_name
-    @@support_mails = LinkedData.settings.admin_emails
+    @@support_mails = LinkedData.settings.ontoportal_admin_emails
     @@ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(ont_count: 1, submission_count: 1)[2].first
     @@ont.bring_remaining
     @@user = @@ont.administeredBy.first
@@ -28,7 +32,7 @@ class TestNotifications < LinkedData::TestCase
   def self.after_suite
     LinkedData.settings.enable_notifications = @@notifications_enabled
     LinkedData.settings.email_disable_override = @@disable_override
-    LinkedData.settings.admin_emails = @@old_support_mails
+    LinkedData.settings.ontoportal_admin_emails = @@old_support_mails
     @@ont.delete if defined?(@@ont)
     @@subscription.delete if defined?(@@subscription)
     @@user.delete if defined?(@@user)
@@ -69,83 +73,85 @@ class TestNotifications < LinkedData::TestCase
   end
 
   def test_new_note_notification
-    begin
-      subject = "Test note subject"
-      body = "Test note body"
-      note = LinkedData::Models::Note.new
-      note.creator = @@user
-      note.subject = subject
-      note.body = body
-      note.relatedOntology = [@@ont]
-      note.save
-      assert last_email_sent.subject.include?("[#{@@ui_name} Notes]")
-      assert_equal [@@user.email], last_email_sent.to
-    ensure
-      note.delete if note
-    end
+    recipients = ["test@example.org"]
+    subject = "Test note subject"
+    body = "Test note body"
+    note = LinkedData::Models::Note.new
+    note.creator = @@user
+    note.subject = subject
+    note.body = body
+    note.relatedOntology = [@@ont]
+    note.save
+    assert_match "[#{@@ui_name} Notes]", last_email_sent.subject
+    assert_equal [@@user.email], last_email_sent.to
+    reset_mailer
+  ensure
+    note.delete if note
   end
 
   def test_processing_complete_notification
-    begin
-      options = { ont_count: 1, submission_count: 1, acronym: "NOTIFY" }
-      ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(options)[2].first
-      subscription = _subscription(ont)
-      @@user.subscription = @@user.subscription.dup << subscription
-      @@user.save
-      ont.latest_submission(status: :any).process_submission(Logger.new(TestLogFile.new))
-      subscription.bring :user
-      admin_mails =  LinkedData::Utils::Notifier.admin_mails(ont)
-      mail_sent_count = subscription.user.size + 1
-      mails = all_emails.last(mail_sent_count)
-      assert_equal mail_sent_count, mails.size # subscribed users + support mail
+#    reset_mailer
+    options = { ont_count: 1, submission_count: 1, acronym: "NOTIFY" }
+    ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(options)[2].first
+    subscription = _subscription(ont)
+    @@user.subscription = @@user.subscription.dup << subscription
+    @@user.save
+    ont.latest_submission(status: :any).process_submission(Logger.new(TestLogFile.new))
+    subscription.bring :user
+    admin_mails = LinkedData::Utils::Notifier.ontology_admin_emails(ont)
+    mail_sent_count = subscription.user.size + 2
+    assert_equal mail_sent_count, all_emails.size, 'number of send emails'
 
-      first_user = subscription.user.first
-      first_user.bring :email
-      assert mails.first.subject.include?("Parsing Success")
-      assert_equal [first_user.email], mails.first.to
+    first_user = subscription.user.first
+    first_user.bring :email
+    assert_match "Parsing Success", all_emails.first.subject
+    assert_equal [first_user.email], all_emails.first.to
 
+    assert_match ("Parsing Success"), all_emails.last.subject
+    assert_equal @@support_mails.uniq.sort, all_emails[1].to.sort
+    assert_equal admin_mails.uniq.sort, all_emails.last.to.sort
+  ensure
+    ont.delete if ont
+    subscription.delete if subscription
+  end
 
-      assert mails.last.subject.include?("Parsing Success")
-      assert_equal (@@support_mails + admin_mails).uniq.sort, mails.last.to.sort
-
-    ensure
-      ont.delete if ont
-      subscription.delete if subscription
-    end
+  def test_disable_administrative_notifications
+    skip 'FIXME: Not implemented yet'
+    LinkedData.settings.enable_administrative_notifications = false
+    refute_match @@support_mails, last_email_sent.to.sort
   end
 
   def test_remote_ontology_pull_notification
-    begin
-      ont_count, acronyms, ontologies = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(ont_count: 1, submission_count: 1, process_submission: false)
+    recipients = ["test@example.org"]
+    ont_count, acronyms, ontologies = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(ont_count: 1, submission_count: 1, process_submission: false)
 
-      ont = LinkedData::Models::Ontology.find(ontologies[0].id).include(:acronym, :administeredBy, :name, :submissions).first
-      ont_admins = Array.new(3) { LinkedData::Models::User.new }
-      ont_admins.each_with_index do |user, i|
-        user.username = "Test User #{i}"
-        user.email = "tester_#{i}@example.org"
-        user.password = "password"
-        user.save
-        assert user.valid?, user.errors
-      end
-      ont.administeredBy = ont_admins
-      ont.save
-      assert ont.valid?, ont.errors
+    ont = LinkedData::Models::Ontology.find(ontologies[0].id).include(:acronym, :administeredBy, :name, :submissions).first
+    ont_admins = Array.new(3) { LinkedData::Models::User.new }
+    ont_admins.each_with_index do |user, i|
+      user.username = "Test User #{i}"
+      user.email = "tester_#{i}@example.org"
+      user.password = "password"
+      user.save
+      assert user.valid?, user.errors
+    end
+    ont.administeredBy = ont_admins
+    ont.save
+    assert ont.valid?, ont.errors
 
-      sub = ont.submissions.first
-      sub.bring_remaining
-      assert sub.valid?, sub.errors
-      LinkedData::Utils::Notifications.remote_ontology_pull(sub)
+    sub = ont.submissions.first
+    sub.bring_remaining
+    assert sub.valid?, sub.errors
+    LinkedData::Utils::Notifications.remote_ontology_pull(sub)
 
-      assert last_email_sent.subject.include? "[#{@@ui_name}] Load from URL failure for #{ont.name}"
-      recipients = @@support_mails
-      ont_admins.each do |user|
-        recipients << user.email
-      end
-      assert_equal recipients.sort, last_email_sent.to.sort
-    ensure
-      ont_admins.each do |user|
-        user.delete if user
-      end
+    assert_includes "[#{@@ui_name}] Load from URL failure for #{ont.name}", last_email_sent.subject
+    recipients = @@support_mails
+    ont_admins.each do |user|
+      recipients << user.email
+    end
+    assert_equal recipients.sort, last_email_sent.to.sort
+  ensure
+    ont_admins.each do |user|
+      user.delete if user
     end
   end
 

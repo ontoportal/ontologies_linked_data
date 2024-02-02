@@ -40,12 +40,13 @@ module LinkedData
         body = SUBMISSION_PROCESSED.gsub('%ontology_name%', ontology.name)
                                    .gsub('%ontology_acronym%', ontology.acronym)
                                    .gsub('%statuses%', status.join('<br/>'))
-                                   .gsub('%admin_email%', LinkedData.settings.email_sender)
+                                   .gsub('%support_contact%', LinkedData.settings.support_contact_email)
                                    .gsub('%ontology_location%', LinkedData::Hypermedia.generate_links(ontology)['ui'])
                                    .gsub('%ui_name%', LinkedData.settings.ui_name)
 
         Notifier.notify_subscribed_separately subject, body, ontology, 'PROCESSING'
-        Notifier.notify_mails_grouped subject, body, Notifier.support_mails + Notifier.admin_mails(ontology)
+        Notifier.notify_ontoportal_admins_grouped subject, body
+        Notifier.notify_administrators_grouped subject, body, ontology
       end
 
       def self.remote_ontology_pull(submission)
@@ -58,20 +59,20 @@ module LinkedData
                                   .gsub('%ont_name%', ontology.name)
                                   .gsub('%ont_acronym%', ontology.acronym)
                                   .gsub('%ontology_location%', LinkedData::Hypermedia.generate_links(ontology)['ui'])
-                                  .gsub('%support_mail%', Notifier.support_mails.first || '')
+                                  .gsub('%support_contact%', LinkedData.settings.support_contact_email)
                                   .gsub('%ui_name%', LinkedData.settings.ui_name)
         recipients = []
         ontology.administeredBy.each do |user|
           user.bring(:email) if user.bring?(:email)
           recipients << user.email
         end
-        if !LinkedData.settings.admin_emails.nil? && LinkedData.settings.admin_emails.kind_of?(Array)
-          LinkedData.settings.admin_emails.each do |admin_email|
+        if !LinkedData.settings.ontoportal_admin_emails.nil? && LinkedData.settings.ontoportal_admin_emails.kind_of?(Array)
+          LinkedData.settings.ontoportal_admin_emails.each do |admin_email|
             recipients << admin_email
           end
         end
 
-        Notifier.notify_mails_grouped subject, body, [Notifier.admin_mails(ontology) + Notifier.support_mails]
+        Notifier.notify_mails_grouped subject, body, [Notifier.ontology_admin_emails(ontology) + Notifier.ontoportal_admin_emails]
       end
 
       def self.new_user(user)
@@ -82,9 +83,9 @@ module LinkedData
                                .gsub('%email%', user.email.to_s)
                                .gsub('%site_url%', LinkedData.settings.ui_host)
                                .gsub('%ui_name%', LinkedData.settings.ui_name)
-        recipients = LinkedData.settings.admin_emails
+        recipients = LinkedData.settings.ontoportal_admin_emails
 
-        Notifier.notify_support_grouped subject, body
+        Notifier.notify_ontoportal_admins_grouped subject, body
       end
 
       def self.new_ontology(ont)
@@ -97,9 +98,9 @@ module LinkedData
                                    .gsub('%site_url%', LinkedData.settings.ui_host)
                                    .gsub('%ont_url%', LinkedData::Hypermedia.generate_links(ont)['ui'])
                                    .gsub('%ui_name%', LinkedData.settings.ui_name)
-        recipients = LinkedData.settings.admin_emails
+        recipients = LinkedData.settings.ontoportal_admin_emails
 
-        Notifier.notify_support_grouped subject, body
+        Notifier.notify_ontoportal_admins_grouped subject, body
       end
 
       def self.reset_password(user, token)
@@ -155,7 +156,7 @@ EOS
 <br><br>
 %statuses%
 <br><br>
-Please contact %admin_email% if you have questions.
+Please contact %support_contact% if you have questions.
 <br><br>
 The ontology can be <a href="%ontology_location%">browsed in %ui_name%</a>.
 <br><br>
@@ -173,7 +174,7 @@ Please verify the URL you provided for daily loading of your ontology:
 <li>Click the &quot;Edit submission information&quot; link.</li>
 <li>In the Location row, verify that you entered a valid URL for daily loading of your ontology in the URL text area.</li>
 </ol>
-If you need further assistance, please <a href="mailto:%support_mail%">contact us</a> via the %ui_name% support mailing list.
+If you need further assistance, please <a href="mailto:%support_contact%">contact us</a> via the %ui_name% support mailing list.
 <br><br>
 Thank you,<br>
 The %ui_name% Team

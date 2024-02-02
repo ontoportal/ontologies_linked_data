@@ -24,23 +24,16 @@ module LinkedData
     @settings.search_server_url             ||= 'http://localhost:8983/solr/term_search_core1'
     @settings.property_search_server_url    ||= 'http://localhost:8983/solr/prop_search_core1'
     @settings.repository_folder             ||= './test/data/ontology_files/repo'
-    @settings.rest_url_prefix                ||= 'http://data.bioontology.org/'
+    @settings.rest_url_prefix               ||= 'http://data.bioontology.org/'
     @settings.enable_security               ||= false
     @settings.enable_slices                 ||= false
 
     # Java/JVM options
     @settings.java_max_heap_size            ||= '10240M'
-    ### these params should be not ussed any more
-    # removed so that dependencies shout
-    #
-    # @settings.redis_host                    ||= "localhost"
-    # @settings.redis_port                    ||= 6379
-    # ###
-
 
     @settings.ui_name                       ||= 'Bioportal'
     @settings.ui_host                       ||= 'bioportal.bioontology.org'
-    @settings.replace_url_prefix             ||= false
+    @settings.replace_url_prefix            ||= false
     @settings.id_url_prefix                 ||= "http://data.bioontology.org/"
 
     @settings.queries_debug                 ||= false
@@ -53,11 +46,11 @@ module LinkedData
     @settings.http_redis_host               ||= 'localhost'
     @settings.http_redis_port               ||= 6379
 
-    #Caching goo
+    # Caching goo
     @settings.goo_redis_host                ||= 'localhost'
     @settings.goo_redis_port                ||= 6379
 
-    #Ontology Analytics Redis
+    # Ontology Analytics Redis
     @settings.ontology_analytics_redis_host ||= 'localhost'
     @settings.ontology_analytics_redis_port ||= 6379
 
@@ -72,7 +65,8 @@ module LinkedData
 
     # Email settings
     @settings.enable_notifications          ||= false
-    @settings.email_sender                  ||= 'admin@example.org' # Default sender for emails
+    # Default sender From email address
+    @settings.email_sender                  ||= 'ontoportal@example.org'
     @settings.email_override                ||= 'test.email@example.org' # By default, all email gets sent here. Disable with email_override_disable.
     @settings.email_disable_override        ||= false
     @settings.smtp_host                     ||= 'localhost'
@@ -82,6 +76,14 @@ module LinkedData
     @settings.smtp_auth_type                ||= :none # :none, :plain, :login, :cram_md5
     @settings.smtp_domain                   ||= 'localhost.localhost'
     @settings.enable_starttls_auto          ||= false # set to true for use with gmail
+    # Support contact email address used in email notification send to ontoportal users.
+    @settings.support_contact_email         ||= 'support@example.org'
+    # List of contact emails for OntoPortal site administrators
+    #@settings.ontoportal_admin_emails       ||= ['admin@example.org']
+    @settings.ontoportal_admin_emails       ||= ['admin@example.org']
+    # Send administrative notifications for events including new user and
+    # ontology creation to OntoPortal site admins
+    @settings.enable_administrative_notifications ||= true
 
     # number of times to retry a query when empty records are returned
     @settings.num_retries_4store            ||= 10
@@ -92,10 +94,10 @@ module LinkedData
     # Override defaults
     yield @settings, overide_connect_goo if block_given?
 
-    unless @settings.redis_host.nil?
-      puts "Error: 'redis_host' is not a valid conf parameter."
-      puts '        Redis databases were split into multiple hosts (09/22/13).'
-      raise Exception, 'redis_host is not a valid conf parameter.'
+    unless @settings.admin_emails.nil?
+      puts "Error: 'admin_emails' is not a valid conf parameter."
+      puts '        Please use ontoportal_admin_emails (01/30/23).'
+      raise StandardError, 'admin_emails is not a valid conf parameter.'
     end
 
     # Check to make sure url prefix has trailing slash
