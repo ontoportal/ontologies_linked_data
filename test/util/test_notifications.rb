@@ -38,6 +38,7 @@ class TestNotifications < LinkedData::TestCase
 
   def setup
     LinkedData.settings.email_disable_override = true
+    reset_mailer
   end
 
   def _subscription(ont)
@@ -82,13 +83,11 @@ class TestNotifications < LinkedData::TestCase
     note.save
     assert_match "[#{@@ui_name} Notes]", last_email_sent.subject
     assert_equal [@@user.email], last_email_sent.to
-    reset_mailer
   ensure
     note.delete if note
   end
 
   def test_processing_complete_notification
-    reset_mailer
     options = { ont_count: 1, submission_count: 1, acronym: "NOTIFY" }
     ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(options)[2].first
     subscription = _subscription(ont)
@@ -114,7 +113,6 @@ class TestNotifications < LinkedData::TestCase
   end
 
   def test_disable_administrative_notifications
-    reset_mailer
     LinkedData.settings.enable_administrative_notifications = false
     options = { ont_count: 1, submission_count: 1, acronym: "DONTNOTIFY" }
     ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(options)[2].first
@@ -129,7 +127,6 @@ class TestNotifications < LinkedData::TestCase
   ensure
     ont.delete if ont
   end
-
 
   def test_remote_ontology_pull_notification
     recipients = ["test@example.org"]
@@ -153,12 +150,11 @@ class TestNotifications < LinkedData::TestCase
     assert sub.valid?, sub.errors
     LinkedData::Utils::Notifications.remote_ontology_pull(sub)
 
+    admin_mails = LinkedData::Utils::Notifier.ontology_admin_emails(ont)
+
     assert_includes "[#{@@ui_name}] Load from URL failure for #{ont.name}", last_email_sent.subject
-    recipients = @@support_mails
-    ont_admins.each do |user|
-      recipients << user.email
-    end
-    assert_equal recipients.sort, last_email_sent.to.sort
+    assert_equal @@support_mails, all_emails.first.to
+    assert_equal admin_mails, last_email_sent.to.sort
   ensure
     ont_admins.each do |user|
       user.delete if user

@@ -61,18 +61,9 @@ module LinkedData
                                   .gsub('%ontology_location%', LinkedData::Hypermedia.generate_links(ontology)['ui'])
                                   .gsub('%support_contact%', LinkedData.settings.support_contact_email)
                                   .gsub('%ui_name%', LinkedData.settings.ui_name)
-        recipients = []
-        ontology.administeredBy.each do |user|
-          user.bring(:email) if user.bring?(:email)
-          recipients << user.email
-        end
-        if !LinkedData.settings.ontoportal_admin_emails.nil? && LinkedData.settings.ontoportal_admin_emails.kind_of?(Array)
-          LinkedData.settings.ontoportal_admin_emails.each do |admin_email|
-            recipients << admin_email
-          end
-        end
 
-        Notifier.notify_mails_grouped subject, body, [Notifier.ontology_admin_emails(ontology) + Notifier.ontoportal_admin_emails]
+        Notifier.notify_ontoportal_admins_grouped subject, body
+        Notifier.notify_administrators_grouped subject, body, ontology
       end
 
       def self.new_user(user)
@@ -83,7 +74,6 @@ module LinkedData
                                .gsub('%email%', user.email.to_s)
                                .gsub('%site_url%', LinkedData.settings.ui_host)
                                .gsub('%ui_name%', LinkedData.settings.ui_name)
-        recipients = LinkedData.settings.ontoportal_admin_emails
 
         Notifier.notify_ontoportal_admins_grouped subject, body
       end
@@ -98,7 +88,6 @@ module LinkedData
                                    .gsub('%site_url%', LinkedData.settings.ui_host)
                                    .gsub('%ont_url%', LinkedData::Hypermedia.generate_links(ont)['ui'])
                                    .gsub('%ui_name%', LinkedData.settings.ui_name)
-        recipients = LinkedData.settings.ontoportal_admin_emails
 
         Notifier.notify_ontoportal_admins_grouped subject, body
       end
@@ -108,7 +97,7 @@ module LinkedData
         subject = "[#{ui_name}] User #{user.username} password reset"
         password_url = "https://#{LinkedData.settings.ui_host}/reset_password?tk=#{token}&em=#{CGI.escape(user.email)}&un=#{CGI.escape(user.username)}"
 
-        body =  REST_PASSWORD.gsub('%ui_name%', ui_name)
+        body = REST_PASSWORD.gsub('%ui_name%', ui_name)
                              .gsub('%username%', user.username.to_s)
                              .gsub('%password_url%', password_url.to_s)
 
@@ -212,7 +201,6 @@ EOS
         Thanks,<br/>
         %ui_name% Team
 HTML
-
     end
   end
 end

@@ -30,8 +30,12 @@ module LinkedData
                   })
       end
 
+      def self.administrative_notifications_enabled?
+        LinkedData.settings.enable_administrative_notifications
+      end
+
       def self.notify_ontoportal_admins_grouped(subject, body)
-        notify_mails_grouped subject, body, ontoportal_admin_emails if LinkedData.settings.enable_administrative_notifications
+        notify_mails_grouped subject, body, ontoportal_admin_emails if administrative_notifications_enabled?
       end
 
       def self.notify_subscribed_separately(subject, body, ontology, notification_type)
@@ -59,7 +63,7 @@ module LinkedData
       end
 
       def self.notify_ontoportal_admins(subject, body)
-        notify_mails_grouped subject, body, ontoportal_admin_emails if LinkedData.settings.enable_administrative_notifications
+        notify_mails_grouped subject, body, ontoportal_admin_emails if administrative_notifications_enabled?
       end
 
       def self.ontology_admin_emails(ontology)
@@ -73,11 +77,8 @@ module LinkedData
       end
 
       def self.ontoportal_admin_emails
+        return LinkedData.settings.ontoportal_admin_emails if LinkedData.settings.ontoportal_admin_emails.is_a?(Array)
 
-        if !LinkedData.settings.ontoportal_admin_emails.nil? &&
-          LinkedData.settings.ontoportal_admin_emails.kind_of?(Array)
-          return LinkedData.settings.ontoportal_admin_emails
-        end
         []
       end
 
@@ -85,7 +86,6 @@ module LinkedData
         emails = []
         ontology.bring(:subscriptions) if ontology.bring?(:subscriptions)
         ontology.subscriptions.each do |subscription|
-
           subscription.bring(:notification_type) if subscription.bring?(:notification_type)
           subscription.notification_type.bring(:type) if subscription.notification_type.bring?(:notification_type)
 
