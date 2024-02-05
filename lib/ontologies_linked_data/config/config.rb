@@ -93,12 +93,6 @@ module LinkedData
     # Override defaults
     yield @settings, overide_connect_goo if block_given?
 
-    unless @settings.admin_emails.nil?
-      puts "Error: 'admin_emails' is not a valid conf parameter."
-      puts '        Please use ontoportal_admin_emails (01/30/23).'
-      raise StandardError, 'admin_emails is not a valid conf parameter.'
-    end
-
     # Check to make sure url prefix has trailing slash
     @settings.rest_url_prefix = @settings.rest_url_prefix + '/' unless @settings.rest_url_prefix[-1].eql?('/')
 
