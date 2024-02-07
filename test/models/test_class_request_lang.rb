@@ -47,6 +47,10 @@ class TestClassRequestedLang < LinkedData::TestOntologyCommon
     assert_equal ['industrial development'], properties.select { |x| x.to_s['altLabel'] }.values.first.map(&:to_s)
     assert_equal ['industrialization'], properties.select { |x| x.to_s['prefLabel'] }.values.first.map(&:to_s)
 
+    cls = get_class_by_lang('http://opendata.inrae.fr/thesaurusINRAE/c_13078',
+                            requested_lang: :FR)
+    assert_equal 'carbone renouvelable', cls.prefLabel
+
   end
 
   def test_requested_language_not_found
