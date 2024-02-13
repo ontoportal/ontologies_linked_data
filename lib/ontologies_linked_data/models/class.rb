@@ -199,6 +199,15 @@ module LinkedData
             doc[:semanticType] = []
             all_attrs[:semanticType].each { |semType| doc[:semanticType] << semType.split("/").last }
           end
+
+          # special handling for :notation field because some ontologies have it defined as :prefixIRI
+          if !doc[:notation] || doc[:notation].empty?
+            if all_attrs[:prefixIRI] && !all_attrs[:prefixIRI].empty?
+              doc[:notation] = all_attrs[:prefixIRI].strip
+            else
+              doc[:notation] = LinkedData::Utils::Triples::last_iri_fragment(doc[:id])
+            end
+          end
         end
 
         if to_set.nil? || (to_set.is_a?(Array) && to_set.include?(:properties))
@@ -210,8 +219,25 @@ module LinkedData
           end
         end
 
+        # binding.pry
+
         doc
       end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       def properties_for_indexing()
         self_props = self.properties
