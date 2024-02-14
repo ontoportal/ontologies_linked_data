@@ -1175,8 +1175,8 @@ eos
         ensure
           # make sure results get emailed
           begin
-            LinkedData::Utils::Notifications.submission_processed(self)
-          rescue Exception => e
+            LinkedData::Utils::Notifications.submission_processed(self) unless archive
+          rescue StandardError => e
             logger.error("Email sending failed: #{e.message}\n#{e.backtrace.join("\n\t")}"); logger.flush
           end
         end
