@@ -244,31 +244,29 @@ class TestMapping < LinkedData::TestOntologyCommon
     latest_sub = LinkedData::Models::Ontology.find(RDF::URI.new(ont_id)).first.latest_submission
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
     ct = LinkedData::Models::MappingCount.where.all.length
-    assert ct > 2
+    assert_operator 2, :<, ct
     mappings = LinkedData::Mappings.mappings_ontology(latest_sub, 1, 1000)
     rest_mapping_count = 0
 
     mappings.each do |m|
       if m.source == "REST"
         rest_mapping_count += 1
-        assert_equal m.classes.length, 2
-        c1 =  m.classes.select {
+        assert_equal 2, m.classes.length
+        c1 = m.classes.select {
                         |c| c.submission.id.to_s["TEST1"] }.first
         c2 = m.classes.select {
                         |c| c.submission.id.to_s["TEST2"] }.first
-        assert c1 != nil
-        assert c2 != nil
+        refute_nil c1
+        refute_nil c2
         ia = mapping_term_a.index c1.id.to_s
         ib = mapping_term_b.index c2.id.to_s
-        assert ia != nil
-        assert ib != nil
-        assert ia == ib
+        refute_nil ia
+        refute_nil ib
+        assert_equal ia, ib
       end
     end
-    #depending on the order could be 2 or three
-    #some other test is leaving mappings persisted
-    assert rest_mapping_count > 1 || rest_mapping_count < 4
-    #in a new submission we should have moved the rest mappings
+    assert_equal 3, rest_mapping_count
+    # in a new submission we should have moved the rest mappings
     helper = LinkedData::TestOntologyCommon.new(self)
     helper.submission_parse(ONT_ACR1,
                      "MappingOntTest1",
@@ -278,15 +276,17 @@ class TestMapping < LinkedData::TestOntologyCommon
     latest_sub1 = LinkedData::Models::Ontology.find(RDF::URI.new(ont_id)).first.latest_submission
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
     ct1 = LinkedData::Models::MappingCount.where.all.length
-    assert ct1 > 2
+    assert_operator 2, :<, ct1
     mappings = LinkedData::Mappings.mappings_ontology(latest_sub1, 1, 1000)
     rest_mapping_count = 0
     mappings.each do |m|
-      if m.source == "REST"
-        rest_mapping_count += 1
-      end
+      rest_mapping_count += 1 if m.source == "REST"
     end
     assert_equal 3, rest_mapping_count
+
+    mappings_created.each do |m|
+      LinkedData::Mappings.delete_rest_mapping(m.id)
+    end
   end
 
   def test_get_rest_mapping
@@ -316,6 +316,10 @@ class TestMapping < LinkedData::TestOntologyCommon
 
     LinkedData.settings.rest_url_prefix = old_rest_url
     LinkedData.settings.replace_url_prefix = old_replace
+
+    mappings_created.each do |m|
+      LinkedData::Mappings.delete_rest_mapping(m.id)
+    end
   end
 
   private
@@ -349,7 +353,7 @@ class TestMapping < LinkedData::TestOntologyCommon
                   "http://www.w3.org/2004/02/skos/core#relatedMatch" ]
 
     user = LinkedData::Models::User.where.include(:username).all[0]
-    assert user != nil
+    refute_nil user
 
     [mapping_term_a, mapping_term_b, submissions_a, submissions_b, relations, user]
   end
@@ -358,7 +362,7 @@ class TestMapping < LinkedData::TestOntologyCommon
     process = LinkedData::Models::MappingProcess.new
     process.name = name
     process.relation = relation
-    process.creator= user
+    process.creator = user
     process.save
 
     LinkedData::Mappings.create_rest_mapping(classes, process)
