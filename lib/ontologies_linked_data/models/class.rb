@@ -142,6 +142,7 @@ module LinkedData
         doc = {}
         path_ids = Set.new
         self.bring(:submission) if self.bring?(:submission)
+        class_id = self.id.to_s
 
         if to_set.nil?
           begin
@@ -151,7 +152,7 @@ module LinkedData
             doc[:childCount] = self.childrenCount
           rescue Exception => e
             doc[:childCount] = 0
-            puts "Exception getting childCount for search for #{self.id.to_s}: #{e.class}: #{e.message}"
+            puts "Exception getting childCount for search for #{class_id}: #{e.class}: #{e.message}"
           end
 
           begin
@@ -159,23 +160,25 @@ module LinkedData
             # paths_to_root.each do |paths|
             #   path_ids += paths.map { |p| p.id.to_s }
             # end
-            # path_ids.delete(self.id.to_s)
+            # path_ids.delete(class_id)
             path_ids = retrieve_hierarchy_ids(:ancestors)
             path_ids.select! { |x| !x["owl#Thing"] }
             doc[:parents] = path_ids
           rescue Exception => e
             doc[:parents] = Set.new
-            puts "Exception getting paths to root for search for #{self.id.to_s}: #{e.class}: #{e.message}\n#{e.backtrace.join("\n")}"
+            puts "Exception getting paths to root for search for #{class_id}: #{e.class}: #{e.message}\n#{e.backtrace.join("\n")}"
           end
 
+          acronym = self.submission.ontology.acronym
+          doc[:id] = class_id
           doc[:ontologyId] = self.submission.id.to_s
-          doc[:submissionAcronym] = self.submission.ontology.acronym
+          doc[:submissionAcronym] = acronym
           doc[:submissionId] = self.submission.submissionId
           doc[:ontologyType] = self.submission.ontology.ontologyType.get_code_from_id
           doc[:obsolete] = self.obsolete.to_s
 
           all_attrs = self.to_hash
-          std = [:id, :prefLabel, :notation, :synonym, :definition, :cui]
+          std = [:prefLabel, :notation, :synonym, :definition, :cui]
 
           std.each do |att|
             cur_val = all_attrs[att]
@@ -200,7 +203,7 @@ module LinkedData
             all_attrs[:semanticType].each { |semType| doc[:semanticType] << semType.split("/").last }
           end
 
-          # special handling for :notation field because some ontologies have it defined as :prefixIRI
+          # mdorf, 2/4/2024: special handling for :notation field because some ontologies have it defined as :prefixIRI
           if !doc[:notation] || doc[:notation].empty?
             if all_attrs[:prefixIRI] && !all_attrs[:prefixIRI].empty?
               doc[:notation] = all_attrs[:prefixIRI].strip
@@ -208,6 +211,11 @@ module LinkedData
               doc[:notation] = LinkedData::Utils::Triples::last_iri_fragment(doc[:id])
             end
           end
+          doc[:idAcronymMatch] = true if notation_acronym_match(doc[:notation], acronym)
+          # https://github.com/bmir-radx/radx-project/issues/46
+          # https://github.com/bmir-radx/radx-project/issues/46#issuecomment-1939782535
+          # https://github.com/bmir-radx/radx-project/issues/46#issuecomment-1939932614
+          set_oboid_fields(class_id, self.submission.uri, acronym, doc)
         end
 
         if to_set.nil? || (to_set.is_a?(Array) && to_set.include?(:properties))
@@ -218,26 +226,29 @@ module LinkedData
             doc[:propertyRaw] = props[:propertyRaw]
           end
         end
-
-        # binding.pry
-
         doc
       end
 
+      def set_oboid_fields(class_id, ontology_iri, ontology_acronym, index_doc)
+        short_id = LinkedData::Utils::Triples.last_iri_fragment(class_id)
+        matched = short_id.match(/([A-Za-z]+)_([0-9]+)$/) do |m|
+          index_doc[:oboId] = "#{m[1]}:#{m[2]}"
+          index_doc[:idAcronymMatch] = true if m[1].upcase === ontology_acronym.upcase
+          true
+        end
 
+        if !matched && ontology_iri && class_id.start_with?(ontology_iri)
+          index_doc[:oboId] = "#{ontology_acronym}:#{short_id}"
+          index_doc[:idAcronymMatch] = true
+        end
+      end
 
-
-
-
-
-
-
-
-
-
-
-
-
+      def notation_acronym_match(notation, ontology_acronym)
+        notation.match(/^([A-Za-z]+)[_:]{1}/) do |m|
+          return m[1].upcase === ontology_acronym.upcase
+        end
+        false
+      end
 
       def properties_for_indexing()
         self_props = self.properties
