@@ -67,6 +67,7 @@ module LinkedData
               ontology: o,
               hasOntologyLanguage: of,
               submissionId: o.next_submission_id,
+              definitionProperty: (RDF::IRI.new "http://bioontology.org/ontologies/biositemap.owl#definition"),
               contact: [contact],
               released: DateTime.now - 3
             }
