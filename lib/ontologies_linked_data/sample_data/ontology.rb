@@ -20,6 +20,9 @@ module LinkedData
         process_submission = options[:process_submission] || false
         submissions_to_process = options[:submissions_to_process]
         acronym = options[:acronym] || "TEST-ONT"
+        pref_label_property = options[:pref_label_property] || false
+        synonym_property = options[:synonym_property] || false
+        definition_property = options[:synonym_property] || false
         name = options[:name]
         # set ontology type
         ontology_type = nil
@@ -60,14 +63,18 @@ module LinkedData
           max.times do
             #refresh submission to get new next submission ID after saving in a loop
             o.bring(:submissions)
-            os = LinkedData::Models::OntologySubmission.new({
+            sub_options = {
               ontology: o,
               hasOntologyLanguage: of,
               submissionId: o.next_submission_id,
               definitionProperty: (RDF::IRI.new "http://bioontology.org/ontologies/biositemap.owl#definition"),
               contact: [contact],
               released: DateTime.now - 3
-            })
+            }
+            sub_options[:prefLabelProperty] = RDF::IRI.new(pref_label_property) if pref_label_property
+            sub_options[:synonymProperty] = RDF::IRI.new(synonym_property) if synonym_property
+            sub_options[:definitionProperty] = RDF::IRI.new(definition_property) if definition_property
+            os = LinkedData::Models::OntologySubmission.new(sub_options)
 
             if (submissions_to_process.nil? || submissions_to_process.include?(os.submissionId))
               file_path = options[:file_path]
@@ -88,7 +95,6 @@ module LinkedData
               o.summaryOnly = true
               o.save
             end
-
             os.save unless os.exist?
           end
         end

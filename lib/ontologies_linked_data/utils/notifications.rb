@@ -192,11 +192,15 @@ The %ui_name% Team
 EOS
 
       REST_PASSWORD = <<~HTML
-        Someone has requested a password reset for user %username% . If this was 
-        you, please click on the link below to reset your password. Otherwise, please 
-        ignore this email.<br/><br/>
+        Someone has requested a password reset for user %username% . If this action
+        was initiated by you, please click on the link below to reset your password.
+        <br/><br/>
 
         <a href="%password_url%">%password_url%</a><br/><br/>
+
+        Please note that the password link is valid for one hour only.  If you did not 
+        request this password reset or no longer require it, you may safely ignore this email.
+        <br/><br/>
 
         Thanks,<br/>
         %ui_name% Team

@@ -12,6 +12,8 @@ module LinkedData
 
     class OntologySubmission < LinkedData::Models::Base
 
+      include LinkedData::Concerns::OntologySubmission::MetadataExtractor
+
       FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
       FLAT_ROOTS_LIMIT = 1000
 
@@ -67,7 +69,7 @@ module LinkedData
       # Links
       links_load :submissionId, ontology: [:acronym]
       link_to LinkedData::Hypermedia::Link.new("metrics", lambda {|s| "#{self.ontology_link(s)}/submissions/#{s.submissionId}/metrics"}, self.type_uri)
-              LinkedData::Hypermedia::Link.new("download", lambda {|s| "#{self.ontology_link(s)}/submissions/#{s.submissionId}/download"}, self.type_uri)
+      LinkedData::Hypermedia::Link.new("download", lambda {|s| "#{self.ontology_link(s)}/submissions/#{s.submissionId}/download"}, self.type_uri)
 
       # HTTP Cache settings
       cache_timeout 3600
@@ -118,7 +120,7 @@ module LinkedData
           raise ArgumentError, "Submission cannot be saved if ontology does not have acronym"
         end
         return RDF::URI.new(
-            "#{(Goo.id_prefix)}ontologies/#{CGI.escape(ss.ontology.acronym.to_s)}/submissions/#{ss.submissionId.to_s}"
+          "#{(Goo.id_prefix)}ontologies/#{CGI.escape(ss.ontology.acronym.to_s)}/submissions/#{ss.submissionId.to_s}"
         )
       end
 
@@ -232,13 +234,13 @@ module LinkedData
           if repeated_names.length > 0
             names = repeated_names.keys.to_s
             self.errors[:uploadFilePath] <<
-                "Zip file contains file names (#{names}) in more than one folder."
+              "Zip file contains file names (#{names}) in more than one folder."
             return false
           end
 
           #error message with options to choose from.
           self.errors[:uploadFilePath] << {
-              :message => "Zip file detected, choose the master file.", :options => files }
+            :message => "Zip file detected, choose the master file.", :options => files }
           return false
 
         elsif zip and not self.masterFileName.nil?
@@ -248,9 +250,9 @@ module LinkedData
             if self.errors[:uploadFilePath].nil?
               self.errors[:uploadFilePath] = []
               self.errors[:uploadFilePath] << {
-                  :message =>
-                      "The selected file `#{self.masterFileName}` is not included in the zip file",
-                  :options => files }
+                :message =>
+                  "The selected file `#{self.masterFileName}` is not included in the zip file",
+                :options => files }
             end
           end
         end
@@ -271,7 +273,7 @@ module LinkedData
       end
 
       def zip_folder
-         File.join([data_folder, 'unzipped'])
+        File.join([data_folder, 'unzipped'])
       end
 
       def csv_path
@@ -344,9 +346,9 @@ module LinkedData
 
           LinkedData::Diff.logger = logger
           bubastis = LinkedData::Diff::BubastisDiffCommand.new(
-              File.expand_path(older.master_file_path),
-              File.expand_path(self.master_file_path),
-              data_folder
+            File.expand_path(older.master_file_path),
+            File.expand_path(self.master_file_path),
+            data_folder
           )
           self.diffFilePath = bubastis.diff
           save
@@ -449,7 +451,7 @@ module LinkedData
         generate_metrics_file(class_count, indiv_count, prop_count, max_depth)
       end
 
-      def generate_rdf(logger, reasoning: true)
+      def generate_rdf(logger, file_path, reasoning: true)
         mime_type = nil
 
         if self.hasOntologyLanguage.umls?
@@ -471,11 +473,11 @@ module LinkedData
               logger.info("error deleting owlapi.rdf")
             end
           end
-          owlapi = owlapi_parser(logger: nil)
-
-          if !reasoning
-            owlapi.disable_reasoner
-          end
+          owlapi = LinkedData::Parser::OWLAPICommand.new(
+            File.expand_path(file_path),
+            File.expand_path(self.data_folder.to_s),
+            master_file: self.masterFileName)
+          owlapi.disable_reasoner unless reasoning
           triples_file_path, missing_imports = owlapi.parse
 
           if missing_imports && missing_imports.length > 0
@@ -499,28 +501,8 @@ module LinkedData
           logger.error("Error sending data to triple store - #{e.response.code} #{e.class}: #{e.response.body}") if e.response&.body
           raise e
         end
-        version_info = extract_version()
-
-        if version_info
-          self.version = version_info
-        end
       end
 
-      def extract_version
-
-        query_version_info = <<eos
-SELECT ?versionInfo
-FROM #{self.id.to_ntriples}
-WHERE {
-<http://bioportal.bioontology.org/ontologies/versionSubject>
- <http://www.w3.org/2002/07/owl#versionInfo> ?versionInfo .
-}
-eos
-        Goo.sparql_query_client.query(query_version_info).each_solution do |sol|
-          return sol[:versionInfo].to_s
-        end
-        return nil
-      end
 
       def process_callbacks(logger, callbacks, action_name, &block)
         callbacks.delete_if do |_, callback|
@@ -546,6 +528,7 @@ eos
           end
         end
       end
+
 
       def loop_classes(logger, raw_paging, callbacks)
         page = 1
@@ -573,7 +556,7 @@ eos
           callbacks.each { |_, callback| callback[:artifacts] ||= {}; iterate_classes = true if callback[:caller_on_each] }
 
           process_callbacks(logger, callbacks, :caller_on_pre) {
-              |callable, callback| callable.call(callback[:artifacts], logger, paging) }
+            |callable, callback| callable.call(callback[:artifacts], logger, paging) }
 
           page_len = -1
           prev_page_len = -1
@@ -619,15 +602,15 @@ eos
             count_classes += page_classes.length
 
             process_callbacks(logger, callbacks, :caller_on_pre_page) {
-                |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page) }
+              |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page) }
 
             page_classes.each { |c|
               process_callbacks(logger, callbacks, :caller_on_each) {
-                  |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page, c) }
+                |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page, c) }
             } if iterate_classes
 
             process_callbacks(logger, callbacks, :caller_on_post_page) {
-                |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page) }
+              |callable, callback| callable.call(callback[:artifacts], logger, paging, page_classes, page) }
             cls_count += page_classes.length unless cls_count_set
 
             page = page_classes.next? ? page + 1 : nil
@@ -636,7 +619,7 @@ eos
 
           callbacks.each { |_, callback| callback[:artifacts][:count_classes] = cls_count }
           process_callbacks(logger, callbacks, :caller_on_post) {
-              |callable, callback| callable.call(callback[:artifacts], logger, paging) }
+            |callable, callback| callable.call(callback[:artifacts], logger, paging) }
         end
 
         logger.info("Completed #{operations}: #{acr} in #{time} sec. #{count_classes} classes.")
@@ -702,7 +685,7 @@ eos
             label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
           end
           artifacts[:label_triples] << LinkedData::Utils::Triples.label_for_class_triple(
-              c.id, Goo.vocabulary(:metadata_def)[:prefLabel], label)
+            c.id, Goo.vocabulary(:metadata_def)[:prefLabel], label)
           prefLabel = label
         else
           prefLabel = c.prefLabel
@@ -713,10 +696,10 @@ eos
 
           if loomLabel.length > 2
             artifacts[:mapping_triples] << LinkedData::Utils::Triples.loom_mapping_triple(
-                c.id, Goo.vocabulary(:metadata_def)[:mappingLoom], loomLabel)
+              c.id, Goo.vocabulary(:metadata_def)[:mappingLoom], loomLabel)
           end
           artifacts[:mapping_triples] << LinkedData::Utils::Triples.uri_mapping_triple(
-              c.id, Goo.vocabulary(:metadata_def)[:mappingSameURI], c.id)
+            c.id, Goo.vocabulary(:metadata_def)[:mappingSameURI], c.id)
         end
       end
 
@@ -777,7 +760,7 @@ eos
         self.bring(:obsoleteParent) if self.bring?(:obsoleteParent)
         classes_deprecated = []
         if self.obsoleteProperty &&
-           self.obsoleteProperty.to_s != "http://www.w3.org/2002/07/owl#deprecated"
+          self.obsoleteProperty.to_s != "http://www.w3.org/2002/07/owl#deprecated"
 
           predicate_obsolete = RDF::URI.new(self.obsoleteProperty.to_s)
           query_obsolete_predicate = <<eos
@@ -795,16 +778,16 @@ eos
         if self.obsoleteParent.nil?
           #try to find oboInOWL obsolete.
           obo_in_owl_obsolete_class = LinkedData::Models::Class
-                                          .find(LinkedData::Utils::Triples.obo_in_owl_obsolete_uri)
-                                          .in(self).first
+                                        .find(LinkedData::Utils::Triples.obo_in_owl_obsolete_uri)
+                                        .in(self).first
           if obo_in_owl_obsolete_class
             self.obsoleteParent = LinkedData::Utils::Triples.obo_in_owl_obsolete_uri
           end
         end
         if self.obsoleteParent
           class_obsolete_parent = LinkedData::Models::Class
-                                      .find(self.obsoleteParent)
-                                      .in(self).first
+                                    .find(self.obsoleteParent)
+                                    .in(self).first
           if class_obsolete_parent
             descendents_obsolete = class_obsolete_parent.descendants
             logger.info("Found #{descendents_obsolete.length} descendents of obsolete root #{self.obsoleteParent.to_s}")
@@ -825,9 +808,9 @@ eos
           end
           fsave.close()
           result = Goo.sparql_data_client.append_triples_from_file(
-              self.id,
-              save_in_file,
-              mime_type="application/x-turtle")
+            self.id,
+            save_in_file,
+            mime_type="application/x-turtle")
         end
       end
 
@@ -870,7 +853,7 @@ eos
           s.reject! { |stat|
             stat_code = stat.get_code_from_id()
             stat_code == status.get_code_from_id() ||
-                stat_code == status.get_error_status().get_code_from_id()
+              stat_code == status.get_error_status().get_code_from_id()
           }
           self.submissionStatus = s
         end
@@ -1019,7 +1002,10 @@ eos
                 end
                 status = LinkedData::Models::SubmissionStatus.find("RDF").first
                 remove_submission_status(status) #remove RDF status before starting
-                generate_rdf(logger, reasoning: reasoning)
+                zip_dst = unzip_submission(logger)
+                file_path = zip_dst ? zip_dst.to_s : self.uploadFilePath.to_s
+                generate_rdf(logger, file_path, reasoning: reasoning)
+                extract_metadata
                 add_submission_status(status)
                 self.save
               rescue Exception => e
@@ -1599,7 +1585,7 @@ eos
         path = if zipped?
                  File.join(self.zip_folder, self.masterFileName)
                else
-                  self.uploadFilePath
+                 self.uploadFilePath
                end
         File.expand_path(path)
       end

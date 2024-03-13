@@ -1,5 +1,6 @@
 *.swp
 *.gemtags
+.bundle
 *.tags*
 .DS_Store
 
