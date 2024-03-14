@@ -451,7 +451,7 @@ module LinkedData
         generate_metrics_file(class_count, indiv_count, prop_count, max_depth)
       end
 
-      def generate_rdf(logger, file_path, reasoning: true)
+      def generate_rdf(logger, reasoning: true)
         mime_type = nil
 
         if self.hasOntologyLanguage.umls?
@@ -473,10 +473,7 @@ module LinkedData
               logger.info("error deleting owlapi.rdf")
             end
           end
-          owlapi = LinkedData::Parser::OWLAPICommand.new(
-            File.expand_path(file_path),
-            File.expand_path(self.data_folder.to_s),
-            master_file: self.masterFileName)
+          owlapi = owlapi_parser(logger: logger)
           owlapi.disable_reasoner unless reasoning
           triples_file_path, missing_imports = owlapi.parse
 
@@ -1002,9 +999,7 @@ eos
                 end
                 status = LinkedData::Models::SubmissionStatus.find("RDF").first
                 remove_submission_status(status) #remove RDF status before starting
-                zip_dst = unzip_submission(logger)
-                file_path = zip_dst ? zip_dst.to_s : self.uploadFilePath.to_s
-                generate_rdf(logger, file_path, reasoning: reasoning)
+                generate_rdf(logger, reasoning: reasoning)
                 extract_metadata
                 add_submission_status(status)
                 self.save
