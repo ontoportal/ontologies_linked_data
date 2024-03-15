@@ -35,7 +35,7 @@ module LinkedData
       attribute :homepage
       attribute :publication
       attribute :uri, namespace: :omv
-      attribute :naturalLanguage, namespace: :omv
+      attribute :naturalLanguage, namespace: :omv, enforce: [:list]
       attribute :documentation, namespace: :omv
       attribute :version, namespace: :omv
       attribute :creationDate, namespace: :omv, enforce: [:date_time], default: lambda { |record| DateTime.now }
