@@ -105,8 +105,10 @@ module LinkedData
       end
 
       def self.obofoundry_sync(missing_onts, obsolete_onts)
-        body = ''
         ui_name = LinkedData.settings.ui_name
+        subject = "[#{ui_name}] OBO Foundry synchronization report"
+        body = ''
+
         if missing_onts.size > 0
           body << "<strong>The following OBO Library ontologies are missing from #{ui_name}:</strong><br/><br/>"
           missing_onts.each do |ont|
