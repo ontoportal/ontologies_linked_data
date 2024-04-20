@@ -37,19 +37,19 @@ class TestProvisionalClass < LinkedData::TestOntologyCommon
 
     # Before save
     assert_equal LinkedData::Models::ProvisionalClass.where(label: label).all.count, 0
-    assert_equal false, pc.exist?(reload=true)
+    assert_equal false, pc.exist?
 
     pc.save
 
     # After save
     assert_equal LinkedData::Models::ProvisionalClass.where(label: label).all.count, 1
-    assert_equal true, pc.exist?(reload=true)
+    assert_equal true, pc.exist?
 
     pc.delete
 
     # After delete
     assert_equal LinkedData::Models::ProvisionalClass.where(label: label).all.count, 0
-    assert_equal false, pc.exist?(reload=true)
+    assert_equal false, pc.exist?
   end
 
   def test_provisional_class_valid

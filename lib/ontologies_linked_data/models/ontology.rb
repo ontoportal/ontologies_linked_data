@@ -286,11 +286,11 @@ module LinkedData
         unless analytics.empty?
           analytics.delete_if { |acronym, _| !acronyms.include? acronym } unless acronyms.nil?
           analytics.values.each do |ont_analytics|
-            ont_analytics.delete_if { |key, _| key != year } unless year.nil?
-            ont_analytics.each { |_, val| val.delete_if { |key, __| key != month } } unless month.nil?
+            ont_analytics.delete_if { |key, _| key != year.to_s } unless year.nil?
+            ont_analytics.each { |_, val| val.delete_if { |key, __| key != month.to_s } } unless month.nil?
           end
           # sort results by the highest traffic values
-          analytics = Hash[analytics.sort_by {|_, v| v[year][month]}.reverse] if year && month
+          analytics = Hash[analytics.sort_by {|_, v| v[year.to_s][month.to_s]}.reverse] if year && month
         end
         analytics
       end

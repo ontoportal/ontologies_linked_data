@@ -35,7 +35,7 @@ module LinkedData
         logger.flush
 
         # re-generate metrics file
-        submission.generate_metrics_file2(cls_metrics[:classes], indiv_count, prop_count, cls_metrics[:maxDepth])
+        submission.generate_metrics_file(cls_metrics[:classes], indiv_count, prop_count, cls_metrics[:maxDepth])
         logger.info("generation of metrics file finished")
         logger.flush
 
@@ -55,10 +55,11 @@ module LinkedData
       if (mx_from_file && mx_from_file.length == 2 && mx_from_file[0].length >= 4)
       then
         max_depth = mx_from_file[1][3].to_i
+        logger.info("Metrics max_depth retrieved #{max_depth} from the metrics csv file.")
       else
         logger.info("Unable to find metrics providing max_depth in file for submission #{submission.id.to_s}.  Using ruby calculation of max_depth.")  
         roots = submission.roots
-      
+
         unless is_flat
           depths = []
           roots.each do |root|
