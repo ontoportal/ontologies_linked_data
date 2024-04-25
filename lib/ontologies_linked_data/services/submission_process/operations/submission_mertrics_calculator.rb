@@ -10,6 +10,7 @@ module LinkedData
         class_count = 0
         indiv_count = 0
         prop_count = 0
+        max_depth = 0
 
         File.foreach(tr_file_path) do |line|
           class_count += 1 if line =~ /owl:Class/
@@ -17,7 +18,15 @@ module LinkedData
           prop_count += 1 if line =~ /owl:ObjectProperty/
           prop_count += 1 if line =~ /owl:DatatypeProperty/
         end
-        generate_metrics_file(class_count, indiv_count, prop_count)
+
+        # Get max depth from the metrics.csv file which is already generated
+        # by owlapi_wrapper when new submission of UMLS ontology is created.
+        # Ruby code/sparql for calculating max_depth fails for large UMLS
+        # ontologies with AllegroGraph backend
+        metrics_from_owlapi = @submission.metrics_from_file
+        max_depth = metrics_from_owlapi[1][3] unless metrics_from_owlapi.empty?
+
+        generate_metrics_file(class_count, indiv_count, prop_count, max_depth)
       end
 
       private
@@ -78,7 +87,7 @@ module LinkedData
           logger.info('properties finished')
           logger.flush
           # re-generate metrics file
-          generate_metrics_file(cls_metrics[:classes], indiv_count, prop_count)
+          generate_metrics_file(cls_metrics[:classes], indiv_count, prop_count, cls_metrics[:maxDepth])
           logger.info('generation of metrics file finished')
           logger.flush
         rescue StandardError => e
@@ -90,10 +99,10 @@ module LinkedData
         metrics
       end
 
-      def generate_metrics_file(class_count, indiv_count, prop_count)
+      def generate_metrics_file(class_count, indiv_count, prop_count, max_depth)
         CSV.open(@submission.metrics_path, 'wb') do |csv|
-          csv << ['Class Count', 'Individual Count', 'Property Count']
-          csv << [class_count, indiv_count, prop_count]
+          csv << ['Class Count', 'Individual Count', 'Property Count', 'Max Depth']
+          csv << [class_count, indiv_count, prop_count, max_depth]
         end
       end
 

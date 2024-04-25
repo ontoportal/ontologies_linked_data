@@ -83,12 +83,7 @@ module LinkedData
       end
       max_depth
     end
-    def self.generate_metrics_file2(class_count, indiv_count, prop_count, max_depth)
-      CSV.open(self.metrics_path, "wb") do |csv|
-        csv << ["Class Count", "Individual Count", "Property Count", "Max Depth"]
-        csv << [class_count, indiv_count, prop_count, max_depth]
-      end
-    end
+
     def self.class_metrics(submission, logger)
       t00 = Time.now
       submission.ontology.bring(:flat) if submission.ontology.bring?(:flat)
@@ -99,7 +94,7 @@ module LinkedData
           rdfsSC = Goo.namespaces[:rdfs][:subClassOf]
       end
       max_depth = max_depth_fn(submission, logger, is_flat, rdfsSC) 
-      
+
       cls_metrics = {}
       cls_metrics[:classes] = 0
       cls_metrics[:averageChildCount] = 0
