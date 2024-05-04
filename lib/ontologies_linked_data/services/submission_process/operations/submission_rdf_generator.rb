@@ -295,6 +295,7 @@ module LinkedData
           zip_dst = @submission.unzip_submission(logger)
           file_path = zip_dst ? zip_dst.to_s : @submission.uploadFilePath.to_s
           generate_rdf(logger, file_path, reasoning: reasoning)
+          @submission.extract_metadata
           @submission.add_submission_status(status)
           @submission.save
         rescue Exception => e
