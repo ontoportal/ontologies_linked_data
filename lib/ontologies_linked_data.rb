@@ -33,13 +33,16 @@ require "ontologies_linked_data/metrics/metrics"
 # Require base model
 require 'ontologies_linked_data/models/base'
 
-
-
-
 # Require all models and services
 project_root = File.dirname(File.absolute_path(__FILE__))
-# Require base services
+
 require 'ontologies_linked_data/services/submission_process/submission_process'
+models = Dir.glob("#{project_root}/ontologies_linked_data/concerns/**/*.rb").sort
+models.each do |m|
+  require m
+end
+
+
 
 # We need to require deterministic - that is why we have the sort.
 
