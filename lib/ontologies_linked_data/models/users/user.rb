@@ -24,13 +24,14 @@ module LinkedData
       attribute :subscription, enforce: [:list, :subscription]
       attribute :customOntology, enforce: [:list, :ontology]
       attribute :resetToken
+      attribute :resetTokenExpireTime
       attribute :provisionalClasses, inverse: { on: :provisional_class, attribute: :creator }
 
       # Hypermedia settings
       embed :subscription
       embed_values :role => [:role]
       serialize_default :username, :email, :role, :apikey
-      serialize_never :passwordHash, :show_apikey, :resetToken
+      serialize_never :passwordHash, :show_apikey, :resetToken, :restTokenExpireTime
       serialize_filter lambda {|inst| show_apikey?(inst)}
 
       # Cache

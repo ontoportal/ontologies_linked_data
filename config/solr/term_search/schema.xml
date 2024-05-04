@@ -123,7 +123,6 @@
     <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
     <field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>
 
-
     <!-- NCBO specific fields -->
     <field name="resource_id"           type="string"             indexed="true"  stored="true"  multiValued="false" required="true" />
 
@@ -139,8 +138,9 @@
     <field name="synonymSuggest"        type="text_suggest"       indexed="true"  stored="true"  omitNorms="true" multiValued="true" />
     <field name="synonymSuggestEdge"    type="text_suggest_edge"  indexed="true"  stored="true"  multiValued="true" />
     <field name="synonymSuggestNgram"   type="text_suggest_ngram" indexed="true"  stored="true"  omitNorms="true" multiValued="true" />
-
-    <field name="notation"              type="text_general"       indexed="true"  stored="true"  multiValued="false" />
+    <field name="notation"              type="string_ci"          indexed="true"  stored="true"  multiValued="false" />
+    <field name="oboId"                 type="string_ci"          indexed="true"  stored="true"  multiValued="false" />
+    <field name="idAcronymMatch"        type="boolean"            indexed="true"  stored="true"  multiValued="false" default="false"/>
 
     <field name="definition"            type="string"             indexed="true"  stored="true"  multiValued="true" />
     <field name="submissionAcronym"     type="string"             indexed="true"  stored="true"  multiValued="false" />
@@ -151,8 +151,8 @@
     <field name="childCount"            type="int"                indexed="true"  stored="true"  multiValued="false" />
 
     <!-- Added cui and tui (semanticType) - NCBO-695 -->
-    <field name="cui"                   type="text_general"       indexed="true"  stored="true"  multiValued="true" />
-    <field name="semanticType"          type="text_general"       indexed="true"  stored="true"  multiValued="true" />
+    <field name="cui"                   type="string_ci"          indexed="true"  stored="true"  multiValued="true" />
+    <field name="semanticType"          type="string_ci"          indexed="true"  stored="true"  multiValued="true" />
 
     <field name="property"              type="text_general"       indexed="true"  stored="true"  multiValued="true" />
     <field name="propertyRaw"           type="text_general"       indexed="false" stored="true"  multiValued="false" />
@@ -252,6 +252,7 @@
     <copyField source="synonym" dest="synonymSuggestNgram" />
 
     <copyField source="notation" dest="_text_"/>
+    <copyField source="oboId"    dest="_text_"/>
 
 
     <!-- field type definitions. The "name" attribute is

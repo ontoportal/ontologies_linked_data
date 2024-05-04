@@ -101,6 +101,7 @@ class Object
         hash, modified = embed_goo_objects_just_values(hash, k, v, options, &block)
       rescue Exception => e
         puts "Bad data found in submission: #{hash}"
+        puts "#{e.class}: #{e.message}\n#{e.backtrace.join("\n")}"
         raise e
       end
 
