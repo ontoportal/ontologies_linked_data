@@ -91,6 +91,13 @@ module LinkedData
         @mutex.synchronize(&block)
       end
 
+      def URI=(value)
+        self.uri  = value
+      end
+      def URI
+        self.uri
+      end
+
       def self.ontology_link(m)
         ontology_link = ""
 
