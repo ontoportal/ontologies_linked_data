@@ -420,7 +420,7 @@ SELECT DISTINCT * WHERE {
     bro35.bring(:submissions)
     sub35 = bro35.submissions.first
     # Calculate the ontology diff: bro35 - bro34
-    tmp_log = Logger.new(TestLogFile.new)
+    tmp_log = Logger.new($stdout)
     sub35.diff(tmp_log, sub34)
     assert(sub35.diffFilePath != nil, 'Failed to create submission diff file.')
   end
@@ -430,7 +430,7 @@ SELECT DISTINCT * WHERE {
                      "./test/data/ontology_files/BRO_v3.5.owl", 1,
                      process_rdf: true, extract_metadata: false, index_properties: true)
     res = LinkedData::Models::Class.search("*:*", {:fq => "submissionAcronym:\"BRO\"", :start => 0, :rows => 80}, :property)
-    assert_equal 80, res["response"]["numFound"]
+    assert_equal 80 , res["response"]["numFound"]
     found = 0
 
     res["response"]["docs"].each do |doc|
@@ -454,14 +454,50 @@ SELECT DISTINCT * WHERE {
       break if found == 2
     end
 
-    assert_equal 2, found
+    assert_equal 2, found # if owliap does not import skos properties
     ont = LinkedData::Models::Ontology.find('BRO').first
     ont.unindex_properties(true)
 
-    res = LinkedData::Models::Class.search("*:*", {:fq => "submissionAcronym:\"BRO\""}, :property)
+
+    res = LinkedData::Models::Class.search("*:*", {:fq => "submissionAcronym:\"BRO\""},:property)
     assert_equal 0, res["response"]["numFound"]
   end
 
+  def test_index_multilingual
+
+    submission_parse("BRO", "BRO Ontology",
+                     "./test/data/ontology_files/BRO_v3.5.owl", 1,
+                     process_rdf: true, extract_metadata: false, generate_missing_labels: false,
+                     index_search: true, index_properties: false)
+
+
+    res = LinkedData::Models::Class.search("prefLabel:Activity", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80})
+    refute_equal 0, res["response"]["numFound"]
+
+    doc = res["response"]["docs"].select{|doc| doc["resource_id"].to_s.eql?('http://bioontology.org/ontologies/Activity.owl#Activity')}.first
+    refute_nil doc
+    #binding.pry
+    assert_equal 30, doc.keys.select{|k| k['prefLabel'] || k['synonym']}.size # test that all the languages are indexed
+
+
+    res = LinkedData::Models::Class.search("prefLabel_none:Activity", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80})
+    refute_equal 0, res["response"]["numFound"]
+    refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('http://bioontology.org/ontologies/Activity.owl#Activity')}.first
+
+    res = LinkedData::Models::Class.search("prefLabel_fr:Activité", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80})
+    refute_equal 0, res["response"]["numFound"]
+    refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('http://bioontology.org/ontologies/Activity.owl#Activity')}.first
+
+
+
+    res = LinkedData::Models::Class.search("prefLabel_en:ActivityEnglish", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80})
+    refute_equal 0, res["response"]["numFound"]
+    refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('http://bioontology.org/ontologies/Activity.owl#Activity')}.first
+
+
+    res = LinkedData::Models::Class.search("prefLabel_fr:Activity", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80})
+    assert_equal 0, res["response"]["numFound"]
+  end
 
   def test_zipped_submission_process
     acronym = "PIZZA"
@@ -1066,11 +1102,11 @@ eos
     metrics.bring_remaining
     assert_instance_of LinkedData::Models::Metric, metrics
 
-    assert_equal 486, metrics.classes
-    assert_equal 63, metrics.properties
+    assert_includes [481, 486], metrics.classes # 486 if owlapi imports skos classes
+    assert_includes [63, 45], metrics.properties # 63 if owlapi imports skos properties
     assert_equal 124, metrics.individuals
-    assert_equal 14, metrics.classesWithOneChild
-    assert_equal 474, metrics.classesWithNoDefinition
+    assert_includes [13, 14], metrics.classesWithOneChild # 14 if owlapi imports skos properties
+    assert_includes [473, 474], metrics.classesWithNoDefinition # 474 if owlapi imports skos properties
     assert_equal 2, metrics.classesWithMoreThan25Children
     assert_equal 65, metrics.maxChildCount
     assert_equal 5, metrics.averageChildCount
