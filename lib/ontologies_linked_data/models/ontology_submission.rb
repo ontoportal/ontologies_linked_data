@@ -15,7 +15,6 @@ module LinkedData
       include LinkedData::Concerns::SubmissionProcessable
       include LinkedData::Concerns::OntologySubmission::MetadataExtractor
 
-      FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
       FLAT_ROOTS_LIMIT = 1000
 
       model :ontology_submission, name_with: lambda { |s| submission_id_generator(s) }
@@ -89,6 +88,13 @@ module LinkedData
 
       def synchronize(&block)
         @mutex.synchronize(&block)
+      end
+
+      def URI=(value)
+        self.uri  = value
+      end
+      def URI
+        self.uri
       end
 
       def self.ontology_link(m)

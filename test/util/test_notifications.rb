@@ -162,6 +162,9 @@ class TestNotifications < LinkedData::TestCase
   end
 
   def test_mail_options
+    current_auth_type = LinkedData.settings.smtp_auth_type
+
+    LinkedData.settings.smtp_auth_type = :none
     options = LinkedData::Utils::Notifier.mail_options
     expected_options = {
       address: LinkedData.settings.smtp_host,
@@ -171,7 +174,7 @@ class TestNotifications < LinkedData::TestCase
     assert_equal options, expected_options
 
     # testing SMTP authentification-based login
-    current_auth_type = LinkedData.settings.smtp_auth_type
+
     LinkedData.settings.smtp_auth_type = :plain
     options = LinkedData::Utils::Notifier.mail_options
     expected_options = {

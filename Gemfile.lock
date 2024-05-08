@@ -1,7 +1,17 @@
 GIT
-  remote: https://github.com/ncbo/goo.git
-  revision: ef2d816df2d263c905bd034efd449a964fa4890f
-  branch: master
+  remote: https://github.com/ncbo/sparql-client.git
+  revision: 1657f0dd69fd4b522d3549a6848670175f5e98cc
+  branch: develop
+  specs:
+    sparql-client (1.0.1)
+      json_pure (>= 1.4)
+      net-http-persistent (= 2.9.4)
+      rdf (>= 1.0)
+
+GIT
+  remote: https://github.com/ontoportal-lirmm/goo.git
+  revision: f2751fe9324e48a0a5c2a8b15580ab879fc53a2b
+  branch: pr/sync-agroportal-bioportal
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
@@ -13,16 +23,6 @@ GIT
       rsolr
       sparql-client
       uuid
-
-GIT
-  remote: https://github.com/ncbo/sparql-client.git
-  revision: e89c26aa96f184dbe9b52d51e04fb3d9ba998dbc
-  branch: master
-  specs:
-    sparql-client (1.0.1)
-      json_pure (>= 1.4)
-      net-http-persistent (= 2.9.4)
-      rdf (>= 1.0)
 
 GEM
   remote: https://rubygems.org/
@@ -182,8 +182,7 @@ GEM
       macaddr (~> 1.0)
 
 PLATFORMS
-  arm64-darwin-22
-  x86_64-darwin-21
+  x86_64-linux
 
 DEPENDENCIES
   activesupport (~> 4)
@@ -204,6 +203,7 @@ DEPENDENCIES
   rack
   rack-test (~> 0.6)
   rake (~> 10.0)
+  request_store
   rest-client
   rsolr
   rubocop
