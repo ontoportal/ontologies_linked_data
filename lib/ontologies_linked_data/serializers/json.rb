@@ -66,7 +66,7 @@ module LinkedData
       def self.get_submission_languages(submission_natural_language = [])
         submission_natural_language = submission_natural_language.values.flatten if submission_natural_language.is_a?(Hash)
         submission_natural_language.map { |natural_language| natural_language.to_s['iso639'] && natural_language.to_s.split('/').last[0..1].to_sym }.compact
-      end 
+      end
 
       def self.type(current_cls, hashed_obj)
         if current_cls.respond_to?(:type_uri)
@@ -101,7 +101,12 @@ module LinkedData
             predicate = { "@id" => linked_model.type_uri.to_s, "@type" => "@id" }
           else
             # use the original predicate property if set
-            predicate_attr = current_cls.model_settings[:attributes][attr][:property] || attr
+            predicate_attr = if current_cls.model_settings[:attributes][attr][:property].is_a?(Proc)
+                               attr
+                             else
+                               current_cls.model_settings[:attributes][attr][:property] || attr
+                             end
+
             # predicate with custom namespace
             # if the namespace can be resolved by the namespaces added in Goo then it will be resolved.
             predicate = "#{Goo.vocabulary(current_cls.model_settings[:attributes][attr][:namespace])&.to_s}#{predicate_attr}"
