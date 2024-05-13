@@ -197,7 +197,8 @@ module LinkedData
           label = nil
 
           if rdfs_labels && rdfs_labels.length > 0
-            label = rdfs_labels[0]
+            # this sort is needed for a predictable label selection
+            label = rdfs_labels.sort[0]
           else
             label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
           end
