@@ -88,7 +88,7 @@ class TestNotifications < LinkedData::TestCase
   end
 
   def test_processing_complete_notification
-    options = { ont_count: 1, submission_count: 1, acronym: "NOTIFY" }
+    options = { ont_count: 1, submission_count: 2, acronym: "NOTIFY" }
     ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(options)[2].first
     subscription = _subscription(ont)
     @@user.subscription = @@user.subscription.dup << subscription
@@ -107,6 +107,13 @@ class TestNotifications < LinkedData::TestCase
     assert_match ("Parsing Success"), all_emails.last.subject
     assert_equal @@support_mails.uniq.sort, all_emails[1].to.sort
     assert_equal admin_mails.uniq.sort, all_emails.last.to.sort
+
+
+    reset_mailer
+    sub = ont.submissions.first
+    sub.process_submission(Logger.new(TestLogFile.new), {archive: true})
+
+    assert_empty all_emails
   ensure
     ont.delete if ont
     subscription.delete if subscription
