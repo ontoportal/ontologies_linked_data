@@ -113,7 +113,12 @@ module LinkedData
             predicate = { "@id" => linked_model.type_uri.to_s, "@type" => "@id" }
           else
             # use the original predicate property if set
-            predicate_attr = current_cls.model_settings[:attributes][attr][:property] || attr
+            predicate_attr = if current_cls.model_settings[:attributes][attr][:property].is_a?(Proc)
+                               attr
+                             else
+                               current_cls.model_settings[:attributes][attr][:property] || attr
+                             end
+
             # predicate with custom namespace
             # if the namespace can be resolved by the namespaces added in Goo then it will be resolved.
             predicate = "#{Goo.vocabulary(current_cls.model_settings[:attributes][attr][:namespace])&.to_s}#{predicate_attr}"
