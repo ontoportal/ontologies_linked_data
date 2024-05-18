@@ -110,7 +110,7 @@ class TestNotifications < LinkedData::TestCase
 
 
     reset_mailer
-    sub = ont.submissions.first
+    sub = ont.submissions.sort_by { |s| s.id}.first
     sub.process_submission(Logger.new(TestLogFile.new), {archive: true})
 
     assert_empty all_emails
