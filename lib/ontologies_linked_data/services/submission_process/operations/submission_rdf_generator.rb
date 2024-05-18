@@ -294,9 +294,8 @@ module LinkedData
           end
           status = LinkedData::Models::SubmissionStatus.find('RDF').first
           @submission.remove_submission_status(status) #remove RDF status before starting
-          zip_dst = @submission.unzip_submission(logger)
-          file_path = zip_dst ? zip_dst.to_s : @submission.uploadFilePath.to_s
-          generate_rdf(logger, file_path, reasoning: reasoning)
+
+          generate_rdf(logger, reasoning: reasoning)
           @submission.extract_metadata
           @submission.add_submission_status(status)
           @submission.save
@@ -309,11 +308,11 @@ module LinkedData
           raise e
         end
 
-        MissingLabelsHandler.new(@submission).process(logger, file_path: file_path)
+        MissingLabelsHandler.new(@submission).process(logger, file_path: @submission.master_file_path)
 
         status = LinkedData::Models::SubmissionStatus.find('OBSOLETE').first
         begin
-          generate_obsolete_classes(logger, file_path)
+          generate_obsolete_classes(logger, @submission.master_file_path)
           @submission.add_submission_status(status)
           @submission.save
         rescue Exception => e
@@ -326,7 +325,7 @@ module LinkedData
         end
       end
 
-      def generate_rdf(logger, file_path, reasoning: true)
+      def generate_rdf(logger, reasoning: true)
         mime_type = nil
 
         if @submission.hasOntologyLanguage.umls?
@@ -348,10 +347,8 @@ module LinkedData
               logger.info("error deleting owlapi.rdf")
             end
           end
-          owlapi = LinkedData::Parser::OWLAPICommand.new(
-            File.expand_path(file_path),
-            File.expand_path(@submission.data_folder.to_s),
-            master_file: @submission.masterFileName)
+
+          owlapi = @submission.owlapi_parser(logger: logger)
 
           if !reasoning
             owlapi.disable_reasoner
