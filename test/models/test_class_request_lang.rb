@@ -65,6 +65,43 @@ class TestClassRequestedLang < LinkedData::TestOntologyCommon
     assert_empty properties.select { |x| x.to_s['prefLabel'] }.values
   end
 
+  def test_context_language
+    cls = get_class('http://opendata.inrae.fr/thesaurusINRAE/c_22817', 'INRAETHES')
+    cls.submission.bring_remaining
+    cls.submission.ontology.bring_remaining
+
+    # Default portal language
+    response = MultiJson.load(LinkedData::Serializers::JSON.serialize(cls))
+    assert_equal response["@context"]["@language"], Goo.main_languages.first.to_s
+
+    # Request specific language
+    response = MultiJson.load(LinkedData::Serializers::JSON.serialize(cls, lang: 'fr'))
+    assert_equal response["@context"]["@language"], 'fr'
+
+    response = MultiJson.load(LinkedData::Serializers::JSON.serialize(cls, lang: %w[fr en es]))
+    assert_equal response["@context"]["@language"], %w[fr en es]
+
+    # Submission Natural Language
+    s = cls.submission
+    s.naturalLanguage = %w[fr en]
+    s.save
+
+    cls = get_class('http://opendata.inrae.fr/thesaurusINRAE/c_22817', 'INRAETHES')
+    cls.submission.bring_remaining
+    cls.submission.ontology.bring_remaining
+
+    # Default get submission first Natural Language
+    response = MultiJson.load(LinkedData::Serializers::JSON.serialize(cls))
+    assert_equal response["@context"]["@language"],  'fr'
+
+    # Request specific language
+    response = MultiJson.load(LinkedData::Serializers::JSON.serialize(cls, lang: 'fr'))
+    assert_equal response["@context"]["@language"], 'fr'
+
+    response = MultiJson.load(LinkedData::Serializers::JSON.serialize(cls, lang: %w[fr en es]))
+    assert_equal response["@context"]["@language"], %w[fr en es]
+  end
+
   def test_request_all_languages
 
     cls = get_class_by_lang('http://opendata.inrae.fr/thesaurusINRAE/c_22817',

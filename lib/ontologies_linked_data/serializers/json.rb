@@ -10,7 +10,7 @@ module LinkedData
 
         hash = obj.to_flex_hash(options) do |hash, hashed_obj|
           current_cls = hashed_obj.respond_to?(:klass) ? hashed_obj.klass : hashed_obj.class
-          result_lang = self.get_languages(get_object_submission(hashed_obj), options[:lang]) if result_lang.nil?
+          result_lang = self.get_languages(get_object_submission(hashed_obj), options[:lang])
 
           # Add the id to json-ld attribute
           if current_cls.ancestors.include?(LinkedData::Hypermedia::Resource) && !current_cls.embedded? && hashed_obj.respond_to?(:id)
@@ -50,23 +50,35 @@ module LinkedData
       end
 
       def self.get_languages(submission, user_languages)
-        result_lang = user_languages
 
-        if submission
-          submission.bring :naturalLanguage
-          languages = get_submission_languages(submission.naturalLanguage)
-          # intersection of the two arrays , if the requested language is not :all
-          result_lang = user_languages == :all ? languages : Array(user_languages) & languages
-          result_lang = result_lang.first if result_lang.length == 1
+        if user_languages.eql?(:all) || user_languages.blank?
+          if submission
+            submission.bring(:naturalLanguage) if submission.bring?(:naturalLanguage)
+            submission_languages_languages = get_submission_languages(submission.naturalLanguage)
+          end
+
+          if submission_languages_languages.blank?
+            result_lang = [Goo.main_languages.first.to_s]
+          else
+            result_lang = [submission_languages_languages.first]
+          end
+        else
+          result_lang = Array(user_languages)
         end
 
-        result_lang
+        if result_lang.length == 1
+          result_lang.first
+        elsif result_lang.empty?
+          Goo.main_languages.first.to_s
+        else
+          result_lang
+        end
       end
 
       def self.get_submission_languages(submission_natural_language = [])
         submission_natural_language = submission_natural_language.values.flatten if submission_natural_language.is_a?(Hash)
-        submission_natural_language.map { |natural_language| natural_language.to_s['iso639'] && natural_language.to_s.split('/').last[0..1].to_sym }.compact
-      end 
+        submission_natural_language.map { |natural_language| natural_language.to_s.split('/').last[0..1].to_sym }.compact
+      end
 
       def self.type(current_cls, hashed_obj)
         if current_cls.respond_to?(:type_uri)
