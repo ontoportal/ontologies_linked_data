@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 70007faf43d0d96292809f89f15a27a757ccaa25
+  revision: a55ef42e92bc02129992c77890278831f8ca5387
   branch: develop
   specs:
     goo (0.0.2)
@@ -185,6 +185,7 @@ GEM
 
 PLATFORMS
   x86_64-darwin-23
+  aarch64-linux
   x86_64-linux
 
 DEPENDENCIES
