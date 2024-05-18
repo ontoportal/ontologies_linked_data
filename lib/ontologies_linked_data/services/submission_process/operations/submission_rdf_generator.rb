@@ -26,7 +26,6 @@ module LinkedData
           }
         }
 
-        RequestStore.store[:requested_lang] = :ALL
         raw_paging = LinkedData::Models::Class.in(@submission).include(:prefLabel, :synonym, :label)
         loop_classes(logger, raw_paging, @submission, callbacks)
       end

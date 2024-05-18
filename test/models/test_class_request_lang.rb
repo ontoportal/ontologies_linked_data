@@ -71,8 +71,10 @@ class TestClassRequestedLang < LinkedData::TestOntologyCommon
     cls.submission.ontology.bring_remaining
 
     # Default portal language
-    response = MultiJson.load(LinkedData::Serializers::JSON.serialize(cls))
+    cls.bring_remaining
+    response = MultiJson.load(LinkedData::Serializers::JSON.serialize(cls, all: 'all'))
     assert_equal response["@context"]["@language"], Goo.main_languages.first.to_s
+    assert_equal  "http://www.w3.org/2000/01/rdf-schema#parents", response["@context"]["parents"]
 
     # Request specific language
     response = MultiJson.load(LinkedData::Serializers::JSON.serialize(cls, lang: 'fr'))
