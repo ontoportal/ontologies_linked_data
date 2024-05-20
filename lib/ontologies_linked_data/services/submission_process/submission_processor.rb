@@ -36,9 +36,7 @@ module LinkedData
           if archive
             @submission.archive
           else
-
             @submission.generate_rdf(logger, reasoning: reasoning) if process_rdf
-
             parsed = @submission.ready?(status: [:rdf, :rdf_labels])
 
             if index_search
