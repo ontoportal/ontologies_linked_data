@@ -293,9 +293,7 @@ module LinkedData
           end
           status = LinkedData::Models::SubmissionStatus.find('RDF').first
           @submission.remove_submission_status(status) #remove RDF status before starting
-          zip_dst = @submission.unzip_submission(logger)
-          file_path = zip_dst ? zip_dst.to_s : @submission.uploadFilePath.to_s
-          generate_rdf(logger, file_path, reasoning: reasoning)
+          generate_rdf(logger, reasoning: reasoning)
           @submission.extract_metadata
           @submission.add_submission_status(status)
           @submission.save
@@ -308,7 +306,7 @@ module LinkedData
           raise e
         end
 
-        MissingLabelsHandler.new(@submission).process(logger, file_path: file_path)
+        MissingLabelsHandler.new(@submission).process(logger, file_path: @submission.uploadFilePath.to_s)
 
         status = LinkedData::Models::SubmissionStatus.find('OBSOLETE').first
         begin
@@ -325,12 +323,12 @@ module LinkedData
         end
       end
 
-      def generate_rdf(logger, file_path, reasoning: true)
+      def generate_rdf(logger, reasoning: true)
         mime_type = nil
 
         if @submission.hasOntologyLanguage.umls?
           triples_file_path = @submission.triples_file_path
-          logger.info("Using UMLS turtle file found, skipping OWLAPI parse")
+          logger.info("UMLS turtle file found; doing OWLAPI parse to extract metrics")
           logger.flush
           mime_type = LinkedData::MediaTypes.media_type_from_base(LinkedData::MediaTypes::TURTLE)
           SubmissionMetricsCalculator.new(@submission).generate_umls_metrics_file(triples_file_path)
@@ -347,14 +345,8 @@ module LinkedData
               logger.info("error deleting owlapi.rdf")
             end
           end
-          owlapi = LinkedData::Parser::OWLAPICommand.new(
-            File.expand_path(file_path),
-            File.expand_path(@submission.data_folder.to_s),
-            master_file: @submission.masterFileName)
-
-          if !reasoning
-            owlapi.disable_reasoner
-          end
+          owlapi = @submission.owlapi_parser(logger: logger)
+          owlapi.disable_reasoner unless reasoning
           triples_file_path, missing_imports = owlapi.parse
 
           if missing_imports && missing_imports.length > 0
@@ -367,6 +359,9 @@ module LinkedData
             @submission.missingImports = nil
           end
           logger.flush
+          # debug code when you need to avoid re-generating the owlapi.xrdf file,
+          # comment out the block above and uncomment the line below
+          # triples_file_path = output_rdf
         end
 
         begin
@@ -375,39 +370,13 @@ module LinkedData
           logger.error("Error sending data to triple store - #{e.response.code} #{e.class}: #{e.response.body}") if e.response&.body
           raise e
         end
-        version_info = extract_version
-
-        if version_info
-          @submission.version = version_info
-        end
       end
-
-
 
       def delete_and_append(triples_file_path, logger, mime_type = nil)
         Goo.sparql_data_client.delete_graph(@submission.id)
         Goo.sparql_data_client.put_triples(@submission.id, triples_file_path, mime_type)
         logger.info("Triples #{triples_file_path} appended in #{@submission.id.to_ntriples}")
         logger.flush
-      end
-
-
-
-
-      def extract_version
-
-        query_version_info = <<eos
-SELECT ?versionInfo
-FROM #{@submission.id.to_ntriples}
-WHERE {
-<http://bioportal.bioontology.org/ontologies/versionSubject>
- <http://www.w3.org/2002/07/owl#versionInfo> ?versionInfo .
-}
-eos
-        Goo.sparql_query_client.query(query_version_info).each_solution do |sol|
-          return sol[:versionInfo].to_s
-        end
-        return nil
       end
 
       def process_callbacks(logger, callbacks, action_name, &block)

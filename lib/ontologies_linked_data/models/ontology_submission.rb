@@ -277,6 +277,10 @@ module LinkedData
         File.join([data_folder, 'unzipped'])
       end
 
+      def master_file_folder
+        zipped? ? zip_folder : data_folder
+      end
+
       def csv_path
         return File.join(self.data_folder, self.ontology.acronym.to_s + ".csv.gz")
       end
@@ -329,7 +333,6 @@ module LinkedData
         end
         zip_dst
       end
-
 
       def class_count(logger=nil)
         logger ||= LinkedData::Parser.logger || Logger.new($stderr)
@@ -683,8 +686,25 @@ eos
         parsable
       end
 
+      def owlapi_parser(logger: Logger.new($stdout))
+        unzip_submission(logger)
+        LinkedData::Parser::OWLAPICommand.new(
+          owlapi_parser_input,
+          File.expand_path(self.data_folder.to_s),
+          master_file: self.masterFileName,
+          logger: logger)
+      end
 
       private
+
+      def owlapi_parser_input
+        path = if zipped?
+                 self.zip_folder
+               else
+                 self.uploadFilePath
+               end
+        File.expand_path(path)
+      end
 
       def check_http_file(url)
         session = Net::HTTP.new(url.host, url.port)
