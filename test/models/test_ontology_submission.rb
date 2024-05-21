@@ -1157,8 +1157,11 @@ eos
       ont =  LinkedData::Models::Ontology.find("AGROOE").first
       sub = ont.latest_submission
       refute_nil sub
+      sub.bring_remaining
 
-      # sub.bring_remaining
+      assert_equal "http://lirmm.fr/2015/ontology/agroportal_ontology_example.owl", sub.uri
+
+      # remaining not implemented in NCBO branch
       # assert_equal '2015-09-28', sub.creationDate.to_date.to_s
       # assert_equal '2015-10-01', sub.modificationDate.to_date.to_s
       # assert_equal  "description example,  AGROOE is an ontology used to test the metadata extraction,  AGROOE is an ontology to illustrate how to describe their ontologies", sub.description
