@@ -14,13 +14,11 @@ module LinkedData
         begin
           index(logger, options[:commit], false)
           @submission.add_submission_status(status)
-        rescue Exception => e
+        rescue StandardError => e
           logger.error("#{e.class}: #{e.message}\n#{e.backtrace.join("\n\t")}")
           logger.flush
           @submission.add_submission_status(status.get_error_status)
-          if File.file?(@submission.csv_path)
-            FileUtils.rm(@submission.csv_path)
-          end
+          FileUtils.rm(@submission.csv_path) if File.file?(@submission.csv_path)
         ensure
           @submission.save
         end
@@ -45,7 +43,9 @@ module LinkedData
             logger.info("Removed ontology terms index (#{Time.now - t0}s)"); logger.flush
 
             paging = LinkedData::Models::Class.in(@submission).include(:unmapped).aggregate(:count, :children).page(page, size)
-            cls_count = @submission.class_count(logger)
+            # a fix for SKOS ontologies, see https://github.com/ncbo/ontologies_api/issues/20
+            @submission.bring(:hasOntologyLanguage) unless @submission.loaded_attributes.include?(:hasOntologyLanguage)
+            cls_count = @submission.hasOntologyLanguage.skos? ? -1 : @submission.class_count(logger)
             paging.page_count_set(cls_count) unless cls_count < 0
             total_pages = paging.page(1, size).all.total_pages
             num_threads = [total_pages, LinkedData.settings.indexing_num_threads].min
@@ -66,6 +66,7 @@ module LinkedData
                       Thread.current['done'] = true
                     else
                       Thread.current['page'] = page || 'nil'
+                      RequestStore.store[:requested_lang] = :ALL
                       page_classes = paging.page(page, size).all
                       count_classes += page_classes.length
                       Thread.current['page_classes'] = page_classes
@@ -116,7 +117,7 @@ module LinkedData
                   Thread.current['page_classes'].each do |c|
                     begin
                       # this cal is needed for indexing of properties
-                      LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
+                      LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates, include_languages: true)
                     rescue Exception => e
                       i = 0
                       num_calls = LinkedData.settings.num_retries_4store
@@ -128,7 +129,7 @@ module LinkedData
                         sleep(2)
 
                         begin
-                          LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates)
+                          LinkedData::Models::Class.map_attributes(c, paging.equivalent_predicates, include_languages: true)
                           logger.info("Thread #{num + 1}: Success mapping attributes for #{c.id.to_s} after retrying #{i} times...")
                           success = true
                         rescue Exception => e1

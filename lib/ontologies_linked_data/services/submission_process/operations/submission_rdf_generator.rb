@@ -293,6 +293,7 @@ module LinkedData
           end
           status = LinkedData::Models::SubmissionStatus.find('RDF').first
           @submission.remove_submission_status(status) #remove RDF status before starting
+
           generate_rdf(logger, reasoning: reasoning)
           @submission.extract_metadata
           @submission.add_submission_status(status)
@@ -345,6 +346,7 @@ module LinkedData
               logger.info("error deleting owlapi.rdf")
             end
           end
+
           owlapi = @submission.owlapi_parser(logger: logger)
           owlapi.disable_reasoner unless reasoning
           triples_file_path, missing_imports = owlapi.parse

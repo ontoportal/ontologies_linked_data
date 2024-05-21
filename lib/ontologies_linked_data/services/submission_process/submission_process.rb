@@ -1,4 +1,4 @@
-module LinkedData
+  module LinkedData
   module Services
     class OntologySubmissionProcess
 
@@ -7,6 +7,10 @@ module LinkedData
       end
 
       def process(logger, options = {})
+        call
+      end
+
+      def call
         raise NotImplementedError
       end
     end

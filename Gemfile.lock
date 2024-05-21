@@ -184,7 +184,9 @@ GEM
       macaddr (~> 1.0)
 
 PLATFORMS
-  x86_64-darwin-21
+  aarch64-linux
+  x86_64-darwin-23
+  x86_64-linux
 
 DEPENDENCIES
   activesupport (~> 4)
@@ -205,6 +207,7 @@ DEPENDENCIES
   rack
   rack-test (~> 0.6)
   rake (~> 10.0)
+  request_store
   rest-client
   rsolr
   rubocop
