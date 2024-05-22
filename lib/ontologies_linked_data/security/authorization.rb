@@ -1,13 +1,11 @@
 require 'set'
 
-
 module LinkedData
   module Security
     class Authorization
       APIKEYS_FOR_AUTHORIZATION = {}
       USER_APIKEY_PARAM = 'userapikey'.freeze
       API_KEY_PARAM = 'apikey'.freeze
-
 
       def initialize(app = nil)
         @app = app
@@ -23,11 +21,10 @@ module LinkedData
       def call(env)
         req = Rack::Request.new(env)
         params = req.params
-        
+
         apikey = find_apikey(env, params)
         status = 200
         error_message = ''
-
 
         if !apikey
           status = 401
@@ -48,6 +45,9 @@ module LinkedData
         if status.eql?(401) && !bypass?(env)
           LinkedData::Serializer.build_response(env, status: status, body: response)
         else
+          # unfrozen params so that they can be encoded by Rack using occurring after updating the gem RDF to  v3.0
+          env["rack.request.form_hash"]&.transform_values!(&:dup)
+          env["rack.request.query_hash"]&.transform_values!(&:dup)
           status, headers, response = @app.call(env)
           save_apikey_in_cookie(env, headers, apikey, params)
           [status, headers, response]
@@ -64,6 +64,7 @@ module LinkedData
       ##
       # Inject a cookie with the API Key if it is present and we're in HTML content type
       COOKIE_APIKEY_PARAM = "ncbo_apikey"
+
       def save_apikey_in_cookie(env, headers, apikey, params)
         # If we're using HTML, inject the apikey in a cookie (ignores bad accept headers)
         best = nil
@@ -95,7 +96,6 @@ module LinkedData
         cookie_apikey(env)
       end
 
-
       def authorized?(apikey, env)
         return false if apikey.nil?
 
@@ -103,8 +103,8 @@ module LinkedData
           store_user(APIKEYS_FOR_AUTHORIZATION[apikey], env)
         else
           user = LinkedData::Models::User.where(apikey: apikey)
-                                          .include(LinkedData::Models::User.attributes(:all))
-                                          .first
+                                         .include(LinkedData::Models::User.attributes(:all))
+                                         .first
           return false if user.nil?
 
           # This will kind-of break if multiple apikeys exist
@@ -121,7 +121,6 @@ module LinkedData
       end
 
       private
-
 
       def request_header_apikey(env)
         header_auth = get_header_auth(env)
@@ -151,7 +150,7 @@ module LinkedData
         env["HTTP_AUTHORIZATION"] || env["Authorization"] || ''
       end
 
-      def user_apikey(env,params)
+      def user_apikey(env, params)
         return unless (params["apikey"] && params["userapikey"])
 
         apikey_authed = authorized?(params[API_KEY_PARAM], env)

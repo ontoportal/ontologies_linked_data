@@ -40,7 +40,7 @@ module LinkedData
       end
 
       def self.notify_administrators_grouped(subject, body, ontology)
-        notify_support_grouped subject, body, admin_mails(ontology)
+        notify_support_grouped subject, body
       end
 
       def self.notify_mails_separately(subject, body, mails)

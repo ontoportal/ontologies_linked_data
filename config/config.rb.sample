@@ -1,45 +1,102 @@
-LinkedData.config do |config|
-  config.goo_port          = 9000
-  config.goo_host          = "localhost"
-  config.search_server_url = "http://localhost:8983/solr/term_search_core1"
-  config.property_search_server_url = "http://localhost:8983/solr/prop_search_core1"
-  config.repository_folder = "./test/data/ontology_files/repo"
-  config.rest_url_prefix   = "http://data.bioontology.org/"
-  config.enable_security   = false
-  config.java_max_heap_size         = '10240M'
-  #PURL server config parameters
-  config.enable_purl            = false
-  config.purl_host              = "purl.bioontology.org"
-  config.purl_port              = 80
-  config.purl_username          = ""
-  config.purl_password          = ""
-  config.purl_maintainers       = ""
-  config.purl_target_url_prefix = "http://bioportal.bioontology.org"
-  config.sparql_endpoint_url    = "http:://sparql_endpoint.com"
-  Goo.configure do |conf|
-      conf.main_languages = ['en']
-  end
+GOO_BACKEND_NAME = ENV.include?("GOO_BACKEND_NAME") ? ENV["GOO_BACKEND_NAME"] : "4store"
+GOO_PATH_QUERY   = ENV.include?("GOO_PATH_QUERY")   ? ENV["GOO_PATH_QUERY"]   : "/sparql/"
+GOO_PATH_DATA    = ENV.include?("GOO_PATH_DATA")    ? ENV["GOO_PATH_DATA"]    : "/data/"
+GOO_PATH_UPDATE  = ENV.include?("GOO_PATH_UPDATE")  ? ENV["GOO_PATH_UPDATE"]  : "/update/"
+GOO_PORT         = ENV.include?("GOO_PORT")         ? ENV["GOO_PORT"]         : 9000
+GOO_HOST         = ENV.include?("GOO_HOST")         ? ENV["GOO_HOST"]         : "localhost"
+REDIS_HOST       = ENV.include?("REDIS_HOST")       ? ENV["REDIS_HOST"]       : "localhost"
+REDIS_PORT       = ENV.include?("REDIS_PORT")       ? ENV["REDIS_PORT"]       : 6379
+SOLR_TERM_SEARCH_URL = ENV.include?("SOLR_TERM_SEARCH_URL") ? ENV["SOLR_TERM_SEARCH_URL"] : "http://localhost:8983/solr"
+SOLR_PROP_SEARCH_URL = ENV.include?("SOLR_PROP_SEARCH_URL") ? ENV["SOLR_PROP_SEARCH_URL"] : "http://localhost:8983/solr"
+GOO_SLICES = ENV["GOO_SLICES"] || 500
+begin
+  LinkedData.config do |config|
+    Goo.slice_loading_size = GOO_SLICES.to_i
+    config.goo_backend_name = GOO_BACKEND_NAME.to_s
+    config.goo_host = GOO_HOST.to_s
+    config.goo_port = GOO_PORT.to_i
+    config.goo_path_query = GOO_PATH_QUERY.to_s
+    config.goo_path_data = GOO_PATH_DATA.to_s
+    config.goo_path_update = GOO_PATH_UPDATE.to_s
+    config.goo_redis_host = REDIS_HOST.to_s
+    config.goo_redis_port = REDIS_PORT.to_i
+    config.http_redis_host = REDIS_HOST.to_s
+    config.http_redis_port = REDIS_PORT.to_i
+    config.ontology_analytics_redis_host = REDIS_HOST.to_s
+    config.ontology_analytics_redis_port = REDIS_PORT.to_i
+    config.search_server_url = SOLR_TERM_SEARCH_URL.to_s
+    config.property_search_server_url = SOLR_PROP_SEARCH_URL.to_s
+    config.sparql_endpoint_url = "http:://sparql_endpoint.com"
+    #  config.enable_notifications          = false
+    #
+    config.java_max_heap_size = '20480M'
+    config.main_languages = ['en']
 
- #oauth
- config.oauth_providers = {
-    github: {
-      check: :access_token,
-      link: 'https://api.github.com/user'
-    },
-    keycloak: {
-      check: :jwt_token,
-      cert: 'KEYCLOAK_SECRET_KEY'
-    },
-    orcid: {
-      check: :access_token,
-      link: 'https://pub.orcid.org/v3.0/me'
-    },
-    google: {
-       check: :access_token,
-       link: 'https://www.googleapis.com/oauth2/v3/userinfo'
+    # Caches
+    config.goo_redis_host = REDIS_HOST.to_s
+    config.goo_redis_port = REDIS_PORT.to_i
+    config.enable_http_cache = false
+
+    # Email notifications
+    config.enable_notifications = false
+    config.email_sender = 'notifications@bioportal.lirmm.fr' # Default sender for emails
+    config.email_override = 'syphax.bouazzouni@lirmm.fr' # all email gets sent here. Disable with email_override_disable.
+    config.email_disable_override = true
+    config.smtp_host = 'localhost'
+    config.smtp_port = 1025
+    config.smtp_auth_type = :plain # :none, :plain, :login, :cram_md5
+    config.smtp_domain = 'lirmm.fr'
+    config.smtp_user = 'test'
+    config.smtp_password = 'test'
+    # Emails of the instance administrators to get mail notifications when new user or new ontology
+    # config.admin_emails           = ['syphax.bouazzouni@lirmm.fr']
+
+    # Used to define other bioportal that can be mapped to
+    # Example to map to ncbo bioportal : {"ncbo" => {"api" => "http://data.bioontology.org", "ui" => "http://bioportal.bioontology.org", "apikey" => ""}
+    # Then create the mapping using the following class in JSON : "http://purl.bioontology.org/ontology/MESH/C585345": "ncbo:MESH"
+    # Where "ncbo" is the namespace used as key in the interportal_hash
+    config.interportal_hash = {
+      'agroportal' => {
+        'api' => 'http://data.agroportal.lirmm.fr',
+        'ui' => 'http://agroportal.lirmm.fr',
+        'apikey' => '1cfae05f-9e67-486f-820b-b393dec5764b'
+      },
+      'ncbo' => {
+        'api' => 'http://data.bioontology.org',
+        'ui' => 'http://bioportal.bioontology.org',
+        'apikey' => '4a5011ea-75fa-4be6-8e89-f45c8c84844e'
+      },
+      'sifr' => {
+        'api' => 'http://data.bioportal.lirmm.fr',
+        'ui' => 'http://bioportal.lirmm.fr',
+        'apikey' => '1cfae05f-9e67-486f-820b-b393dec5764b'
+      }
     }
- }
+
+    # oauth
+    config.oauth_providers = {
+      github: {
+        check: :access_token,
+        link: 'https://api.github.com/user'
+      },
+      keycloak: {
+        check: :jwt_token,
+        cert: 'KEYCLOAK_SECRET_KEY'
+      },
+      orcid: {
+        check: :access_token,
+        link: 'https://pub.orcid.org/v3.0/me'
+      },
+      google: {
+        check: :access_token,
+        link: 'https://www.googleapis.com/oauth2/v3/userinfo'
+      }
+    }
+  end
+rescue NameError => e
+  binding.pry
+  #  puts '(CNFG) >> LinkedData not available, cannot load config'
 end
 
-#sometimes tmp by default cannot allocate large files
-$TMP_SORT_FOLDER = "SOME TMP FOLDER"
+# sometimes tmp by default cannot allocate large files
+$TMP_SORT_FOLDER = 'SOME TMP FOLDER'

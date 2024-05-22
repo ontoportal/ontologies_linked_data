@@ -7,13 +7,13 @@ module LinkedData
 
       model :Agent, namespace: :foaf, name_with: lambda { |cc| uuid_uri_generator(cc) }
       attribute :agentType, enforce: [:existence], enforcedValues: %w[person organization]
-      attribute :name, namespace: :foaf, enforce: %i[existence]
+      attribute :name, namespace: :foaf, enforce: %i[existence], fuzzy_search: true
 
       attribute :homepage, namespace: :foaf
-      attribute :acronym, namespace: :skos, property: :altLabel
-      attribute :email, namespace: :foaf, property: :mbox, enforce: %i[email unique]
+      attribute :acronym, namespace: :skos, property: :altLabel, fuzzy_search: true
+      attribute :email, namespace: :foaf, property: :mbox, enforce: %i[email unique], fuzzy_search: true
 
-      attribute :identifiers, namespace: :adms, property: :identifier, enforce: %i[Identifier list unique_identifiers]
+      attribute :identifiers, namespace: :adms, property: :identifier, enforce: %i[Identifier list unique_identifiers], fuzzy_search: true
       attribute :affiliations, enforce: %i[Agent list is_organization], namespace: :org, property: :memberOf
       attribute :creator, type: :user, enforce: [:existence]
       embed :identifiers, :affiliations
@@ -23,6 +23,11 @@ module LinkedData
       write_access :creator
       access_control_load :creator
 
+      enable_indexing(:agents_metadata)
+
+      def embedded_doc
+        "#{self.name} #{self.acronym} #{self.email} #{self.agentType}"
+      end
 
       def self.load_agents_usages(agents = [], agent_attributes =  OntologySubmission.agents_attr_uris)
         q = Goo.sparql_query_client.select(:id, :property, :agent, :status).distinct.from(LinkedData::Models::OntologySubmission.uri_type).where([:id,LinkedData::Models::OntologySubmission.attribute_uri(:submissionStatus),:status], [:id, :property, :agent])

@@ -1,72 +1,49 @@
 x-app: &app
-    build:
-      context: .
-      args:
-        RUBY_VERSION: '2.7'
-    # Increase the version number in the image tag every time Dockerfile or its arguments is changed
-    image: ontologies_ld-dev:0.0.2
-    environment: &env
-      # default bundle config resolves to /usr/local/bundle/config inside of the container
-      # we are setting it to local app directory if we need to use 'bundle config local'
-      BUNDLE_APP_CONFIG: /srv/ontoportal/ontologies_api/.bundle
-      BUNDLE_PATH: /srv/ontoportal/bundle
-      COVERAGE: 'true' # enable simplecov code coverage
-      REDIS_HOST: redis-ut
-      REDIS_PORT: 6379
-      SOLR_TERM_SEARCH_URL: http://solr-ut:8983/solr/term_search_core1
-      SOLR_PROP_SEARCH_URL: http://solr-ut:8983/solr/prop_search_core1
-    stdin_open: true
-    tty: true
-    command: /bin/bash
-    volumes:
-      # bundle volume for hosting gems installed by bundle; it speeds up gem install in local development
-      - bundle:/srv/ontoportal/bundle
-      - .:/srv/ontoportal/ontologies_linked_data
-      # mount directory containing development version of the gems if you need to use 'bundle config local'
-      #- /Users/alexskr/ontoportal:/Users/alexskr/ontoportal
-    depends_on:
-      - solr-ut
-      - redis-ut
+  build:
+    context: .
+    args:
+      RUBY_VERSION: '2.7'
+  # Increase the version number in the image tag every time Dockerfile or its arguments is changed
+  image: ontologies_ld-dev:0.0.2
+  environment: &env
+    # default bundle config resolves to /usr/local/bundle/config inside of the container
+    # we are setting it to local app directory if we need to use 'bundle config local'
+    BUNDLE_APP_CONFIG: /srv/ontoportal/ontologies_api/.bundle
+    BUNDLE_PATH: /srv/ontoportal/bundle
+    COVERAGE: 'true' # enable simplecov code coverage
+    REDIS_HOST: redis-ut
+    REDIS_PORT: 6379
+    SOLR_TERM_SEARCH_URL: http://solr-term-ut:8983/solr/term_search_core1
+    SOLR_PROP_SEARCH_URL: http://solr-prop-ut:8983/solr/prop_search_core1
+  stdin_open: true
+  tty: true
+  command: /bin/bash
+  volumes:
+    # bundle volume for hosting gems installed by bundle; it speeds up gem install in local development
+    - bundle:/srv/ontoportal/bundle
+    - .:/srv/ontoportal/ontologies_linked_data
+    # mount directory containing development version of the gems if you need to use 'bundle config local'
+    #- /Users/alexskr/ontoportal:/Users/alexskr/ontoportal
+  depends_on: &depends_on
+    solr-prop-ut:
+      condition: service_healthy
+    solr-term-ut:
+      condition: service_healthy
+    redis-ut:
+      condition: service_healthy
 
 services:
-  # environment wtih 4store backend
-  ruby:
-    <<: *app
-    environment:
-      <<: *env
-      GOO_BACKEND_NAME: 4store
-      GOO_PORT: 9000
-      GOO_HOST: 4store-ut
-      GOO_PATH_QUERY: /sparql/
-      GOO_PATH_DATA: /data/
-      GOO_PATH_UPDATE: /update/
-    profiles:
-      - 4store
-    depends_on:
-      - solr-ut
-      - redis-ut
-      - 4store-ut
-
-  # environment with AllegroGraph backend
-  ruby-agraph:
-    <<: *app
-    environment:
-      <<: *env
-      GOO_BACKEND_NAME: ag
-      GOO_PORT: 10035
-      GOO_HOST: agraph-ut
-      GOO_PATH_QUERY: /repositories/bioportal_test
-      GOO_PATH_DATA: /repositories/bioportal_test/statements
-      GOO_PATH_UPDATE: /repositories/bioportal_test/statements
-    profiles:
-      - agraph
-    depends_on:
-      - solr-ut
-      - redis-ut
-      - agraph-ut
 
   redis-ut:
     image: redis
+    ports:
+      - "6379:6379"
+    command: [ "redis-server", "--save", "", "--appendonly", "no" ]
+    healthcheck:
+      test: redis-cli ping
+      interval: 10s
+      timeout: 3s
+      retries: 10
 
   4store-ut:
     image: bde2020/4store
@@ -74,36 +51,84 @@ services:
       bash -c "4s-backend-setup --segments 4 ontoportal_kb
       && 4s-backend ontoportal_kb
       && 4s-httpd -D -s-1 -p 9000 ontoportal_kb"
+    ports:
+      - "9000:9000"
     profiles:
-      - 4store
+      - fs
 
   solr-ut:
-    image: solr:8
-    volumes:
-      - ./test/solr/configsets:/configsets:ro
-    #ports:
-    #  - "8983:8983"
-    command: >
-      bash -c "precreate-core term_search_core1 /configsets/term_search
-      && precreate-core prop_search_core1 /configsets/property_search
-      && solr-foreground"
+    image: solr:8.11.2
+    ports:
+      - 8983:8983
+    command: bin/solr start -cloud -f
+
+
 
   agraph-ut:
-    image: franzinc/agraph:v7.3.0
+    image: franzinc/agraph:v8.1.0
+    platform: linux/amd64
     environment:
       - AGRAPH_SUPER_USER=test
       - AGRAPH_SUPER_PASSWORD=xyzzy
     shm_size: 1g
-    # ports:
-    #  - 10035:10035
+    ports:
+      #      - 10035:10035
+      - 10000-10035:10000-10035
+    volumes:
+      - agdata:/agraph/data
+      #      - ./agraph/etc:/agraph/etc
     command: >
-       bash -c "/agraph/bin/agraph-control --config /agraph/etc/agraph.cfg start
-       ; agtool repos create bioportal_test
-       ; agtool users add anonymous
-       ; agtool users grant anonymous root:bioportal_test:rw
-       ; tail -f /agraph/data/agraph.log"
+      bash -c "/agraph/bin/agraph-control --config /agraph/etc/agraph.cfg start
+      ; agtool repos create ontoportal_test --supersede
+      ; agtool users add anonymous
+      ; agtool users grant anonymous root:ontoportal_test:rw
+      ; tail -f /agraph/data/agraph.log"
+    # healthcheck:
+    #   test: ["CMD-SHELL", "curl -sf http://127.0.0.1:10035/repositories/ontoportal_test/status | grep -iqE '(^running|^lingering)' || exit 1"]
+    #   start_period: 10s
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
     profiles:
-      - agraph
+      - ag
+
+  virtuoso-ut:
+    image: tenforce/virtuoso:virtuoso7.2.5
+    platform: linux/amd64
+    environment:
+      - SPARQL_UPDATE=true
+    ports:
+      - 1111:1111
+      - 8890:8890
+    profiles:
+      - vo
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sf  http://localhost:8890/sparql  || exit 1" ]
+      start_period: 10s
+      interval: 60s
+      timeout: 5s
+      retries: 3
+
+  graphdb-ut:
+    image: ontotext/graphdb:10.3.3
+    platform: linux/amd64
+    privileged: true
+    environment:
+      GDB_HEAP_SIZE: 5G
+      GDB_JAVA_OPTS: >-
+        -Xms5g -Xmx5g
+    ports:
+      - 7200:7200
+      - 7300:7300
+    volumes:
+      - ./test/data/graphdb-repo-config.ttl:/opt/graphdb/dist/configs/templates/data/graphdb-repo-config.ttl
+      - ./test/data/graphdb-test-load.nt:/opt/graphdb/dist/configs/templates/data/graphdb-test-load.nt
+
+    entrypoint: >
+      bash -c " importrdf load -f -c /opt/graphdb/dist/configs/templates/data/graphdb-repo-config.ttl -m parallel /opt/graphdb/dist/configs/templates/data/graphdb-test-load.nt ; graphdb -Ddefault.min.distinct.threshold=3000 "
+    profiles:
+      - gb
 
 volumes:
   bundle:
+  agdata:

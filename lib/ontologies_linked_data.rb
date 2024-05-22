@@ -1,11 +1,11 @@
-require "goo"
+require 'goo'
 
 # Make sure we're in the load path
-lib_dir = File.dirname(__FILE__)+"/../lib"
+lib_dir = "#{File.dirname(__FILE__)}/../lib"
 $LOAD_PATH.unshift lib_dir unless $LOAD_PATH.include?(lib_dir)
 
 # Setup Goo (repo connection and namespaces)
-require "ontologies_linked_data/config/config"
+require 'ontologies_linked_data/config/config'
 
 project_root = File.dirname(File.absolute_path(__FILE__))
 
@@ -38,15 +38,36 @@ require "ontologies_linked_data/http_cache/cacheable_resource"
 require "ontologies_linked_data/metrics/metrics"
 
 # Require base model
-require "ontologies_linked_data/models/base"
+require 'ontologies_linked_data/models/base'
 
-# Require all models
+
+
+
+# Require all models and services
+project_root = File.dirname(File.absolute_path(__FILE__))
+# Require base services
+require 'ontologies_linked_data/services/submission_process/submission_process'
 
 # We need to require deterministic - that is why we have the sort.
-models = Dir.glob(project_root + '/ontologies_linked_data/models/**/*.rb').sort
+
+models = Dir.glob("#{project_root}/ontologies_linked_data/services/**/*.rb").sort
 models.each do |m|
   require m
 end
+
+# We need to require deterministic - that is why we have the sort.
+models = Dir.glob("#{project_root}/ontologies_linked_data/models/concerns//**/*.rb").sort
+models.each do |m|
+  require m
+end
+
+# We need to require deterministic - that is why we have the sort.
+models = Dir.glob("#{project_root}/ontologies_linked_data/models/**/*.rb").sort
+models.each do |m|
+  require m
+end
+
+
 
 module LinkedData
   def rootdir
@@ -54,6 +75,6 @@ module LinkedData
   end
 
   def bindir
-    File.expand_path(rootdir + '/../bin')
+    File.expand_path("#{rootdir}/../bin")
   end
 end

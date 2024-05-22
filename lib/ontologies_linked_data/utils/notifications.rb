@@ -25,6 +25,7 @@ module LinkedData
 
         note.relatedOntology.each do |ont|
           Notifier.notify_subscribed_separately subject, body, ont, 'NOTES'
+          Notifier.notify_mails_grouped subject, body, Notifier.support_mails + Notifier.admin_mails(ont)
         end
       end
 

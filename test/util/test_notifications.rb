@@ -19,10 +19,14 @@ class TestNotifications < LinkedData::TestCase
     @@ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(ont_count: 1, submission_count: 1)[2].first
     @@ont.bring_remaining
     @@user = @@ont.administeredBy.first
-    @@subscription = self.new("before_suite")._subscription(@@ont)
     @@user.bring_remaining
-    @@user.subscription = [@@subscription]
-    @@user.save
+
+    @@subscription = self.new("before_suite")._subscription(@@ont)
+
+    @@user2 = LinkedData::Models::User.new(username: "tim2", email: "tim2@example.org", password: "password").save
+    @@user2.bring_remaining
+    @@user2.subscription = [@@subscription]
+    @@user2.save
   end
 
   def self.after_suite
@@ -79,7 +83,9 @@ class TestNotifications < LinkedData::TestCase
       note.relatedOntology = [@@ont]
       note.save
       assert last_email_sent.subject.include?("[#{@@ui_name} Notes]")
-      assert_equal [@@user.email], last_email_sent.to
+      last_emails = all_emails[-2..]
+      assert_equal [@@user.email, LinkedData.settings.admin_emails].flatten.sort, last_emails.last.to.sort
+      assert_equal [@@user2.email].sort, last_emails.first.to.sort
     ensure
       note.delete if note
     end
@@ -92,7 +98,8 @@ class TestNotifications < LinkedData::TestCase
       subscription = _subscription(ont)
       @@user.subscription = @@user.subscription.dup << subscription
       @@user.save
-      ont.latest_submission(status: :any).process_submission(Logger.new(TestLogFile.new))
+      ont.latest_submission(status: :any).process_submission(Logger.new(TestLogFile.new), process_rdf: true,
+                                                             extract_metadata: false, generate_missing_labels: false)
       subscription.bring :user
       admin_mails =  LinkedData::Utils::Notifier.admin_mails(ont)
       mail_sent_count = subscription.user.size + 1
@@ -150,6 +157,9 @@ class TestNotifications < LinkedData::TestCase
   end
 
   def test_mail_options
+    current_auth_type = LinkedData.settings.smtp_auth_type
+
+    LinkedData.settings.smtp_auth_type = :none
     options = LinkedData::Utils::Notifier.mail_options
     expected_options = {
       address: LinkedData.settings.smtp_host,
@@ -159,7 +169,7 @@ class TestNotifications < LinkedData::TestCase
     assert_equal options, expected_options
 
     # testing SMTP authentification-based login
-    current_auth_type = LinkedData.settings.smtp_auth_type
+
     LinkedData.settings.smtp_auth_type = :plain
     options = LinkedData::Utils::Notifier.mail_options
     expected_options = {

@@ -57,6 +57,10 @@ module LinkedData
         end
       end
 
+      def embedded_doc
+        "#{self.firstName} #{self.lastName} #{self.username}"
+      end
+
       def initialize(attributes = {})
         # Don't allow passwordHash to be set here
         attributes.delete(:passwordHash)

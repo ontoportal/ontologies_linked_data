@@ -8,18 +8,17 @@ class TestInstances < LinkedData::TestOntologyCommon
   PROP_OBSERVABLE_TRAIT =  RDF::URI.new'http://www.owl-ontologies.com/OntologyXCT.owl#isObservableTraitof'.freeze
   PROP_HAS_OCCURRENCE = RDF::URI.new'http://www.owl-ontologies.com/OntologyXCT.owl#hasOccurrenceIn'.freeze
 
-  def self.before_suite
-    LinkedData::TestCase.backend_4s_delete
-  end
 
-  def test_instance_counts_class
-    submission_parse('TESTINST', 'Testing instances',
+  def self.before_suite
+    self.new('').submission_parse('TESTINST', 'Testing instances',
                      'test/data/ontology_files/XCTontologyvtemp2_vvtemp2.zip',
                      12,
                      masterFileName: 'XCTontologyvtemp2/XCTontologyvtemp2.owl',
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: true)
-    submission_id = LinkedData::Models::OntologySubmission.all.first.id
+                     process_rdf: true, extract_metadata: false, generate_missing_labels: false)
+  end
+
+  def test_instance_counts_class
+    submission_id = RDF::URI.new("http://data.bioontology.org/ontologies/TESTINST/submissions/12")
     class_id = RDF::URI.new('http://www.owl-ontologies.com/OntologyXCT.owl#ClinicalManifestation')
 
     instances = LinkedData::InstanceLoader.get_instances_by_class(submission_id, class_id)
@@ -30,25 +29,13 @@ class TestInstances < LinkedData::TestOntologyCommon
   end
 
   def test_instance_counts_ontology
-    submission_parse('TESTINST', 'Testing instances',
-                     'test/data/ontology_files/XCTontologyvtemp2_vvtemp2.zip',
-                     12,
-                     masterFileName: 'XCTontologyvtemp2/XCTontologyvtemp2.owl',
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: true)
-    submission_id = LinkedData::Models::OntologySubmission.all.first.id
+    submission_id = RDF::URI.new("http://data.bioontology.org/ontologies/TESTINST/submissions/12")
     instances = LinkedData::InstanceLoader.get_instances_by_ontology(submission_id, page_no: 1, size: 800)
     assert_equal 714, instances.length
   end
 
   def test_instance_types
-    submission_parse('TESTINST', 'Testing instances',
-                     'test/data/ontology_files/XCTontologyvtemp2_vvtemp2.zip',
-                     12,
-                     masterFileName: 'XCTontologyvtemp2/XCTontologyvtemp2.owl',
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: true)
-    submission_id = LinkedData::Models::OntologySubmission.all.first.id
+    submission_id = RDF::URI.new("http://data.bioontology.org/ontologies/TESTINST/submissions/12")
     class_id = RDF::URI.new('http://www.owl-ontologies.com/OntologyXCT.owl#ClinicalManifestation')
 
     instances = LinkedData::InstanceLoader.get_instances_by_class(submission_id, class_id)
@@ -69,13 +56,7 @@ class TestInstances < LinkedData::TestOntologyCommon
   def test_instance_properties
     known_properties = [PROP_TYPE, PROP_CLINICAL_MANIFESTATION, PROP_OBSERVABLE_TRAIT, PROP_HAS_OCCURRENCE]
 
-    submission_parse('TESTINST', 'Testing instances',
-                     'test/data/ontology_files/XCTontologyvtemp2_vvtemp2.zip',
-                     12,
-                     masterFileName: 'XCTontologyvtemp2/XCTontologyvtemp2.owl',
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: true)
-    submission_id = LinkedData::Models::OntologySubmission.all.first.id
+    submission_id = RDF::URI.new("http://data.bioontology.org/ontologies/TESTINST/submissions/12")
     class_id = RDF::URI.new('http://www.owl-ontologies.com/OntologyXCT.owl#ClinicalManifestation')
 
     instances = LinkedData::InstanceLoader.get_instances_by_class(submission_id, class_id)

@@ -6,20 +6,23 @@ class TestSchemes < LinkedData::TestOntologyCommon
 
   def self.before_suite
     LinkedData::TestCase.backend_4s_delete
+    self.new('').submission_parse('INRAETHES', 'Testing skos',
+                     'test/data/ontology_files/thesaurusINRAE_nouv_structure.skos',
+                     1,
+                     process_rdf: true, extract_metadata: false,
+                     generate_missing_labels: false)
   end
 
   def test_schemes_all
-    submission_parse('INRAETHES', 'Testing skos',
-                     'test/data/ontology_files/thesaurusINRAE_nouv_structure.skos',
-                     1,
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: false)
+
     ont = 'INRAETHES'
     sub = LinkedData::Models::Ontology.find(ont).first.latest_submission
     schemes = LinkedData::Models::SKOS::Scheme.in(sub).include(:prefLabel).all
 
     assert_equal 66, schemes.size
     schemes_test = test_data
+    schemes_test = schemes_test.sort_by{|x| x[:id]}
+    schemes = schemes.sort_by{|x| x.id.to_s}
 
     schemes.each_with_index do |x, i|
       scheme_test = schemes_test[i]

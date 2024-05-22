@@ -83,7 +83,7 @@ module LinkedData
       epr = Goo.sparql_query_client(:main)
 
       latest.each do |acro, sub|
-        self.handle_triple_store_downtime(logger)
+        self.handle_triple_store_downtime(logger) if Goo.backend_4s?
         t0 = Time.now
         s_counts = self.mapping_ontologies_count(sub, nil, reload_cache = reload_cache)
         s_total = 0
@@ -99,7 +99,6 @@ module LinkedData
                         "Retrieved #{s_total} records for #{acro} in #{Time.now - t0} seconds.")
           logger.flush
         end
-        sleep(5)
       end
 
       if enable_debug
@@ -333,7 +332,7 @@ module LinkedData
           del_from_graph = LinkedData::Models::ExternalClass.graph_uri
         end
         graph_delete = RDF::Graph.new
-        graph_delete << [c.id, RDF::URI.new(rest_predicate), mapping.id]
+        graph_delete << [RDF::URI.new(c.id), RDF::URI.new(rest_predicate), mapping.id]
         Goo.sparql_update_client.delete_data(graph_delete, graph: del_from_graph)
       end
       mapping.process.delete
@@ -684,10 +683,12 @@ GROUP BY ?ontology
         self.create_mapping_count_totals_for_ontologies(logger, arr_acronyms)
       end
       logger.info("Completed rebuilding total mapping counts for #{ont_msg} in #{(time / 60).round(1)} minutes.")
+      puts "create mappings total count time: #{time}"
 
       time = Benchmark.realtime do
         self.create_mapping_count_pairs_for_ontologies(logger, arr_acronyms)
       end
+      puts "create mappings pair count time: #{time}"
       logger.info("Completed rebuilding mapping count pairs for #{ont_msg} in #{(time / 60).round(1)} minutes.")
     end
 
@@ -768,7 +769,7 @@ GROUP BY ?ontology
       # fsave = File.open(temp_file_path, "a")
 
       latest_submissions.each do |acr, sub|
-        self.handle_triple_store_downtime(logger)
+        self.handle_triple_store_downtime(logger) if Goo.backend_4s?
         new_counts = nil
         time = Benchmark.realtime do
           new_counts = self.mapping_ontologies_count(sub, nil, reload_cache = true)
@@ -848,7 +849,6 @@ GROUP BY ?ontology
         end
         remaining_ont = ont_total - ont_ctr
         logger.info("Completed processing pair mapping counts for #{acr}. " << ((remaining_ont > 0) ? "#{remaining_ont} ontologies remaining..." : "All ontologies processed!"))
-        sleep(5)
       end
       # fsave.close
     end

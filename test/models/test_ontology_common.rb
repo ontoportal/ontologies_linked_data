@@ -1,7 +1,16 @@
 require_relative "../test_case"
+require 'rack'
 
 module LinkedData
   class TestOntologyCommon < LinkedData::TestCase
+    def create_count_mapping
+      count = LinkedData::Models::MappingCount.where.all.length
+      unless count > 2
+        LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
+        count = LinkedData::Models::MappingCount.where.all.length
+      end
+      count
+    end
     def submission_dependent_objects(format, acronym, user_name, name_ont)
       #ontology format
       owl = LinkedData::Models::OntologyFormat.where(:acronym => format).first
@@ -43,8 +52,14 @@ module LinkedData
     #   delete            = true  # delete any existing submissions
     ##############################################
     def submission_parse(acronym, name, ontologyFile, id, parse_options={})
+      if Goo.backend_vo?
+        old_slices = Goo.slice_loading_size
+        Goo.slice_loading_size = 20
+      end
       return if ENV["SKIP_PARSING"]
-      parse_options[:process_rdf] = true
+      parse_options[:process_rdf].nil? && parse_options[:process_rdf] = true
+      parse_options[:index_search].nil? && parse_options[:index_search] = false
+      parse_options[:extract_metadata].nil? && parse_options[:extract_metadata] = false
       parse_options[:delete].nil? && parse_options[:delete] = true
       if parse_options[:delete]
         ont = LinkedData::Models::Ontology.find(acronym).first
@@ -97,10 +112,17 @@ module LinkedData
       assert_equal true, ont_submission.exist?(reload=true)
       begin
         tmp_log = Logger.new(TestLogFile.new)
-        ont_submission.process_submission(tmp_log, parse_options)
+        t = Benchmark.measure do
+          ont_submission.process_submission(tmp_log, parse_options)
+        end
+        puts "process submission time: #{t} "
       rescue Exception => e
         puts "Error, logged in #{tmp_log.instance_variable_get("@logdev").dev.path}"
         raise e
+      ensure
+        if Goo.backend_vo?
+          Goo.slice_loading_size = old_slices
+        end
       end
     end
 
@@ -149,7 +171,7 @@ module LinkedData
       assert (ont_submission.valid?)
       ont_submission.save
       assert_equal true, ont_submission.exist?(reload=true)
-      parse_options = {process_rdf: true, index_search: true, run_metrics: true, reasoning: true}
+      parse_options = {process_rdf: true, extract_metadata: false}
       begin
         tmp_log = Logger.new(TestLogFile.new)
         ont_submission.process_submission(tmp_log, parse_options)
@@ -192,6 +214,44 @@ eos
           end
         end
         assert (count > 0)
+      end
+    end
+
+    def start_server
+      max_retries = 5
+      retries = 0
+      server_port = Random.rand(55000..65535)
+
+      while port_in_use?(server_port)
+        retries += 1
+        break if retries >= max_retries
+        server_port = Random.rand(55000..65535)
+      end
+
+      raise "Could not find an available port after #{max_retries} retries" if retries >= max_retries
+
+      server_url = 'http://localhost:' + server_port.to_s
+      server_thread = Thread.new do
+        Rack::Server.start(
+          app: lambda do |e|
+            [200, {'Content-Type' => 'text/plain'}, ['test file']]
+          end,
+          Port: server_port
+        )
+      end
+      Thread.pass
+
+      [server_url, server_thread, server_port]
+    end
+
+    private
+    def port_in_use?(port)
+      begin
+        server = TCPServer.new(port)
+        server.close
+        false
+      rescue Errno::EADDRINUSE
+        true
       end
     end
   end

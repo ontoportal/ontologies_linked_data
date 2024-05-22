@@ -21,6 +21,10 @@ module LinkedData
         return RDF::URI.new(Goo.id_prefix + 'Identifiers/' + out.join(':')) if out.size.eql?(2)
       end
 
+      def embedded_doc
+        "#{self.id.split('/').last}"
+      end
+
       def no_url(inst,attr)
         inst.bring(attr) if inst.bring?(attr)
         notation = inst.send(attr)
