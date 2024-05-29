@@ -10,11 +10,10 @@ module LinkedData
         note.relatedOntology.each { |o| o.bring(:name) if o.bring?(:name); o.bring(:subscriptions) if o.bring?(:subscriptions) }
         ontologies = note.relatedOntology.map { |o| o.name }.join(", ")
         # Fix the note URL when using replace_url_prefix (in another VM than NCBO)
-        if LinkedData.settings.replace_url_prefix == true
-          note_url = "http://#{LinkedData.settings.ui_host}/notes/#{CGI.escape(note.id.to_s.gsub("http://data.bioontology.org", LinkedData.settings.rest_url_prefix))}"
-        else
-          note_url = "http://#{LinkedData.settings.ui_host}/notes/#{CGI.escape(note.id.to_s)}"
-        end
+
+        note_hash = note.id.to_s.split('/').last
+        note_url = "http://#{LinkedData.settings.ui_host}/notes/#{note_hash}"
+
         subject = "[#{LinkedData.settings.ui_name} Notes] [#{ontologies}] #{note.subject}"
         body = NEW_NOTE.gsub("%username%", note.creator.username)
                        .gsub("%ontologies%", ontologies)
