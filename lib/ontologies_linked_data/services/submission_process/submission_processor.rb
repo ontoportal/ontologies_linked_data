@@ -36,9 +36,7 @@ module LinkedData
           if archive
             @submission.archive
           else
-
             @submission.generate_rdf(logger, reasoning: reasoning) if process_rdf
-
             parsed = @submission.ready?(status: [:rdf, :rdf_labels])
 
             if index_search
@@ -80,11 +78,9 @@ module LinkedData
       end
 
       def notify_submission_processed(logger)
-        begin
-          LinkedData::Utils::Notifications.submission_processed(@submission)
-        rescue StandardError => e
-          logger.error("Email sending failed: #{e.message}\n#{e.backtrace.join("\n\t")}"); logger.flush
-        end
+        LinkedData::Utils::Notifications.submission_processed(@submission) unless @submission.archived?
+      rescue StandardError => e
+        logger.error("Email sending failed: #{e.message}\n#{e.backtrace.join("\n\t")}"); logger.flush
       end
 
       def get_options(options)

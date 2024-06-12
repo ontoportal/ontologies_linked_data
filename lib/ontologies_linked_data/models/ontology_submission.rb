@@ -15,7 +15,6 @@ module LinkedData
       include LinkedData::Concerns::SubmissionProcessable
       include LinkedData::Concerns::OntologySubmission::MetadataExtractor
 
-      FILES_TO_DELETE = ['labels.ttl', 'mappings.ttl', 'obsolete.ttl', 'owlapi.xrdf', 'errors.log']
       FLAT_ROOTS_LIMIT = 1000
 
       model :ontology_submission, name_with: lambda { |s| submission_id_generator(s) }
@@ -89,6 +88,13 @@ module LinkedData
 
       def synchronize(&block)
         @mutex.synchronize(&block)
+      end
+
+      def URI=(value)
+        self.uri  = value
+      end
+      def URI
+        self.uri
       end
 
       def self.ontology_link(m)
@@ -277,6 +283,10 @@ module LinkedData
         File.join([data_folder, 'unzipped'])
       end
 
+      def master_file_folder
+        zipped? ? zip_folder : data_folder
+      end
+
       def csv_path
         return File.join(self.data_folder, self.ontology.acronym.to_s + ".csv.gz")
       end
@@ -329,7 +339,6 @@ module LinkedData
         end
         zip_dst
       end
-
 
       def class_count(logger=nil)
         logger ||= LinkedData::Parser.logger || Logger.new($stderr)
@@ -671,6 +680,16 @@ eos
         File.expand_path(path)
       end
 
+
+      def owlapi_parser(logger: Logger.new($stdout))
+        unzip_submission(logger)
+        LinkedData::Parser::OWLAPICommand.new(
+          owlapi_parser_input,
+          File.expand_path(self.data_folder.to_s),
+          master_file: self.masterFileName,
+          logger: logger)
+      end
+
       def parsable?(logger: Logger.new($stdout))
         owlapi = owlapi_parser(logger: logger)
         owlapi.disable_reasoner
@@ -683,8 +702,25 @@ eos
         parsable
       end
 
+      def owlapi_parser(logger: Logger.new($stdout))
+        unzip_submission(logger)
+        LinkedData::Parser::OWLAPICommand.new(
+          owlapi_parser_input,
+          File.expand_path(self.data_folder.to_s),
+          master_file: self.masterFileName,
+          logger: logger)
+      end
 
       private
+
+      def owlapi_parser_input
+        path = if zipped?
+                 self.zip_folder
+               else
+                 self.uploadFilePath
+               end
+        File.expand_path(path)
+      end
 
       def check_http_file(url)
         session = Net::HTTP.new(url.host, url.port)
