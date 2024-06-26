@@ -83,10 +83,11 @@ module LinkedData
           OntologySubmission.cache_collection_invalidate
         end
 
-        if args.include?(:send_notifications) && args[:send_notifications]
+        if args.first&.dig(:send_notifications)
           begin
-            LinkedData::Utils::Notifications.new_user(user)
-          rescue Exception => e
+            LinkedData::Utils::Notifications.new_user(self)
+          rescue StandardError => e
+            puts "Error on user creation notification: #{e.message}"
           end
         end
 
