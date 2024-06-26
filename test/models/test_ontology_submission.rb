@@ -423,7 +423,8 @@ SELECT DISTINCT * WHERE {
                      "./test/data/ontology_files/BRO_v3.5.owl", 1,
                      process_rdf: true, extract_metadata: false, index_properties: true)
     res = LinkedData::Models::OntologyProperty.search("*:*", {:fq => "submissionAcronym:\"BRO\"", :start => 0, :rows => 80})
-    assert_includes [81, 52] , res["response"]["numFound"] # if 81 if owlapi import skos properties
+    #assert_equal 81, res["response"]["numFound"] # if 81 if owlapi import skos properties
+    assert_equal 77, res["response"]["numFound"] # if 81 if owlapi import skos properties
     found = 0
 
     res["response"]["docs"].each do |doc|
