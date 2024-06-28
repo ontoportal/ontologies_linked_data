@@ -284,7 +284,7 @@ module LinkedData
             if cur_val.is_a?(Hash) # Multi language
               if multi_language_fields.include?(att)
                 doc[att] = cur_val.values.flatten # index all values of each language
-                cur_val.each { |lang, values| doc["#{att}_#{lang}".to_sym] = values } # index values per language
+                cur_val.each { |lang, values| doc["#{att}_#{lang.to_s.gsub('@', '')}".to_sym] = values } # index values per language
               else
                 doc[att] = cur_val.values.flatten.first
               end
