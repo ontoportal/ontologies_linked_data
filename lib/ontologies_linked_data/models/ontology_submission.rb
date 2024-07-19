@@ -37,7 +37,7 @@ module LinkedData
       attribute :classType, type: :uri
       attribute :hierarchyProperty, type: :uri, default: ->(s) { default_hierarchy_property(s) }
       attribute :obsoleteProperty, type: :uri, default: ->(s) { Goo.vocabulary(:owl)[:deprecated] }
-      attribute :obsoleteParent, type: :uri, default: ->(s) { RDF::URI.new("http://www.geneontology.org/formats/oboInOwl#ObsoleteClass") }
+      attribute :obsoleteParent, type: :uri
       attribute :createdProperty, type: :uri, default: ->(s) { Goo.vocabulary(:dc)[:created] }
       attribute :modifiedProperty, type: :uri, default: ->(s) { Goo.vocabulary(:dc)[:modified] }
 
