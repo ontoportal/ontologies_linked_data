@@ -15,7 +15,7 @@ module LinkedData
           # Add the id to json-ld attribute
           if current_cls.ancestors.include?(LinkedData::Hypermedia::Resource) && !current_cls.embedded? && hashed_obj.respond_to?(:id)
             prefixed_id = LinkedData::Models::Base.replace_url_id_to_prefix(hashed_obj.id)
-            hash["@id"] = prefixed_id.to_s
+            hash["id"] = hash["@id"] = prefixed_id.to_s.downcase
           end
 
           # Add the type
@@ -71,7 +71,7 @@ module LinkedData
       def self.get_submission_languages(submission_natural_language = [])
         submission_natural_language = submission_natural_language.values.flatten if submission_natural_language.is_a?(Hash)
         submission_natural_language.map { |natural_language| natural_language.to_s['iso639'] && natural_language.to_s.split('/').last[0..1].to_sym }.compact
-      end 
+      end
 
       def self.type(current_cls, hashed_obj)
         if current_cls.respond_to?(:type_uri)
