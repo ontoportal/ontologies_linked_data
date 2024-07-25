@@ -81,12 +81,12 @@ module LinkedData
 
       # Person and organizations metadata
       attribute :contact, type: %i[contact list], enforce: [:existence]
-      attribute :hasCreator, namespace: :omv, type: %i[list Agent], enforce: [:is_person]
-      attribute :hasContributor, namespace: :omv, type: %i[list Agent], enforce: [:is_person]
+      attribute :hasCreator, namespace: :omv, type: %i[list Agent]
+      attribute :hasContributor, namespace: :omv, type: %i[list Agent]
       attribute :curatedBy, namespace: :pav, type: %i[list Agent]
       attribute :publisher, namespace: :dct, type: %i[list Agent]
-      attribute :fundedBy, namespace: :foaf, type: %i[list Agent], enforce: [:is_organization]
-      attribute :endorsedBy, namespace: :omv, type: %i[list Agent], enforce: [:is_organization]
+      attribute :fundedBy, namespace: :foaf, type: %i[list Agent]
+      attribute :endorsedBy, namespace: :omv, type: %i[list Agent]
       attribute :translator, namespace: :schema, type: %i[list Agent]
 
       # Community metadata
