@@ -265,7 +265,7 @@ module LinkedData
         end
 
         def data_dump_default(sub)
-          RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{sub.ontology.acronym}/download?download_format=rdf")
+          RDF::URI.new("#{LinkedData.settings.rest_url_prefix}ontologies/#{sub.ontology.acronym}/download")
         end
 
         def csv_dump_default(sub)
