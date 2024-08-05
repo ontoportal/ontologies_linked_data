@@ -13,6 +13,7 @@ module LinkedData
         note_hash = note.id.to_s.split('/').last
         note_url = "http://#{LinkedData.settings.ui_host}/ontologies/#{note.relatedOntology.first.acronym}?p=notes&noteid=#{note_hash}"
 
+
         subject = "[#{LinkedData.settings.ui_name} Notes] [#{ontologies}] #{note.subject}"
         body = NEW_NOTE.gsub("%username%", note.creator.username)
                        .gsub("%ontologies%", ontologies)
