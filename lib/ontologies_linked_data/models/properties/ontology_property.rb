@@ -32,7 +32,9 @@ module LinkedData
         index_schema(schema_generator)
       end
 
-
+      def properties
+        self.unmapped
+      end
 
       def retrieve_ancestors
         retrieve_ancestors_descendants(:ancestors)

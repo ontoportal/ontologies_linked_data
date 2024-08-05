@@ -65,6 +65,15 @@ class TestClassRequestedLang < LinkedData::TestOntologyCommon
     assert_empty properties.select { |x| x.to_s['prefLabel'] }.values
   end
 
+  def test_request_multiple_languages
+
+    cls = get_class_by_lang('http://opendata.inrae.fr/thesaurusINRAE/c_22817',
+                            requested_lang: [:EN, :FR])
+    pref_label_all_languages = { en: 'industrialization', fr: 'industrialisation' }
+    assert_includes pref_label_all_languages.values, cls.prefLabel
+    assert_equal pref_label_all_languages, cls.prefLabel(include_languages: true)
+  end
+
   def test_request_all_languages
 
     cls = get_class_by_lang('http://opendata.inrae.fr/thesaurusINRAE/c_22817',
@@ -86,9 +95,9 @@ class TestClassRequestedLang < LinkedData::TestOntologyCommon
 
     properties = cls.properties(include_languages: true)
 
-    assert_equal synonym_all_languages.stringify_keys,
+    assert_equal synonym_all_languages,
                  properties.select { |x| x.to_s['altLabel'] }.values.first.transform_values{|v| v.map(&:object)}
-    assert_equal pref_label_all_languages.stringify_keys,
+    assert_equal pref_label_all_languages,
                  properties.select { |x| x.to_s['prefLabel'] }.values.first.transform_values{|v| v.first.object}
   end
 

@@ -10,9 +10,9 @@ module LinkedData
         note.relatedOntology.each { |o| o.bring(:name) if o.bring?(:name); o.bring(:subscriptions) if o.bring?(:subscriptions) }
         ontologies = note.relatedOntology.map { |o| o.name }.join(", ")
         # Fix the note URL when using replace_url_prefix (in another VM than NCBO)
-
         note_hash = note.id.to_s.split('/').last
-        note_url = "http://#{LinkedData.settings.ui_host}/notes/#{note_hash}"
+        note_url = "http://#{LinkedData.settings.ui_host}/ontologies/#{note.relatedOntology.first.acronym}?p=notes&noteid=#{note_hash}"
+
 
         subject = "[#{LinkedData.settings.ui_name} Notes] [#{ontologies}] #{note.subject}"
         body = NEW_NOTE.gsub("%username%", note.creator.username)
@@ -201,8 +201,8 @@ The %ui_name% Team
 EOS
 
       REST_PASSWORD = <<~HTML
-        Someone has requested a password reset for user %username% . If this was 
-        you, please click on the link below to reset your password. Otherwise, please 
+        Someone has requested a password reset for user %username% . If this was
+        you, please click on the link below to reset your password. Otherwise, please
         ignore this email.<br/><br/>
 
         <a href="%password_url%">%password_url%</a><br/><br/>

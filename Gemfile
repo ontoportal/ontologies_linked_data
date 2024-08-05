@@ -5,11 +5,11 @@ gem 'addressable', '~> 2.8'
 gem 'bcrypt', '~> 3.0'
 gem 'cube-ruby', require: 'cube'
 gem 'faraday', '~> 1.9'
-gem 'ffi'
+gem 'ffi', '~> 1.16.3'
 gem 'libxml-ruby', '~> 2.0'
 gem 'minitest'
 gem 'multi_json', '~> 1.0'
-gem 'oj', '~> 2.0'
+gem 'oj'
 gem 'omni_logger'
 gem 'pony'
 gem 'rack', '~> 1.0'
@@ -42,4 +42,3 @@ end
 # NCBO gems (can be from a local dev path or from rubygems/git)
 gem 'goo', github: 'ontoportal-lirmm/goo', branch: 'development'
 gem 'sparql-client', github: 'ontoportal-lirmm/sparql-client', branch: 'development'
-
