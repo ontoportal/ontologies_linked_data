@@ -38,7 +38,7 @@ module LinkedData
 
             parsed = @submission.ready?(status: %i[rdf])
 
-            @submission.extract_metadata(logger, user_params: options[:params], heavy_extraction: extract_metadata?(options))
+            @submission = @submission.extract_metadata(logger, user_params: options[:params], heavy_extraction: extract_metadata?(options))
 
             @submission.generate_missing_labels(logger) if generate_missing_labels?(options)
 
