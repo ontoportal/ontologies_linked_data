@@ -196,7 +196,8 @@ naturalLanguage:
     "http://lexvo.org/id/iso639-1/nl": "Dutch",
     "http://lexvo.org/id/iso639-1/fi": "Finnish",
     "http://lexvo.org/id/iso639-1/el": "Greek",
-    "http://lexvo.org/id/iso639-1/ja": "Japanese"
+    "http://lexvo.org/id/iso639-1/ja": "Japanese",
+    "http://lexvo.org/id/iso639-1/pt-br": "Brazilian"
   }
   metadataMappings: [ "omv:naturalLanguage", "dc:language", "dcterms:language", "doap:language", "schema:inLanguage" ]
 
