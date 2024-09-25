@@ -73,7 +73,7 @@ module LinkedData
           @submission.save
           logger.info("Diff generated successfully for #{@submission.id}")
           logger.flush
-        rescue StoreError => e
+        rescue StandardError => e
           logger.error("Diff process for #{@submission.id} failed - #{e.class}: #{e.message}")
           logger.flush
           raise e
