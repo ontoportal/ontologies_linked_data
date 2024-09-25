@@ -63,7 +63,6 @@ GEM
       net-http
     ffi (1.17.0-aarch64-linux-gnu)
     ffi (1.17.0-arm64-darwin)
-    ffi (1.17.0-x86_64-darwin)
     ffi (1.17.0-x86_64-linux-gnu)
     hashie (5.0.0)
     htmlentities (4.3.4)
@@ -193,8 +192,6 @@ GEM
 PLATFORMS
   aarch64-linux
   arm64-darwin-22
-  x86_64-darwin-21
-  x86_64-darwin-23
   x86_64-linux
 
 DEPENDENCIES

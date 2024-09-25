@@ -135,14 +135,15 @@ module LinkedData
         path_to_repo = File.join([LinkedData.settings.repository_folder, acronym.to_s, submissionId.to_s])
         name = filename || File.basename(File.new(src).path)
         # THIS LOGGER IS JUST FOR DEBUG - remove after NCBO-795 is closed
-        logger = Logger.new(Dir.pwd + "/create_permissions.log")
+        # https://github.com/ncbo/bioportal-project/issues/323
+        # logger = Logger.new(Dir.pwd + "/logs/create_permissions.log")
         if not Dir.exist? path_to_repo
           FileUtils.mkdir_p path_to_repo
-          logger.debug("Dir created #{path_to_repo} | #{"%o" % File.stat(path_to_repo).mode} | umask: #{File.umask}") # NCBO-795
+          # logger.debug("Dir created #{path_to_repo} | #{"%o" % File.stat(path_to_repo).mode} | umask: #{File.umask}") # NCBO-795
         end
         dst = File.join([path_to_repo, name])
         FileUtils.copy(src, dst)
-        logger.debug("File created #{dst} | #{"%o" % File.stat(dst).mode} | umask: #{File.umask}") # NCBO-795
+        # logger.debug("File created #{dst} | #{"%o" % File.stat(dst).mode} | umask: #{File.umask}") # NCBO-795
         if not File.exist? dst
           raise Exception, "Unable to copy #{src} to #{dst}"
         end
