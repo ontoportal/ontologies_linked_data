@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: caee0b46ef2b0eec7ecc5f204d7f31d25787fe61
-  branch: ontoportal-lirmm-pr/feature/update-resource-seetings
+  revision: 74a012eebb9433d031eb00df5abbe488cb8b4512
+  branch: develop
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
