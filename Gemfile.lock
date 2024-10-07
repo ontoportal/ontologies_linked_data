@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 70007faf43d0d96292809f89f15a27a757ccaa25
+  revision: 74a012eebb9433d031eb00df5abbe488cb8b4512
   branch: develop
   specs:
     goo (0.0.2)
@@ -149,7 +149,7 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
-    rexml (3.3.7)
+    rexml (3.3.8)
     rsolr (2.6.0)
       builder (>= 2.1.2)
       faraday (>= 0.9, < 3, != 2.0.0)

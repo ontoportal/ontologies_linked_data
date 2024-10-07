@@ -46,7 +46,7 @@ module LinkedData
                           if attributes.first == :all
                             (self.attributes + self.hypermedia_settings[:serialize_default]).uniq
                           else
-                            attributes
+                            attributes - self.hypermedia_settings[:serialize_never]
                           end
                         elsif self.hypermedia_settings[:serialize_default].empty?
                           self.attributes
