@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 74a012eebb9433d031eb00df5abbe488cb8b4512
-  branch: develop
+  revision: f943ac33e87c55c88131c32d826ed5d39c89302c
+  branch: master
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
@@ -16,8 +16,8 @@ GIT
 
 GIT
   remote: https://github.com/ncbo/sparql-client.git
-  revision: 1657f0dd69fd4b522d3549a6848670175f5e98cc
-  branch: develop
+  revision: e89c26aa96f184dbe9b52d51e04fb3d9ba998dbc
+  branch: master
   specs:
     sparql-client (1.0.1)
       json_pure (>= 1.4)
@@ -87,9 +87,10 @@ GEM
       net-pop
       net-smtp
     method_source (1.1.0)
-    mime-types (3.5.2)
+    mime-types (3.6.0)
+      logger
       mime-types-data (~> 3.2015)
-    mime-types-data (3.2024.0903)
+    mime-types-data (3.2024.1001)
     mini_mime (1.1.5)
     minitest (4.7.5)
     minitest-reporters (0.14.24)
