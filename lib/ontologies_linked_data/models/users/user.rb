@@ -18,6 +18,8 @@ module LinkedData
       attribute :role, enforce: [:role, :list], :default => lambda {|x| [LinkedData::Models::Users::Role.default]}
       attribute :firstName
       attribute :lastName
+      attribute :githubId, enforce: [:unique]
+      attribute :orcidId, enforce: [:unique]
       attribute :created, enforce: [:date_time], :default => lambda { |record| DateTime.now }
       attribute :passwordHash, enforce: [:existence]
       attribute :apikey, enforce: [:unique], :default => lambda {|x| SecureRandom.uuid}
@@ -31,7 +33,7 @@ module LinkedData
       embed :subscription
       embed_values :role => [:role]
       serialize_default :username, :email, :role, :apikey
-      serialize_never :passwordHash, :show_apikey, :resetToken, :restTokenExpireTime
+      serialize_never :passwordHash, :show_apikey, :resetToken, :resetTokenExpireTime
       serialize_filter lambda {|inst| show_apikey?(inst)}
 
       # Cache
