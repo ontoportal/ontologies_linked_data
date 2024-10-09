@@ -280,7 +280,7 @@ module LinkedData
       # Copy file from /tmp/uncompressed-ont-rest-file to /srv/ncbo/repository/MY_ONT/1/
       def self.copy_file_repository(acronym, submissionId, src, filename = nil)
         path_to_repo = File.join([LinkedData.settings.repository_folder, acronym.to_s, submissionId.to_s])
-        name = filename || File.basename(File.new(src).path)
+        name = filename.nil? ? File.basename(File.new(src).path) : File.basename(filename)
         # THIS LOGGER IS JUST FOR DEBUG - remove after NCBO-795 is closed
         logger = Logger.new(Dir.pwd + "/create_permissions.log")
         if not Dir.exist? path_to_repo
