@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 74a012eebb9433d031eb00df5abbe488cb8b4512
+  revision: d4da86d07a449e91dbbd6b72763f42d3ba3f20f3
   branch: develop
   specs:
     goo (0.0.2)
@@ -55,10 +55,15 @@ GEM
       launchy (>= 2.1, < 4.0)
       mail (~> 2.7)
     eventmachine (1.2.7)
-    faraday (1.2.0)
-      multipart-post (>= 1.2, < 3)
-      ruby2_keywords
-    ffi (1.17.0)
+    faraday (2.12.0)
+      faraday-net_http (>= 2.0, < 3.4)
+      json
+      logger
+    faraday-net_http (3.3.0)
+      net-http
+    ffi (1.17.0-aarch64-linux-gnu)
+    ffi (1.17.0-arm64-darwin)
+    ffi (1.17.0-x86_64-linux-gnu)
     hashie (5.0.0)
     htmlentities (4.3.4)
     http-accept (1.7.0)
@@ -94,9 +99,10 @@ GEM
       minitest (>= 2.12, < 5.0)
       powerbar
     multi_json (1.15.0)
-    multipart-post (2.4.1)
+    net-http (0.4.1)
+      uri
     net-http-persistent (2.9.4)
-    net-imap (0.4.16)
+    net-imap (0.4.17)
       date
       net-protocol
     net-pop (0.1.2)
@@ -123,9 +129,9 @@ GEM
     pry (0.14.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
-    public_suffix (5.1.1)
+    public_suffix (6.0.1)
     racc (1.8.1)
-    rack (2.2.9)
+    rack (2.2.10)
     rack-test (0.8.3)
       rack (>= 1.0, < 3)
     rainbow (3.1.1)
@@ -148,7 +154,7 @@ GEM
     rsolr (2.6.0)
       builder (>= 2.1.2)
       faraday (>= 0.9, < 3, != 2.0.0)
-    rubocop (1.66.1)
+    rubocop (1.67.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
@@ -161,7 +167,6 @@ GEM
     rubocop-ast (1.32.3)
       parser (>= 3.3.1.0)
     ruby-progressbar (1.13.0)
-    ruby2_keywords (0.0.5)
     rubyzip (1.3.0)
     simplecov (0.22.0)
       docile (~> 1.1)
@@ -181,6 +186,7 @@ GEM
     timeout (0.4.1)
     tzinfo (0.3.62)
     unicode-display_width (2.6.0)
+    uri (0.13.1)
     uuid (2.3.9)
       macaddr (~> 1.0)
 
