@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 74a012eebb9433d031eb00df5abbe488cb8b4512
+  revision: d4da86d07a449e91dbbd6b72763f42d3ba3f20f3
   branch: develop
   specs:
     goo (0.0.2)
@@ -87,9 +87,10 @@ GEM
       net-pop
       net-smtp
     method_source (1.1.0)
-    mime-types (3.5.2)
+    mime-types (3.6.0)
+      logger
       mime-types-data (~> 3.2015)
-    mime-types-data (3.2024.0903)
+    mime-types-data (3.2024.1001)
     mini_mime (1.1.5)
     minitest (4.7.5)
     minitest-reporters (0.14.24)
@@ -101,7 +102,7 @@ GEM
     net-http (0.4.1)
       uri
     net-http-persistent (2.9.4)
-    net-imap (0.4.16)
+    net-imap (0.4.17)
       date
       net-protocol
     net-pop (0.1.2)
@@ -130,7 +131,7 @@ GEM
       method_source (~> 1.0)
     public_suffix (6.0.1)
     racc (1.8.1)
-    rack (2.2.9)
+    rack (2.2.10)
     rack-test (0.8.3)
       rack (>= 1.0, < 3)
     rainbow (3.1.1)
@@ -153,7 +154,7 @@ GEM
     rsolr (2.6.0)
       builder (>= 2.1.2)
       faraday (>= 0.9, < 3, != 2.0.0)
-    rubocop (1.66.1)
+    rubocop (1.67.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)
@@ -192,6 +193,7 @@ GEM
 PLATFORMS
   aarch64-linux
   arm64-darwin-22
+  arm64-darwin-23
   x86_64-linux
 
 DEPENDENCIES
