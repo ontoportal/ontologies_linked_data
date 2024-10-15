@@ -232,15 +232,7 @@ SELECT DISTINCT * WHERE {
     #strict comparison to be sure the merge with the tree_view branch goes fine
 
     LinkedData::Models::Class.where.in(sub).include(:prefLabel,:synonym,:notation).each do |cls|
-
-
-      # binding.pry unless cls.prefLabel
-
-      assert_instance_of String, cls.prefLabel
-
-
-
-
+      assert_instance_of String,cls.prefLabel
       if cls.notation.nil?
         assert false,"notation empty"
       end
