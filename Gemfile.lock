@@ -61,7 +61,7 @@ GEM
       faraday-net_http (>= 2.0, < 3.1)
       ruby2_keywords (>= 0.0.4)
     faraday-net_http (3.0.2)
-    ffi (1.17.0)
+    ffi (1.17.0-arm64-darwin)
     hashie (5.0.0)
     htmlentities (4.3.4)
     http-accept (1.7.0)
@@ -187,10 +187,7 @@ GEM
       macaddr (~> 1.0)
 
 PLATFORMS
-  aarch64-linux
-  arm64-darwin-22
   arm64-darwin-23
-  x86_64-linux
 
 DEPENDENCIES
   activesupport (~> 4)
