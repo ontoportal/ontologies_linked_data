@@ -316,7 +316,6 @@ SELECT DISTINCT * WHERE {
     submission_parse("D3OTEST", "DSMZ Digital Diversity Ontology Test",
                      "./test/data/ontology_files/d3o.owl", 1,
                      process_rdf: true, index_search: true, extract_metadata: false)
-
     res = LinkedData::Models::Class.search("prefLabel_en:Anatomic Structure", {:fq => "submissionAcronym:D3OTEST", :start => 0, :rows => 100})
     refute_equal 0, res["response"]["numFound"]
     refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('https://purl.dsmz.de/schema/AnatomicStructure')}.first
@@ -1189,7 +1188,6 @@ eos
       # sub.save
     end
   end
-
 
   def test_submission_delete_remove_files
     #This one has resources wih accents.

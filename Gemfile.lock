@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 74a012eebb9433d031eb00df5abbe488cb8b4512
-  branch: develop
+  revision: d6b84e12d61317dbddc1b86cb1451acb37915369
+  branch: multilingual_preflabels
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
@@ -37,6 +37,7 @@ GEM
       public_suffix (>= 2.0.2, < 7.0)
     ansi (1.5.0)
     ast (2.4.2)
+    base64 (0.2.0)
     bcrypt (3.1.20)
     bigdecimal (3.1.8)
     builder (3.3.0)
@@ -55,9 +56,11 @@ GEM
       launchy (>= 2.1, < 4.0)
       mail (~> 2.7)
     eventmachine (1.2.7)
-    faraday (1.2.0)
-      multipart-post (>= 1.2, < 3)
-      ruby2_keywords
+    faraday (2.8.1)
+      base64
+      faraday-net_http (>= 2.0, < 3.1)
+      ruby2_keywords (>= 0.0.4)
+    faraday-net_http (3.0.2)
     ffi (1.17.0)
     hashie (5.0.0)
     htmlentities (4.3.4)
@@ -94,9 +97,8 @@ GEM
       minitest (>= 2.12, < 5.0)
       powerbar
     multi_json (1.15.0)
-    multipart-post (2.4.1)
     net-http-persistent (2.9.4)
-    net-imap (0.4.16)
+    net-imap (0.4.17)
       date
       net-protocol
     net-pop (0.1.2)
@@ -125,7 +127,7 @@ GEM
       method_source (~> 1.0)
     public_suffix (5.1.1)
     racc (1.8.1)
-    rack (2.2.9)
+    rack (2.2.10)
     rack-test (0.8.3)
       rack (>= 1.0, < 3)
     rainbow (3.1.1)
@@ -148,7 +150,7 @@ GEM
     rsolr (2.6.0)
       builder (>= 2.1.2)
       faraday (>= 0.9, < 3, != 2.0.0)
-    rubocop (1.66.1)
+    rubocop (1.67.0)
       json (~> 2.3)
       language_server-protocol (>= 3.17.0)
       parallel (~> 1.10)

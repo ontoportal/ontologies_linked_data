@@ -11,7 +11,16 @@ module LinkedData
 
       def handle_missing_labels(file_path, logger)
         callbacks = {
+
+
+
+
           include_languages: true,
+
+
+
+
+
           missing_labels: {
             op_name: 'Missing Labels Generation',
             required: true,
@@ -189,21 +198,24 @@ module LinkedData
 
       def generate_missing_labels_each(artifacts = {}, logger, paging, page_classes, page, c)
         prefLabel = nil
+        portal_lang = Goo.portal_language
+        prefLabel_lang = c.prefLabel(include_languages: true)
+        no_default_prefLabel = prefLabel_lang.nil? || (prefLabel_lang.keys & [portal_lang, :none]).empty?
 
-        if c.prefLabel.nil?
+        if prefLabel_lang.nil? || no_default_prefLabel
           lang_rdfs_labels = c.label(include_languages: true)
-          lang_rdfs_labels = {none: []} if lang_rdfs_labels.empty?
+          lang_rdfs_labels = {none: []} if lang_rdfs_labels.to_a.empty? ||
+              (no_default_prefLabel && (lang_rdfs_labels.keys & [portal_lang, :none]).empty?)
 
-          lang_rdfs_labels&.each do |lang, rdfs_labels|
+          lang_rdfs_labels.each do |lang, rdfs_labels|
             if rdfs_labels && rdfs_labels.length > 1 && c.synonym.length > 0
               rdfs_labels = (Set.new(c.label) - Set.new(c.synonym)).to_a.first
-
               rdfs_labels = c.label if rdfs_labels.nil? || rdfs_labels.length == 0
             end
 
             rdfs_labels = [rdfs_labels] if rdfs_labels and not (rdfs_labels.instance_of? Array)
-            label = nil
 
+            label = nil
             if rdfs_labels && rdfs_labels.length > 0
               # this sort is needed for a predictable label selection
               label = rdfs_labels.sort[0]
@@ -215,13 +227,15 @@ module LinkedData
               lang = nil
               prefLabel = label
             end
-            prefLabel = label if !prefLabel && lang === Goo.portal_language
+            prefLabel = label if !prefLabel && lang === portal_lang
             prefLabel = label unless prefLabel
             artifacts[:label_triples] << LinkedData::Utils::Triples.label_for_class_triple(
-              c.id, Goo.vocabulary(:metadata_def)[:prefLabel], label, lang)
+              c.id, Goo.vocabulary(:metadata_def)[:prefLabel], prefLabel, lang)
           end
-        else
+        elsif prefLabel_lang
           prefLabel = c.prefLabel
+        else
+          prefLabel = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
         end
 
         if @submission.ontology.viewOf.nil?
