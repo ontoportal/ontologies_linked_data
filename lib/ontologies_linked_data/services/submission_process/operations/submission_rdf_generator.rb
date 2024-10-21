@@ -11,16 +11,7 @@ module LinkedData
 
       def handle_missing_labels(file_path, logger)
         callbacks = {
-
-
-
-
           include_languages: true,
-
-
-
-
-
           missing_labels: {
             op_name: 'Missing Labels Generation',
             required: true,
