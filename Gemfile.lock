@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: d4da86d07a449e91dbbd6b72763f42d3ba3f20f3
-  branch: develop
+  revision: 3c3ab5ae2824e9a1149b907b01a6c0c461a347e3
+  branch: master
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
@@ -16,8 +16,8 @@ GIT
 
 GIT
   remote: https://github.com/ncbo/sparql-client.git
-  revision: 1657f0dd69fd4b522d3549a6848670175f5e98cc
-  branch: develop
+  revision: e89c26aa96f184dbe9b52d51e04fb3d9ba998dbc
+  branch: master
   specs:
     sparql-client (1.0.1)
       json_pure (>= 1.4)
@@ -63,6 +63,7 @@ GEM
       net-http
     ffi (1.17.0-aarch64-linux-gnu)
     ffi (1.17.0-arm64-darwin)
+    ffi (1.17.0-x86_64-linux-gnu)
     hashie (5.0.0)
     htmlentities (4.3.4)
     http-accept (1.7.0)
@@ -191,7 +192,9 @@ GEM
 
 PLATFORMS
   aarch64-linux
+  arm64-darwin-22
   arm64-darwin-23
+  x86_64-linux
 
 DEPENDENCIES
   activesupport (~> 4)
