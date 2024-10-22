@@ -16,10 +16,9 @@ module LinkedData
       include LinkedData::Concerns::OntologySubmission::Validators
       include LinkedData::Concerns::OntologySubmission::UpdateCallbacks
       extend LinkedData::Concerns::OntologySubmission::DefaultCallbacks
-
+      include LinkedData::Concerns::SubmissionDiffParser
       include SKOS::ConceptSchemes
       include SKOS::RootsFetcher
-
 
       FLAT_ROOTS_LIMIT = 1000
 
@@ -125,7 +124,7 @@ module LinkedData
       attribute :openSearchDescription, namespace: :void, type: :uri, default: -> (s) { open_search_default(s) }
       attribute :source, namespace: :dct, type: :list
       attribute :endpoint, namespace: :sd, type: %i[uri list],
-                           default: ->(s) { default_sparql_endpoint(s)}
+                default: ->(s) { default_sparql_endpoint(s) }
       attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
 
       # Relations
@@ -280,7 +279,7 @@ module LinkedData
       # Copy file from /tmp/uncompressed-ont-rest-file to /srv/ncbo/repository/MY_ONT/1/
       def self.copy_file_repository(acronym, submissionId, src, filename = nil)
         path_to_repo = File.join([LinkedData.settings.repository_folder, acronym.to_s, submissionId.to_s])
-        name = filename || File.basename(File.new(src).path)
+        name = filename.nil? ? File.basename(File.new(src).path) : File.basename(filename)
         # THIS LOGGER IS JUST FOR DEBUG - remove after NCBO-795 is closed
         logger = Logger.new(Dir.pwd + "/create_permissions.log")
         if not Dir.exist? path_to_repo
@@ -299,7 +298,7 @@ module LinkedData
         begin
           conn.delete_by_query("ontology_t:\"#{ontology}\"")
         rescue StandardError => e
-          #puts e.message
+          # puts e.message
         end
         conn
       end
@@ -479,9 +478,6 @@ module LinkedData
         zip_dst
       end
 
-
-
-
       def class_count(logger = nil)
         logger ||= LinkedData::Parser.logger || Logger.new($stderr)
         count = -1
@@ -538,7 +534,6 @@ module LinkedData
         end
         metrics
       end
-
 
       def add_submission_status(status)
         valid = status.is_a?(LinkedData::Models::SubmissionStatus)

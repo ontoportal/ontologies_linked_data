@@ -13,6 +13,8 @@ module LinkedData
         ontology_iri = extract_ontology_iri
         @submission.version = version_info if version_info
         @submission.uri = ontology_iri if ontology_iri
+        @submission.save
+
         if heavy_extraction
           begin
             # Extract metadata directly from the ontology
@@ -23,7 +25,13 @@ module LinkedData
             logger.error("Error while extracting additional metadata: #{e}")
           end
         end
-        @submission.save
+
+        if @submission.valid?
+          @submission.save
+        else
+          logger.error("Error while extracting additional metadata: #{@submission.errors}")
+          @submission = LinkedData::Models::OntologySubmission.find(@submission.id).first.bring_remaining
+        end
       end
 
       def extract_version
@@ -72,7 +80,7 @@ module LinkedData
           unless attr_settings[:namespace].nil?
             property_to_extract = "#{attr_settings[:namespace].to_s}:#{attr.to_s}"
             hash_results = extract_each_metadata(ontology_uri, attr, property_to_extract, logger)
-            single_extracted = send_value(attr, hash_results) unless hash_results.empty?
+            single_extracted = send_value(attr, hash_results, logger) unless hash_results.empty?
           end
 
           # extracts attribute value from metadata mappings
@@ -82,18 +90,13 @@ module LinkedData
             break if single_extracted
 
             hash_mapping_results = extract_each_metadata(ontology_uri, attr, mapping.to_s, logger)
-            single_extracted = send_value(attr, hash_mapping_results) unless hash_mapping_results.empty?
+            single_extracted = send_value(attr, hash_mapping_results, logger) unless hash_mapping_results.empty?
           end
 
           new_value = value(attr, type)
 
-          send_value(attr, old_value) if empty_value?(new_value) && !empty_value?(old_value)
+          send_value(attr, old_value, logger) if empty_value?(new_value) && !empty_value?(old_value)
         end
-      end
-
-      # Set some metadata to default values if nothing extracted
-      def set_default_metadata
-
       end
 
       def empty_value?(value)
@@ -105,31 +108,45 @@ module LinkedData
         type.eql?(:list) ? Array(val) || [] : val || ''
       end
 
-      def send_value(attr, value)
+      def send_value(attr, new_value, logger)
+        old_val = nil
+        single_extracted = false
+
 
         if enforce?(attr, :list)
-          # Add the retrieved value(s) to the attribute if the attribute take a list of objects
-          metadata_values = value(attr, :list)
-          metadata_values = metadata_values.dup
+          old_val = value(attr, :list)
+          old_values = old_val.dup
+          new_values = new_value.values
+          new_values = new_values.map{ |v|  find_or_create_agent(attr, v, logger) }.compact if enforce?(attr, :Agent)
 
-          metadata_values.push(*value.values)
 
-          @submission.send("#{attr}=", metadata_values.uniq)
+          old_values.push(*new_values)
+
+          @submission.send("#{attr}=", old_values.uniq)
         elsif enforce?(attr, :concatenate)
           # if multiple value for this attribute, then we concatenate it
           # Add the concat at the very end, to easily join the content of the array
-          metadata_values = value(attr, :string)
-          metadata_values = metadata_values.split(', ')
-          new_values = value.values.map { |x| x.to_s.split(', ') }.flatten
+          old_val = value(attr, :string)
+          metadata_values = old_val.split(', ')
+          new_values = new_value.values.map { |x| x.to_s.split(', ') }.flatten
 
           @submission.send("#{attr}=", (metadata_values + new_values).uniq.join(', '))
         else
-          # If multiple value for a metadata that should have a single value: taking one value randomly (the first in the hash)
+          new_value = new_value.values.first
 
-          @submission.send("#{attr}=", value.values.first)
-          return true
+          new_value = find_or_create_agent(attr, nil, logger) if enforce?(attr, :Agent)
+
+          @submission.send("#{attr}=", new_value)
+          single_extracted = true
         end
-        false
+
+        unless @submission.valid?
+          logger.error("Error while extracting metadata for the attribute #{attr}: #{@submission.errors[attr] || @submission.errors}")
+          new_value&.delete if enforce?(attr, :Agent) && new_value.respond_to?(:delete)
+          @submission.send("#{attr}=", old_val)
+        end
+
+        single_extracted
       end
 
       # Return a hash with the best literal value for an URI
@@ -256,6 +273,16 @@ eos
         LinkedData::Models::OntologySubmission.attribute_settings(attr)[:enforce].include?(type)
       end
 
+      def find_or_create_agent(attr, old_val, logger)
+        agent = LinkedData::Models::Agent.where(agentType: 'person', name: old_val).first
+        begin
+          agent ||= LinkedData::Models::Agent.new(name: old_val, agentType: 'person', creator: @submission.ontology.administeredBy.first).save
+        rescue
+          logger.error("Error while extracting metadata for the attribute #{attr}: Can't create Agent #{agent.errors} ")
+          agent = nil
+        end
+        agent
+      end
     end
   end
 end

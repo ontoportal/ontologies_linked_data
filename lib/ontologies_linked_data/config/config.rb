@@ -42,9 +42,16 @@ module LinkedData
     # ###
 
     @settings.ui_name                       ||= 'Bioportal'
+    @settings.title                         ||= ''
+    @settings.description                   ||= ''
+    @settings.color                         ||= ''
+    @settings.logo                          ||= ''
+    @settings.fundedBy                      ||= {}
+    @settings.federated_portals             ||= {}
+
     @settings.ui_host                       ||= 'bioportal.bioontology.org'
-    @settings.replace_url_prefix             ||= false
-    @settings.id_url_prefix                  ||= DEFAULT_PREFIX
+    @settings.replace_url_prefix            ||= false
+    @settings.id_url_prefix                 ||= DEFAULT_PREFIX
     @settings.queries_debug                 ||= false
     @settings.enable_monitoring             ||= false
     @settings.cube_host                     ||= 'localhost'
