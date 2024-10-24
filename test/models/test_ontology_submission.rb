@@ -278,7 +278,6 @@ SELECT DISTINCT * WHERE {
   end
 
   def test_submission_parse
-
     # This one has some nasty looking IRIS with slashes in the anchor
     unless ENV["BP_SKIP_HEAVY_TESTS"] == "1"
       submission_parse("MCCLTEST", "MCCLS TEST",
@@ -304,6 +303,26 @@ SELECT DISTINCT * WHERE {
                                                 .first
     assert sub.version["Version 1.1"]
     assert sub.version["Date: 11-2011"]
+  end
+
+  def test_generate_language_preflabels
+    submission_parse("D3OTEST", "DSMZ Digital Diversity Ontology Test",
+                     "./test/data/ontology_files/d3o.owl", 1,
+                     process_rdf: true, index_search: true, extract_metadata: false)
+
+    res = LinkedData::Models::Class.search("prefLabel_en:Anatomic Structure", {:fq => "submissionAcronym:D3OTEST", :start => 0, :rows => 100})
+    refute_equal 0, res["response"]["numFound"]
+    refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('https://purl.dsmz.de/schema/AnatomicStructure')}.first
+
+    submission_parse("EPOTEST", "Early Pregnancy Ontology Test",
+                     "./test/data/ontology_files/epo.owl", 1,
+                     process_rdf: true, index_search: true, extract_metadata: false)
+    res = LinkedData::Models::Class.search("prefLabel_en:technical element", {:fq => "submissionAcronym:EPOTEST", :start => 0, :rows => 100})
+    refute_equal 0, res["response"]["numFound"]
+    refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('http://www.semanticweb.org/ontologies/epo.owl#OPPIO_t000000')}.first
+    res = LinkedData::Models::Class.search("prefLabel_fr:éléments techniques", {:fq => "submissionAcronym:EPOTEST", :start => 0, :rows => 100})
+    refute_equal 0, res["response"]["numFound"]
+    refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('http://www.semanticweb.org/ontologies/epo.owl#OPPIO_t000000')}.first
   end
 
   def test_process_submission_diff

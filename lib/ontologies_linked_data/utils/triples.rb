@@ -69,10 +69,17 @@ module LinkedData
         return (triples.join "\n")
       end
 
-      def self.label_for_class_triple(class_id,property,label)
+      def self.label_for_class_triple(class_id, property, label, language=nil)
         label = label.to_s.gsub('\\','\\\\\\\\')
         label = label.gsub('"','\"')
-        return triple(class_id,property,RDF::Literal.new(label, :datatype => RDF::XSD.string))
+        params = { datatype: RDF::XSD.string }
+        lang = language.to_s.downcase
+
+        if !lang.empty? && lang.to_sym != :none && !lang.to_s.eql?('@none')
+          params[:datatype] = RDF.langString
+          params[:language] = lang.to_sym
+        end
+        triple(class_id, property, RDF::Literal.new(label, params))
       end
 
       def self.generated_label(class_id, existing_label)

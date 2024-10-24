@@ -53,6 +53,21 @@ class TestClassRequestedLang < LinkedData::TestOntologyCommon
 
   end
 
+  def test_requeststore_not_set
+    skip 'need to be fixed in the futur for Virtuoso'
+    cls = get_class_by_lang('http://opendata.inrae.fr/thesaurusINRAE/c_22817',
+                            requested_lang: nil)
+    assert_equal 'industrialization', cls.prefLabel
+    assert_equal cls.prefLabel, cls.prefLabel(include_languages: true)
+    cls = get_class_by_lang('http://opendata.inrae.fr/thesaurusINRAE/c_22817',
+                            requested_lang: :ALL)
+    assert_equal 'industrialization', cls.prefLabel
+    assert_equal Hash, cls.prefLabel(include_languages: true).class
+    assert_equal 2, cls.prefLabel(include_languages: true).keys.length
+    assert_equal 'industrialization', cls.prefLabel(include_languages: true)[:en]
+    assert_equal 'industrialisation', cls.prefLabel(include_languages: true)[:fr]
+  end
+
   def test_requested_language_not_found
 
     cls = get_class_by_lang('http://opendata.inrae.fr/thesaurusINRAE/c_22817',
