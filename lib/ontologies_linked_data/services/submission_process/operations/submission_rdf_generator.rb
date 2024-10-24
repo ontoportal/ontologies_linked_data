@@ -195,8 +195,10 @@ module LinkedData
 
         if prefLabel_lang.nil? || no_default_prefLabel
           lang_rdfs_labels = c.label(include_languages: true)
+
           lang_rdfs_labels = {none: []} if lang_rdfs_labels.to_a.empty? ||
-              (no_default_prefLabel && (lang_rdfs_labels.keys & [portal_lang, :none]).empty?)
+              lang_rdfs_labels.is_a?(Array) ||
+              (no_default_prefLabel && lang_rdfs_labels.is_a?(Hash) && (lang_rdfs_labels.keys & [portal_lang, :none]).empty?)
 
           lang_rdfs_labels.each do |lang, rdfs_labels|
             if rdfs_labels && rdfs_labels.length > 1 && c.synonym.length > 0
