@@ -310,6 +310,11 @@ module LinkedData
         return valid_result && sc
       end
 
+      def remote_pulled?
+        self.bring(:pullLocation) if self.bring?(:pullLocation)
+        self.pullLocation != nil
+      end
+
       def sanity_check
         self.bring(:ontology) if self.bring?(:ontology)
         self.ontology.bring(:summaryOnly) if self.ontology.bring?(:summaryOnly)
