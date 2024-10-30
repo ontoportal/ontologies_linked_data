@@ -23,7 +23,7 @@ module LinkedData
       FLAT_ROOTS_LIMIT = 1000
 
       model :ontology_submission, scheme: File.join(__dir__, '../../../config/schemes/ontology_submission.yml'),
-            name_with: ->(s) { submission_id_generator(s) }
+                                  name_with: ->(s) { submission_id_generator(s) }
 
       attribute :submissionId, type: :integer, enforce: [:existence]
 
@@ -124,7 +124,7 @@ module LinkedData
       attribute :openSearchDescription, namespace: :void, type: :uri, default: -> (s) { open_search_default(s) }
       attribute :source, namespace: :dct, type: :list
       attribute :endpoint, namespace: :sd, type: %i[uri list],
-                default: ->(s) { default_sparql_endpoint(s) }
+                           default: ->(s) { default_sparql_endpoint(s) }
       attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
 
       # Relations
@@ -739,6 +739,38 @@ module LinkedData
           obs
         }
         classes
+      end
+
+      def children(cls, includes_param: [], concept_schemes: [], concept_collections: [], page: 1, size: 50)
+        ld = LinkedData::Models::Class.goo_attrs_to_load(includes_param)
+        unmapped = ld.delete(:properties)
+
+        ld += LinkedData::Models::Class.concept_is_in_attributes if skos?
+
+        page_data_query = LinkedData::Models::Class.where(parents: cls).in(self).include(ld)
+        aggregates = LinkedData::Models::Class.goo_aggregates_to_load(ld)
+        page_data_query.aggregate(*aggregates) unless aggregates.empty?
+        page_data = page_data_query.page(page, size).all
+        LinkedData::Models::Class.in(self).models(page_data).include(:unmapped).all if unmapped
+
+        page_data.delete_if { |x| x.id.to_s == cls.id.to_s }
+        if ld.include?(:hasChildren) || ld.include?(:isInActiveScheme) || ld.include?(:isInActiveCollection)
+          page_data.each do |c|
+            c.load_computed_attributes(to_load: ld,
+                                       options: { schemes: concept_schemes, collections: concept_collections })
+          end
+        end
+
+        unless concept_schemes.empty?
+          page_data.delete_if { |c| Array(c.isInActiveScheme).empty? && !c.load_has_children }
+          if (page_data.size < size) && page_data.next_page
+            page_data += children(cls, includes_param: includes_param, concept_schemes: concept_schemes,
+                                      concept_collections: concept_collections,
+                                 page: page_data.next_page, size: size)
+          end
+        end
+
+        page_data
       end
 
       def skos?
