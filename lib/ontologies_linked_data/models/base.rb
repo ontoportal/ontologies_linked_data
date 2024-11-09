@@ -44,57 +44,59 @@ module LinkedData
         # Get attributes, either provided, all, or default
         default_attrs = if !attributes.empty?
                           if attributes.first == :all
-                            (self.attributes + self.hypermedia_settings[:serialize_default]).uniq
+                            (self.attributes + hypermedia_settings[:serialize_default]).uniq
                           else
-                            attributes - self.hypermedia_settings[:serialize_never]
+                            attributes - hypermedia_settings[:serialize_never]
                           end
-                        elsif self.hypermedia_settings[:serialize_default].empty?
+                        elsif hypermedia_settings[:serialize_default].empty?
                           self.attributes
                         else
-                          self.hypermedia_settings[:serialize_default].dup
+                          hypermedia_settings[:serialize_default].dup
                         end
 
         embed_attrs = {}
         extra_attrs = []
-        if level == 0
+        if level.zero?
           # Also include attributes that are embedded
-          self.hypermedia_settings[:embed].each do |e|
+          hypermedia_settings[:embed].each do |e|
+
             next unless default_attrs.include?(e)
+
             default_attrs.delete(e)
-            embed_class = self.range(e)
+            attributes.delete(e)
+            embed_class = range(e)
             next if embed_class.nil? || !embed_class.ancestors.include?(LinkedData::Models::Base)
-            #hack to avoid nested unmapped queries in class
-            if (self.model_name == :class)
-              if attributes && attributes.include?(:properties)
-                attributes = attributes.dup
-                attributes.delete :properties
-              end
+
+            # HACK: to avoid nested unmapped queries in class
+            if model_name == :class && attributes.include?(:properties)
+              attributes = attributes.dup
+              attributes.delete :properties
             end
             embed_attrs[e] = embed_class.goo_attrs_to_load(attributes, level += 1)
           end
         end
 
         # Merge embedded with embedded values
-        embed_values = self.hypermedia_settings[:embed_values].first
+        embed_values = hypermedia_settings[:embed_values].first
         embed_attrs.merge!(embed_values.dup) if embed_values
 
         # Include attributes needed for caching (if enabled)
         if LinkedData.settings.enable_http_cache
-          cache_attributes = self.cache_settings[:cache_load]
+          cache_attributes = cache_settings[:cache_load]
           extra_attrs.concat(cache_attributes.to_a) unless cache_attributes.nil? && cache_attributes.empty?
         end
 
         # Include attributes needed for security (if enabled)
         if LinkedData.settings.enable_security
-          access_control_attributes = self.access_control_load_attrs
-          extra_attrs.concat(access_control_attributes.to_a) unless access_control_attributes.nil? && access_control_attributes.empty?
+          access_control_attributes = access_control_load_attrs
+          unless access_control_attributes.nil? && access_control_attributes.empty?
+            extra_attrs.concat(access_control_attributes.to_a)
+          end
         end
 
         # These attributes need to be loaded to support link generation
-        links_load = self.hypermedia_settings[:links_load]
-        unless links_load.nil? || links_load.empty?
-          extra_attrs.concat(links_load)
-        end
+        links_load = hypermedia_settings[:links_load]
+        extra_attrs.concat(links_load) unless links_load.nil? || links_load.empty?
 
         # Add extra attrs to appropriate group (embed Hash vs default Array)
         extra_attrs.each do |attr|
@@ -112,16 +114,14 @@ module LinkedData
         end
 
         # Remove default attrs that are in the embedded
-        default_attrs = default_attrs - embed_attrs.keys
+        default_attrs -= embed_attrs.keys
 
         # Merge all embedded with the default (provided, all, default)
-        default_attrs << embed_attrs if embed_attrs.length > 0
+        default_attrs << embed_attrs if embed_attrs.length.positive?
         default_attrs.uniq!
 
         # Filter out attributes that should not get loaded
-        default_attrs = default_attrs - self.hypermedia_settings[:do_not_load]
-
-        return default_attrs
+        default_attrs - hypermedia_settings[:do_not_load]
       end
 
       ##
