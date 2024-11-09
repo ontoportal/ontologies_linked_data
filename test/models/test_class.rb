@@ -7,7 +7,7 @@ class TestClassModel < LinkedData::TestOntologyCommon
 
     acr = "CSTPROPS"
     init_test_ontology_msotest acr
-    os = LinkedData::Models::OntologySubmission.where(ontology: [ acronym: acr ],
+    os = LinkedData::Models::OntologySubmission.where(ontology: [acronym: acr],
                                                       submissionId: 1).all
     assert(os.length == 1)
     os = os[0]
@@ -16,32 +16,32 @@ class TestClassModel < LinkedData::TestOntologyCommon
 
     cls = LinkedData::Models::Class.find(class_id).in(os).include(:parents).to_a[0]
     pp = cls.parents[0]
-    assert_equal(os.id,pp.submission.id)
+    assert_equal(os.id, pp.submission.id)
     pp.bring(:parents)
     assert pp.parents.length == 1
     assert_equal(os.id, pp.parents.first.submission.id)
 
-    #read_only
+    # read_only
     cls = LinkedData::Models::Class.find(class_id).in(os).include(:parents).read_only.all[0]
     pp = cls.parents[0]
-    assert_equal(os.id,pp.submission.id)
+    assert_equal(os.id, pp.submission.id)
 
     class_id = RDF::IRI.new "http://bioportal.bioontology.org/ontologies/msotes#class_5"
     cls = LinkedData::Models::Class.find(class_id).in(os).include(:parents).first
     parents = cls.parents
     assert_equal(parents, cls.parents)
     assert_equal(3, cls.parents.length)
-    parent_ids = [ "http://bioportal.bioontology.org/ontologies/msotes#class2",
-      "http://bioportal.bioontology.org/ontologies/msotes#class4",
-       "http://bioportal.bioontology.org/ontologies/msotes#class3" ]
+    parent_ids = ["http://bioportal.bioontology.org/ontologies/msotes#class2",
+                  "http://bioportal.bioontology.org/ontologies/msotes#class4",
+                  "http://bioportal.bioontology.org/ontologies/msotes#class3"]
     parent_id_db = cls.parents.map { |x| x.id.to_s }
     assert_equal(parent_id_db.sort, parent_ids.sort)
 
     assert !cls.parents[0].submission.nil?
-    #they should have the same submission
+    # they should have the same submission
     assert_equal(cls.parents[0].submission, os)
 
-    #transitive
+    # transitive
     assert_raises ArgumentError do
       cls.bring(:ancestors)
     end
@@ -52,9 +52,9 @@ class TestClassModel < LinkedData::TestOntologyCommon
     assert ancestors.length == cls.ancestors.length
     ancestors.map! { |a| a.id.to_s }
     data_ancestors = ["http://bioportal.bioontology.org/ontologies/msotes#class1",
- "http://bioportal.bioontology.org/ontologies/msotes#class2",
- "http://bioportal.bioontology.org/ontologies/msotes#class4",
- "http://bioportal.bioontology.org/ontologies/msotes#class3"]
+                      "http://bioportal.bioontology.org/ontologies/msotes#class2",
+                      "http://bioportal.bioontology.org/ontologies/msotes#class4",
+                      "http://bioportal.bioontology.org/ontologies/msotes#class3"]
     assert ancestors.sort == data_ancestors.sort
 
   end
@@ -63,7 +63,7 @@ class TestClassModel < LinkedData::TestOntologyCommon
 
     acr = "CSTPROPS"
     init_test_ontology_msotest acr
-    os = LinkedData::Models::OntologySubmission.where(ontology: [ acronym: acr ],
+    os = LinkedData::Models::OntologySubmission.where(ontology: [acronym: acr],
                                                       submissionId: 1).all
     assert(os.length == 1)
     os = os[0]
@@ -71,29 +71,29 @@ class TestClassModel < LinkedData::TestOntologyCommon
     class_id = RDF::IRI.new "http://bioportal.bioontology.org/ontologies/msotes#class1"
 
     cls = LinkedData::Models::Class.find(class_id).in(os)
-                .include(:parents)
-                .include(:children)
-                .to_a[0]
+                                   .include(:parents)
+                                   .include(:children)
+                                   .to_a[0]
     children = cls.children
     assert_equal(1, cls.children.length)
     children_id = "http://bioportal.bioontology.org/ontologies/msotes#class2"
-    assert_equal(children_id,cls.children[0].id.to_s)
+    assert_equal(children_id, cls.children[0].id.to_s)
 
-    #they should have the same submission
+    # they should have the same submission
     assert_equal(cls.children[0].submission, os)
 
-    #transitive
+    # transitive
     assert_raises ArgumentError do
       cls.bring(:descendants)
     end
     descendants = cls.descendants.dup
     descendants.map! { |a| a.id.to_s }
     data_descendants = ["http://bioportal.bioontology.org/ontologies/msotes#class_5",
- "http://bioportal.bioontology.org/ontologies/msotes#class2",
-    "http://bioportal.bioontology.org/ontologies/msotes#class_7"]
+                        "http://bioportal.bioontology.org/ontologies/msotes#class2",
+                        "http://bioportal.bioontology.org/ontologies/msotes#class_7"]
     assert descendants.sort == data_descendants.sort
 
-    page = cls.retrieve_descendants(page=2,size=2)
+    page = cls.retrieve_descendants(page = 2, size = 2)
     assert page.total_pages == 2
     assert page.prev_page == 1
     assert page.next_page == nil
@@ -101,16 +101,16 @@ class TestClassModel < LinkedData::TestOntologyCommon
     assert page[0].id.to_s == data_descendants[2]
 
     cls = LinkedData::Models::Class.find(class_id).in(os)
-                .to_a[0]
+                                   .to_a[0]
     cls.load_has_children
     has_c = cls.hasChildren
-    assert_equal(has_c,true)
+    assert_equal(has_c, true)
     class_id = RDF::IRI.new "http://bioportal.bioontology.org/ontologies/msotes#class_7"
     cls = LinkedData::Models::Class.find(class_id).in(os)
-                .to_a[0]
+                                   .to_a[0]
     cls.load_has_children
     has_c = cls.hasChildren
-    assert_equal(has_c,false)
+    assert_equal(has_c, false)
   end
 
   def test_path_to_root
@@ -118,7 +118,7 @@ class TestClassModel < LinkedData::TestOntologyCommon
     acr = "CSTPROPS"
     init_test_ontology_msotest acr
 
-    os = LinkedData::Models::OntologySubmission.where(ontology: [ acronym: acr ],
+    os = LinkedData::Models::OntologySubmission.where(ontology: [acronym: acr],
                                                       submissionId: 1).all
     assert(os.length == 1)
     os = os[0]
@@ -133,7 +133,7 @@ class TestClassModel < LinkedData::TestOntologyCommon
     assert path.length == 3
     assert path[2].id.to_s == "http://bioportal.bioontology.org/ontologies/msotes#class_7"
     assert path[1].id.to_s == "http://bioportal.bioontology.org/ontologies/msotes#class2"
-    assert path[0].id.to_s  == "http://bioportal.bioontology.org/ontologies/msotes#class1"
+    assert path[0].id.to_s == "http://bioportal.bioontology.org/ontologies/msotes#class1"
 
   end
 
@@ -142,7 +142,7 @@ class TestClassModel < LinkedData::TestOntologyCommon
     acr = "CSTPROPS"
     init_test_ontology_msotest acr
 
-    os = LinkedData::Models::OntologySubmission.where(ontology: [ acronym: acr ],
+    os = LinkedData::Models::OntologySubmission.where(ontology: [acronym: acr],
                                                       submissionId: 1).all
     assert(os.length == 1)
     os = os[0]
@@ -153,7 +153,7 @@ class TestClassModel < LinkedData::TestOntologyCommon
     paths = cls.paths_to_root
     assert paths.length == 7
     # sort the array by the 0s element id
-    paths = paths.sort {|a, b| a[0].nil? ? -1 : b[0].nil? ? 1 : a[0].id.to_s <=> b[0].id.to_s}.select { |x| x.length == 3 }
+    paths = paths.sort { |a, b| a[0].nil? ? -1 : b[0].nil? ? 1 : a[0].id.to_s <=> b[0].id.to_s }.select { |x| x.length == 3 }
     path = paths[0]
     assert path.length == 3
     assert path[2].id.to_s == "http://bioportal.bioontology.org/ontologies/msotes#class_5"
@@ -171,7 +171,7 @@ class TestClassModel < LinkedData::TestOntologyCommon
 
     acr = "CSTPROPS"
     init_test_ontology_msotest acr
-    os = LinkedData::Models::OntologySubmission.where(ontology: [ acronym: acr ],
+    os = LinkedData::Models::OntologySubmission.where(ontology: [acronym: acr],
                                                       submissionId: 1).all
     assert(os.length == 1)
     os = os[0]
@@ -179,13 +179,13 @@ class TestClassModel < LinkedData::TestOntologyCommon
     class_id = RDF::URI.new "http://bioportal.bioontology.org/ontologies/msotes#class2"
     cls = LinkedData::Models::Class.find(class_id).in(os).include(:unmapped).first
     versionInfo = Goo.vocabulary(:owl)[:versionInfo]
-    uris = cls.properties.keys.map {|k| k.to_s}
+    uris = cls.properties.keys.map { |k| k.to_s }
     assert uris.include?(versionInfo.to_s)
 
     bad_property = "http://data.bioontology.org/metadata/def/mappingLoom"
     assert !uris.include?(bad_property)
 
-    cls.properties.each do |k,v|
+    cls.properties.each do |k, v|
       if k == versionInfo
         assert v[0].value == "some version info"
       end
@@ -197,14 +197,14 @@ class TestClassModel < LinkedData::TestOntologyCommon
     acr = "CSTPROPS"
     init_test_ontology_msotest acr
 
-    os = LinkedData::Models::OntologySubmission.where(ontology: [ acronym: acr ],
+    os = LinkedData::Models::OntologySubmission.where(ontology: [acronym: acr],
                                                       submissionId: 1).all
     assert(os.length == 1)
     os = os[0]
     clss = LinkedData::Models::Class.in(os)
-                .include(:prefLabel)
-                .aggregate(:count, :children)
-                .all
+                                    .include(:prefLabel)
+                                    .aggregate(:count, :children)
+                                    .all
     clss.each do |c|
       if c.id.to_s == "http://bioportal.bioontology.org/ontologies/msotes#class1"
         assert c.childrenCount == 1
@@ -225,7 +225,7 @@ class TestClassModel < LinkedData::TestOntologyCommon
   end
 
   def test_bro_tree
-    #just one path with children
+    # just one path with children
     if !LinkedData::Models::Ontology.find("BROTEST123").first
       submission_parse("BROTEST123", "SOME BROTEST Bla", "./test/data/ontology_files/BRO_v3.2.owl", 123,
                        process_rdf: true, index_search: false,
@@ -263,6 +263,34 @@ class TestClassModel < LinkedData::TestOntologyCommon
     end
   end
 
+  def test_tree_exceeded_threshold_bug
+    submission_parse('INRAETHES', 'Testing skos',
+                     'test/data/ontology_files/thesaurusINRAE_nouv_structure.skos',
+                     1, process_rdf: true, extract_metadata: false, generate_missing_labels: false)
+    ontology = LinkedData::Models::Ontology.find('INRAETHES').first
+    latest_submission = ontology.latest_submission(status: [:rdf])
+    cls = LinkedData::Models::Class.find('http://opendata.inrae.fr/thesaurusINRAE/c_9983').in(latest_submission).first
+    tree = cls.tree(concept_schemes: ['http://opendata.inrae.fr/thesaurusINRAE/thesaurusINRAE'])
+
+    index_of_parent = tree.children.index { |x| x.prefLabel.to_s['CON processed biobased products'] }
+    refute_nil index_of_parent
+
+    cls_parent = tree.children[index_of_parent].children
+    index_of_parent = cls_parent.index { |x| x.prefLabel.to_s['by-product'] }
+    refute_nil index_of_parent
+
+    cls_parent = cls_parent[index_of_parent]
+    index_of_parent = cls_parent.children.index{ |x| x.id.to_s['c_10443'] }
+    refute_nil index_of_parent
+
+    cls_parent = cls_parent.children[index_of_parent]
+    index_of_parent = cls_parent.children.index{ |x| x.id.to_s['c_10392'] }
+    refute_nil index_of_parent
+
+    cls_parent = cls_parent.children[index_of_parent]
+    refute cls_parent.bring?(:children), 'child not found'
+    assert_includes cls_parent.children.map(&:prefLabel),'press cake'
+  end
 
   def test_include_ancestors
     if !LinkedData::Models::Ontology.find("BROTEST123").first
@@ -274,7 +302,7 @@ class TestClassModel < LinkedData::TestOntologyCommon
     statistical_Text_Analysis = "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Statistical_Text_Analysis"
     assert_raises ArgumentError do
       cls = LinkedData::Models::Class.find(RDF::URI.new(statistical_Text_Analysis)).in(os)
-                                      .include(:prefLabel,ancestors: [:prefLabel]).first
+                                     .include(:prefLabel, ancestors: [:prefLabel]).first
     end
   end
 
@@ -295,26 +323,26 @@ class TestClassModel < LinkedData::TestOntologyCommon
     end
 
     path_0 = ["http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Statistical_Text_Analysis",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Text_Mining",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Data_Mining_and_Inference",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Data_Analysis_Software",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Software",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Resource"].reverse
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Text_Mining",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Data_Mining_and_Inference",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Data_Analysis_Software",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Software",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Resource"].reverse
 
     path_1 = ["http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Statistical_Text_Analysis",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Text_Mining",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Natural_Language_Processing",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Data_Analysis_Software",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Software",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Resource"].reverse
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Text_Mining",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Natural_Language_Processing",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Data_Analysis_Software",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Software",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Resource"].reverse
 
     path_2 = ["http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Statistical_Text_Analysis",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Text_Mining",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Data_Mining_and_Inference",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Statistical_Analysis",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Data_Analysis_Software",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Software",
- "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Resource"].reverse
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Text_Mining",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Data_Mining_and_Inference",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Statistical_Analysis",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Data_Analysis_Software",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Software",
+              "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Resource"].reverse
 
     paths.each do |path|
       assert (path == path_0 || path == path_1 || path == path_2)
@@ -324,10 +352,10 @@ class TestClassModel < LinkedData::TestOntologyCommon
     assert paths[1] != paths[2]
     assert paths[0] != paths[2]
 
-    #xref test in bro
+    # xref test in bro
     classId = "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#Information_Resource"
     classIR = LinkedData::Models::Class.find(RDF::URI.new(classId))
-      .in(os).include(:xref,:prefLabel).first
+                                       .in(os).include(:xref, :prefLabel).first
     assert_equal(classIR.xref, "hasDbXref0000001")
     assert_equal(classIR.prefLabel, "Information Resource")
 
@@ -337,7 +365,7 @@ class TestClassModel < LinkedData::TestOntologyCommon
     comment = "A form of cancer that begins in melanocytes (cells that make the pigment melanin). It may begin in a mole (skin melanoma), but can also begin in other pigmented tissues, such as in the eye or in the intestines.NCI-GLOSS"
     acr = "CSTPROPS"
     init_test_ontology_msotest acr
-    os = LinkedData::Models::OntologySubmission.where(ontology: [ acronym: acr ],
+    os = LinkedData::Models::OntologySubmission.where(ontology: [acronym: acr],
                                                       submissionId: 1).all
     assert(os.length == 1)
     os = os[0]
