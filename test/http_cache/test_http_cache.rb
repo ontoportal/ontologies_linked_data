@@ -57,6 +57,7 @@ class TestHTTPCache < LinkedData::TestCase
   end
 
   def test_cache_segment_invalidate
+    create_ontologies_and_submissions(ont_count: 1, submission_count: 1, process_submission: true)
     classes = LinkedData::Models::Class.where.include(:prefLabel).in(@@ontology.latest_submission).page(1, 100).to_a
     classes.each {|c| c.cache_write}
     last_modified_values = classes.map {|c| c.last_modified}
@@ -67,6 +68,7 @@ class TestHTTPCache < LinkedData::TestCase
   end
 
   def test_cache_segment_invalidate_when_member_invalidates
+    create_ontologies_and_submissions(ont_count: 1, submission_count: 1, process_submission: true)
     classes = LinkedData::Models::Class.where.include(:prefLabel).in(@@ontology.latest_submission).page(1, 100).to_a
     classes.each {|c| c.cache_write}
     last_modified_values = classes.map {|c| c.last_modified}

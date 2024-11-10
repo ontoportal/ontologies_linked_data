@@ -265,7 +265,11 @@ module LinkedData
       def self.segment_instance(sub)
         sub.bring(:ontology) unless sub.loaded_attributes.include?(:ontology)
         sub.ontology.bring(:acronym) unless sub.ontology.loaded_attributes.include?(:acronym)
-        [sub.ontology.acronym] rescue []
+        begin
+          [sub.ontology.acronym]
+        rescue
+          []
+        end
       end
 
       def self.submission_id_generator(ss)
@@ -424,6 +428,9 @@ module LinkedData
       end
 
       def zipped?(full_file_path = uploadFilePath)
+        return false if full_file_path.nil?
+        return false unless File.exist?(full_file_path)
+
         LinkedData::Utils::FileHelpers.zip?(full_file_path) || LinkedData::Utils::FileHelpers.gzip?(full_file_path)
       end
 
@@ -649,6 +656,8 @@ module LinkedData
             end
           end
         end
+
+        self.archive(force: true)
 
         # delete the folder and files
         FileUtils.remove_dir(self.data_folder) if Dir.exist?(self.data_folder)
