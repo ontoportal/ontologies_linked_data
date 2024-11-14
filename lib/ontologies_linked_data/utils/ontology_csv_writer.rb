@@ -32,6 +32,7 @@ module LinkedData
       end
 
       def write_class(ont_class)
+        ont_class.bring_remaining
         row = CSV::Row.new(@headers, Array.new(@headers.size), false)
 
         # ID
