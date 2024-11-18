@@ -260,7 +260,7 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
     classes = CSV.parse(get_csv_string, headers:true)
     classes.select do |row|
       if row[LinkedData::Utils::OntologyCSVWriter::PREF_LABEL] == preferred_label
-        assert_equal 'false', row[LinkedData::Utils::OntologyCSVWriter::OBSOLETE]
+        assert_equal 'false', row[LinkedData::Utils::OntologyCSVWriter::OBSOLETE].to_s.downcase
         class_exists = true
       end
     end
