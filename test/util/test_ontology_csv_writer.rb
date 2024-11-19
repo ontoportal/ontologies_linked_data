@@ -49,8 +49,16 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
   end
 
   def get_csv_string
-    gz = Zlib::GzipReader.open(@@csv_path)
-    return gz.read
+    get_csv_string_from_path(@@csv_path)
+  end
+
+  def enclosed_in_square_brackets_with_quotes?(string)
+    /\A\[\s*(["']).*\1\s*\]\z/ === string
+  end
+
+  def get_csv_string_from_path(csv_path)
+    gz = Zlib::GzipReader.open(csv_path)
+    gz.read
   end
 
   def test_csv_writer_valid
@@ -252,7 +260,7 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
     classes = CSV.parse(get_csv_string, headers:true)
     classes.select do |row|
       if row[LinkedData::Utils::OntologyCSVWriter::PREF_LABEL] == preferred_label
-        assert_equal 'false', row[LinkedData::Utils::OntologyCSVWriter::OBSOLETE]
+        assert_equal 'false', row[LinkedData::Utils::OntologyCSVWriter::OBSOLETE].to_s.downcase
         class_exists = true
       end
     end
@@ -309,4 +317,24 @@ class TestOntologyCSVWriter < LinkedData::TestOntologyCommon
 
     assert class_exists, %Q<Class not found: "#{preferred_label}">
   end
+
+  def test_for_non_array_values
+    acronym = 'CHEBITEST'
+    sub_id = 1
+    submission_parse(acronym, "CHEBI Ontology TEST",
+                     "./test/data/ontology_files/chebi_test.obo", sub_id,
+                     process_rdf: true, index_search: true, extract_metadata: false)
+    sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: acronym], submissionId: sub_id)
+                                                .include(:version, :submissionId, :ontology).first
+    sub.ontology.bring(:acronym)
+    classes = CSV.parse(get_csv_string_from_path(sub.csv_path), headers:true)
+    assert_equal 20, classes.count
+
+    classes.each do |row|
+      row.each do |_, val|
+        assert_equal false, enclosed_in_square_brackets_with_quotes?(val), "Expected a String, but received an Array: #{val}"
+      end
+    end
+  end
+
 end

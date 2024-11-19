@@ -126,7 +126,7 @@ GEM
       mail (>= 2.0)
     powerbar (2.0.1)
       hashie (>= 1.1.0)
-    pry (0.14.2)
+    pry (0.15.0)
       coderay (~> 1.1)
       method_source (~> 1.0)
     public_suffix (6.0.1)
