@@ -196,9 +196,12 @@ module LinkedData
         if prefLabel_lang.nil? || no_default_prefLabel
           lang_rdfs_labels = c.label(include_languages: true)
 
-          lang_rdfs_labels = {none: []} if lang_rdfs_labels.to_a.empty? ||
-              lang_rdfs_labels.is_a?(Array) ||
-              (no_default_prefLabel && lang_rdfs_labels.is_a?(Hash) && (lang_rdfs_labels.keys & [portal_lang, :none]).empty?)
+          if lang_rdfs_labels.to_a.empty? ||
+            lang_rdfs_labels.is_a?(Array) ||
+            (no_default_prefLabel && lang_rdfs_labels.is_a?(Hash) && (lang_rdfs_labels.keys & [portal_lang, :none]).empty?)
+            lang_rdfs_labels = lang_rdfs_labels.is_a?(Hash) ? lang_rdfs_labels : {}
+            lang_rdfs_labels[:none] = []
+          end
 
           lang_rdfs_labels.each do |lang, rdfs_labels|
             if rdfs_labels && rdfs_labels.length > 1 && c.synonym.length > 0
@@ -216,12 +219,9 @@ module LinkedData
               label = LinkedData::Utils::Triples.last_iri_fragment c.id.to_s
             end
 
-            if lang === :none
-              lang = nil
-              prefLabel = label
-            end
-            prefLabel = label if !prefLabel && lang === portal_lang
-            prefLabel = label unless prefLabel
+            lang = nil if lang === :none
+            prefLabel = label
+
             artifacts[:label_triples] << LinkedData::Utils::Triples.label_for_class_triple(
               c.id, Goo.vocabulary(:metadata_def)[:prefLabel], prefLabel, lang)
           end
