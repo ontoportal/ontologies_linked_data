@@ -448,7 +448,7 @@ SELECT DISTINCT * WHERE {
                      "./test/data/ontology_files/BRO_v3.5.owl", 1,
                      process_rdf: true, extract_metadata: false, index_properties: true)
     res = LinkedData::Models::Class.search("*:*", {:fq => "submissionAcronym:\"BRO\"", :start => 0, :rows => 80}, :property)
-    assert_equal 80 , res["response"]["numFound"]
+    assert_equal 83 , res["response"]["numFound"]
     found = 0
 
     res["response"]["docs"].each do |doc|
@@ -1139,7 +1139,7 @@ eos
     metrics.bring_remaining
     assert_instance_of LinkedData::Models::Metric, metrics
 
-    assert_includes [481, 486], metrics.classes # 486 if owlapi imports skos classes
+    assert_includes [481, 487], metrics.classes # 486 if owlapi imports skos classes
     assert_includes [63, 45], metrics.properties # 63 if owlapi imports skos properties
     assert_equal 124, metrics.individuals
     assert_includes [13, 14], metrics.classesWithOneChild # 14 if owlapi imports skos properties
@@ -1161,7 +1161,7 @@ eos
     metrics.bring_remaining
 
     #all the child metrics should be 0 since we declare it as flat
-    assert_equal 486, metrics.classes
+    assert_equal 487, metrics.classes
     assert_equal 63, metrics.properties
     assert_equal 124, metrics.individuals
     assert_equal 0, metrics.classesWithOneChild
