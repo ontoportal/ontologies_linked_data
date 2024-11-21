@@ -37,6 +37,7 @@ GEM
       public_suffix (>= 2.0.2, < 7.0)
     ansi (1.5.0)
     ast (2.4.2)
+    base64 (0.2.0)
     bcrypt (3.1.20)
     bigdecimal (3.1.8)
     builder (3.3.0)
@@ -55,9 +56,11 @@ GEM
       launchy (>= 2.1, < 4.0)
       mail (~> 2.7)
     eventmachine (1.2.7)
-    faraday (1.2.0)
-      multipart-post (>= 1.2, < 3)
-      ruby2_keywords
+    faraday (2.8.1)
+      base64
+      faraday-net_http (>= 2.0, < 3.1)
+      ruby2_keywords (>= 0.0.4)
+    faraday-net_http (3.0.2)
     ffi (1.17.0)
     hashie (5.0.0)
     htmlentities (4.3.4)
@@ -94,7 +97,6 @@ GEM
       minitest (>= 2.12, < 5.0)
       powerbar
     multi_json (1.15.0)
-    multipart-post (2.4.1)
     net-http-persistent (2.9.4)
     net-imap (0.4.18)
       date
