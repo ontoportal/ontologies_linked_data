@@ -448,7 +448,7 @@ SELECT DISTINCT * WHERE {
                      "./test/data/ontology_files/BRO_v3.5.owl", 1,
                      process_rdf: true, extract_metadata: false, index_properties: true)
     res = LinkedData::Models::Class.search("*:*", {:fq => "submissionAcronym:\"BRO\"", :start => 0, :rows => 80}, :property)
-    assert_equal 80 , res["response"]["numFound"]
+    assert_equal 83 , res["response"]["numFound"]
     found = 0
 
     res["response"]["docs"].each do |doc|
@@ -482,21 +482,17 @@ SELECT DISTINCT * WHERE {
   end
 
   def test_index_multilingual
-
     submission_parse("BRO", "BRO Ontology",
                      "./test/data/ontology_files/BRO_v3.5.owl", 1,
                      process_rdf: true, extract_metadata: false, generate_missing_labels: false,
                      index_search: true, index_properties: false)
-
 
     res = LinkedData::Models::Class.search("prefLabel:Activity", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80})
     refute_equal 0, res["response"]["numFound"]
 
     doc = res["response"]["docs"].select{|doc| doc["resource_id"].to_s.eql?('http://bioontology.org/ontologies/Activity.owl#Activity')}.first
     refute_nil doc
-    #binding.pry
     assert_equal 30, doc.keys.select{|k| k['prefLabel'] || k['synonym']}.size # test that all the languages are indexed
-
 
     res = LinkedData::Models::Class.search("prefLabel_none:Activity", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80})
     refute_equal 0, res["response"]["numFound"]
@@ -506,15 +502,40 @@ SELECT DISTINCT * WHERE {
     refute_equal 0, res["response"]["numFound"]
     refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('http://bioontology.org/ontologies/Activity.owl#Activity')}.first
 
-
-
     res = LinkedData::Models::Class.search("prefLabel_en:ActivityEnglish", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80})
     refute_equal 0, res["response"]["numFound"]
     refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('http://bioontology.org/ontologies/Activity.owl#Activity')}.first
 
-
     res = LinkedData::Models::Class.search("prefLabel_fr:Activity", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80})
     assert_equal 0, res["response"]["numFound"]
+
+    res = LinkedData::Models::Class.search("prefLabel_ja:カタログ", {:fq => "submissionAcronym:BRO", :start => 0, :rows => 80})
+    refute_equal 0, res["response"]["numFound"]
+    refute_nil res["response"]["docs"].select{|doc| doc["resource_id"].eql?('http://bioontology.org/ontologies/Activity.owl#Catalog')}.first
+  end
+
+  def test_submission_parse_multilingual
+    acronym = 'D3O'
+    submission_parse(acronym, "D3O TEST",
+                     "./test/data/ontology_files/dcat3.rdf", 1,
+                     process_rdf: true, extract_metadata: false)
+    ont = LinkedData::Models::Ontology.find(acronym).include(:acronym).first
+    sub = ont.latest_submission
+    sub.bring_remaining
+
+    cl = LinkedData::Models::Class.find('http://www.w3.org/ns/dcat#DataService').in(sub).first
+    cl.bring(:prefLabel)
+    assert_equal 'Data service', cl.prefLabel
+
+    RequestStore.store[:requested_lang] = :ALL
+    cl = LinkedData::Models::Class.find('http://www.w3.org/ns/dcat#DataService').in(sub).first
+    cl.bring(:prefLabel)
+    prefLabels = cl.prefLabel(include_languages: true)
+    assert_equal 'Data service', prefLabels[:en]
+    assert_equal 'Datatjeneste', prefLabels[:da]
+    assert_equal 'Servicio de datos', prefLabels[:es]
+    assert_equal 'Servizio di dati', prefLabels[:it]
+    RequestStore.store[:requested_lang] = nil
   end
 
   def test_zipped_submission_process
@@ -554,10 +575,8 @@ SELECT DISTINCT * WHERE {
 
     assert_equal false, File.file?(archived_submission.zip_folder),
                  %-File deletion failed for '#{archived_submission.zip_folder}'-
-
-
-
   end
+
   def test_submission_parse_zip
     skip if ENV["BP_SKIP_HEAVY_TESTS"] == "1"
 
@@ -1120,7 +1139,7 @@ eos
     metrics.bring_remaining
     assert_instance_of LinkedData::Models::Metric, metrics
 
-    assert_includes [481, 486], metrics.classes # 486 if owlapi imports skos classes
+    assert_includes [481, 487], metrics.classes # 486 if owlapi imports skos classes
     assert_includes [63, 45], metrics.properties # 63 if owlapi imports skos properties
     assert_equal 124, metrics.individuals
     assert_includes [13, 14], metrics.classesWithOneChild # 14 if owlapi imports skos properties
@@ -1142,7 +1161,7 @@ eos
     metrics.bring_remaining
 
     #all the child metrics should be 0 since we declare it as flat
-    assert_equal 486, metrics.classes
+    assert_equal 487, metrics.classes
     assert_equal 63, metrics.properties
     assert_equal 124, metrics.individuals
     assert_equal 0, metrics.classesWithOneChild
