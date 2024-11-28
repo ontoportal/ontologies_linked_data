@@ -468,10 +468,9 @@ module LinkedData
 
 
 
-      def load_has_children()
-        if !instance_variable_get("@intlHasChildren").nil?
-          return
-        end
+      def load_has_children
+        return @intlHasChildren unless instance_variable_get("@intlHasChildren").nil?
+
         graphs = [self.submission.id.to_s]
         query = has_children_query(self.id.to_s,graphs.first)
         has_c = false

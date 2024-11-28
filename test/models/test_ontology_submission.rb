@@ -387,6 +387,8 @@ SELECT DISTINCT * WHERE {
     old_file_path = old_sub.uploadFilePath
     old_sub.process_submission(Logger.new(old_sub.parsing_log_path), {archive: true})
     assert old_sub.archived?
+    r = Goo.sparql_query_client.query("SELECT (count(?s) as ?count) WHERE { GRAPH <#{old_sub.id}> { ?s ?p ?o . }}")
+    assert_equal 0, r.first[:count].to_i
 
     refute File.file?(File.join(old_sub.data_folder, 'labels.ttl')),
                  %-File deletion failed for 'labels.ttl'-

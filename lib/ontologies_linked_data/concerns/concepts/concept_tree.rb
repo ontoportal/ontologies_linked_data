@@ -4,40 +4,44 @@ module LinkedData
       module Tree
         def tree(concept_schemes: [], concept_collections: [], roots: nil)
           bring(parents: [:prefLabel]) if bring?(:parents)
+
           return self if parents.nil? || parents.empty?
+
           extra_include = [:hasChildren, :isInActiveScheme, :isInActiveCollection]
-          roots = self.submission.roots( extra_include, concept_schemes:concept_schemes) if roots.nil?
+
+          roots = self.submission.roots(extra_include, concept_schemes: concept_schemes) if roots.nil?
           path = path_to_root(roots)
-          threshold = 99
+          threshold = 100
 
           return self if path.nil?
 
           attrs_to_load = %i[prefLabel synonym obsolete]
           attrs_to_load << :subClassOf if submission.hasOntologyLanguage.obo?
           attrs_to_load += self.class.concept_is_in_attributes if submission.skos?
+
           self.class.in(submission)
               .models(path)
               .include(attrs_to_load).all
+
           load_children(path, threshold: threshold)
 
           path.reverse!
-          path.last.instance_variable_set("@children", [])
+          path.last.instance_variable_set('@children', [])
 
           childrens_hash = {}
           path.each do |m|
-            next if m.id.to_s["#Thing"]
+            next if m.id.to_s['#Thing']
+
             m.children.each do |c|
               childrens_hash[c.id.to_s] = c
-              c.load_computed_attributes(to_load:extra_include ,
-                                         options: {schemes: concept_schemes, collections: concept_collections})
+              c.load_computed_attributes(to_load: extra_include,
+                                         options: { schemes: concept_schemes, collections: concept_collections })
             end
-            m.load_computed_attributes(to_load:extra_include ,
-                                       options: {schemes: concept_schemes, collections: concept_collections})
+            m.load_computed_attributes(to_load: extra_include,
+                                       options: { schemes: concept_schemes, collections: concept_collections })
           end
-
           load_children(childrens_hash.values, threshold: threshold)
-
-          build_tree(path)
+          build_tree(path, threshold: threshold)
         end
 
         def tree_sorted(concept_schemes: [], concept_collections: [], roots: nil)
@@ -98,34 +102,40 @@ module LinkedData
             .partially_load_children(concepts, threshold, submission)
         end
 
-        def build_tree(path)
+        def build_tree(path, threshold: 99)
+          threshold_issue_count = 0
           root_node = path.first
           tree_node = path.first
-          path.delete_at(0)
-          while tree_node &&
-            !tree_node.id.to_s["#Thing"] &&
-            !tree_node.children.empty? && (!path.empty?) do
+          path.shift
+
+          while tree_node && !tree_node.id.to_s['#Thing'] && !tree_node.children.empty? && !path.empty?
+
             next_tree_node = nil
             tree_node.load_has_children
+
             tree_node.children.each_index do |i|
               if tree_node.children[i].id.to_s == path.first.id.to_s
                 next_tree_node = path.first
                 children = tree_node.children.dup
                 children[i] = path.first
-                tree_node.instance_variable_set("@children", children)
-                children.each do |c|
-                  c.load_has_children
-                end
+                tree_node.instance_variable_set('@children', children)
+                children.each(&:load_has_children)
               else
-                tree_node.children[i].instance_variable_set("@children", [])
+                tree_node.children[i].instance_variable_set('@children', [])
               end
             end
 
-            if !path.empty? && next_tree_node.nil?
-              tree_node.children << path.shift
+            if next_tree_node.nil? && path.size > 1 && threshold_issue_count < 5
+              # max threshold issue need to load more children
+              threshold_issue_count += 1
+              load_children([tree_node], threshold: threshold * 10 * threshold_issue_count)
+              next_tree_node = tree_node
+            elsif path.size == 1
+              tree_node.children << path.shift if !path.empty? && next_tree_node.nil?
             end
+
+            path.shift unless next_tree_node.eql?(tree_node)
             tree_node = next_tree_node
-            path.delete_at(0)
           end
 
           root_node

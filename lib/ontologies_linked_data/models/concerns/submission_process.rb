@@ -38,8 +38,8 @@ module LinkedData
         LinkedData::Services::SubmissionPropertiesIndexer.new(self).process(logger, commit: commit, optimize: optimize)
       end
 
-      def archive
-        LinkedData::Services::OntologySubmissionArchiver.new(self).process
+      def archive(force: false)
+        LinkedData::Services::OntologySubmissionArchiver.new(self).process(force: force)
       end
 
       def generate_rdf(logger, reasoning: true)
@@ -53,4 +53,3 @@ module LinkedData
     end
   end
 end
-

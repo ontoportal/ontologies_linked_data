@@ -4,12 +4,8 @@ require 'rack'
 module LinkedData
   class TestOntologyCommon < LinkedData::TestCase
     def create_count_mapping
-      count = LinkedData::Models::MappingCount.where.all.length
-      unless count > 2
-        LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
-        count = LinkedData::Models::MappingCount.where.all.length
-      end
-      count
+      LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
+      LinkedData::Models::MappingCount.where.all.length
     end
     def submission_dependent_objects(format, acronym, user_name, name_ont)
       #ontology format
@@ -256,4 +252,3 @@ eos
     end
   end
 end
-

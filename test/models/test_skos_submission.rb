@@ -127,9 +127,32 @@ SELECT ?children WHERE {
     assert_equal 4, roots.size
 
     roots.each do |r|
-      selected_collections = r.memberOf.select { |c| concept_collection.include?(c)}
+      selected_collections = r.memberOf.select { |c| concept_collection.include?(c) }
       assert_equal r.isInActiveCollection, selected_collections unless selected_collections.empty?
     end
   end
-end
 
+  def test_children_of_scheme
+    submission_parse('SKOS-TEST-2',
+                     'SKOS TEST Bla 2',
+                     './test/data/ontology_files/functraits.ttl', 1,
+                     process_rdf: true, index_search: false,
+                     run_metrics: false, reasoning: true)
+
+    sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: 'SKOS-TEST-2'],
+                                                       submissionId: 1)
+                                                .first
+    sub.hasOntologyLanguage = LinkedData::Models::OntologyFormat.find("SKOS").first
+
+    concept_schemes = ['https://kos.lifewatch.eu/thesauri/functraits/conceptScheme_45c75a9']
+    cls_uri = "https://kos.lifewatch.eu/thesauri/functraits/c_621df9ab"
+    cls = LinkedData::Models::Class.find(cls_uri).in(sub).first
+
+    roots = sub.children(cls)
+    refute_empty roots
+
+    roots = sub.children(cls, concept_schemes: concept_schemes, size: 10)
+    assert_equal 1, roots.size, 'Children should be filtered by the scheme in this case only one'
+  end
+
+end
