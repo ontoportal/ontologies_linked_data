@@ -1,0 +1,228 @@
+format-version: 1.2
+data-version: 237
+date: 30:10:2024 06:16
+saved-by: chebi
+subsetdef: 1_STAR "Preliminary entries"
+subsetdef: 2_STAR "Annotated by 3rd party"
+subsetdef: 3_STAR "Manually annotated by ChEBI Team"
+synonymtypedef: BRAND_NAME "BRAND NAME"
+synonymtypedef: INN "INN"
+synonymtypedef: IUPAC_NAME "IUPAC NAME"
+default-namespace: chebi_ontology
+remark: Author: ChEBI curation team
+remark: ChEBI Release version 237
+remark: ChEBI subsumes and replaces the Chemical Ontology first
+remark: developed by Michael Ashburner & Pankaj Jaiswal.
+remark: For any queries contact chebi-help@ebi.ac.uk
+ontology: chebi
+
+[Term]
+id: CHEBI:137366
+name: CHEBI:4042
+is_obsolete: true
+
+[Term]
+id: CHEBI:137377
+name: CHEBI:81850
+is_obsolete: true
+
+[Term]
+id: CHEBI:143109
+name: waterssdfsdfss
+is_obsolete: true
+
+[Term]
+id: CHEBI:177198
+name: CHEBI:50860
+is_obsolete: true
+
+[Term]
+id: CHEBI:189822
+name: testing532
+is_obsolete: true
+
+[Term]
+id: CHEBI:24431
+name: chemical entity
+def: "A chemical entity is a physical entity of interest in chemistry including molecular entities, parts thereof, and chemical substances." []
+subset: 3_STAR
+synonym: "chemical entity" EXACT [UniProt]
+
+[Term]
+id: CHEBI:27189
+name: unclassifieds
+is_obsolete: true
+
+[Term]
+id: CHEBI:30430
+name: indium atom
+def: "A metallic element first identified and named from the brilliant indigo (Latin indicum) blue line in its flame spectrum." []
+subset: 3_STAR
+synonym: "49In" RELATED [IUPAC]
+synonym: "In" RELATED [IUPAC]
+synonym: "indio" RELATED [ChEBI]
+synonym: "Indium" RELATED [ChEBI]
+synonym: "indium" EXACT IUPAC_NAME [IUPAC]
+synonym: "indium" RELATED [ChEBI]
+xref: CAS:7440-74-6 {source="ChemIDplus"}
+xref: CAS:7440-74-6 {source="NIST Chemistry WebBook"}
+xref: Gmelin:16297 {source="Gmelin"}
+xref: WebElements:In
+is_a: CHEBI:33317 ! boron group element atom
+property_value: http://purl.obolibrary.org/obo/chebi/charge "0" xsd:string
+property_value: http://purl.obolibrary.org/obo/chebi/formula "In" xsd:string
+property_value: http://purl.obolibrary.org/obo/chebi/inchi "InChI=1S/In" xsd:string
+property_value: http://purl.obolibrary.org/obo/chebi/inchikey "APFVFJFRJDLVQX-UHFFFAOYSA-N" xsd:string
+property_value: http://purl.obolibrary.org/obo/chebi/mass "114.81800" xsd:string
+property_value: http://purl.obolibrary.org/obo/chebi/monoisotopicmass "114.90388" xsd:string
+property_value: http://purl.obolibrary.org/obo/chebi/smiles "[In]" xsd:string
+
+[Term]
+id: CHEBI:33250
+name: atom
+alt_id: CHEBI:22671
+alt_id: CHEBI:23907
+def: "A chemical entity constituting the smallest component of an element having the chemical properties of the element." []
+subset: 3_STAR
+synonym: "atom" EXACT IUPAC_NAME [IUPAC]
+synonym: "atome" RELATED [IUPAC]
+synonym: "atomo" RELATED [IUPAC]
+synonym: "atoms" RELATED [ChEBI]
+synonym: "atomus" RELATED [ChEBI]
+synonym: "element" RELATED [ChEBI]
+synonym: "elements" RELATED [ChEBI]
+is_a: CHEBI:24431 ! chemical entity
+
+[Term]
+id: CHEBI:33317
+name: boron group element atom
+subset: 3_STAR
+synonym: "boron group element" RELATED [ChEBI]
+synonym: "boron group elements" RELATED [ChEBI]
+synonym: "Element der Borgruppe" RELATED [ChEBI]
+synonym: "group 13 elements" EXACT IUPAC_NAME [IUPAC]
+synonym: "group III elements" RELATED [ChEBI]
+is_a: CHEBI:33560 ! p-block element atom
+
+[Term]
+id: CHEBI:33318
+name: main group element atom
+def: "An atom belonging to one of the main groups (found in the s- and p- blocks) of the periodic table." []
+subset: 3_STAR
+synonym: "Hauptgruppenelement" RELATED [ChEBI]
+synonym: "Hauptgruppenelemente" RELATED [ChEBI]
+synonym: "main group element" RELATED [ChEBI]
+synonym: "main group elements" EXACT IUPAC_NAME [IUPAC]
+is_a: CHEBI:33250 ! atom
+
+[Term]
+id: CHEBI:33560
+name: p-block element atom
+def: "Any main group element atom belonging to the p-block of the periodic table." []
+subset: 3_STAR
+synonym: "p-block element" RELATED [ChEBI]
+synonym: "p-block elements" RELATED [ChEBI]
+is_a: CHEBI:33318 ! main group element atom
+
+[Term]
+id: CHEBI:49631
+name: gallium atom
+alt_id: CHEBI:33326
+alt_id: CHEBI:49630
+def: "A metallic element predicted as eka-aluminium by Mendeleev in 1870 and discovered by Paul-Emile Lecoq de Boisbaudran in 1875. Named in honour of France (Latin Gallia) and perhaps also from the Latin gallus cock, a translation of Lecoq." []
+subset: 3_STAR
+synonym: "31Ga" RELATED [IUPAC]
+synonym: "Ga" RELATED [IUPAC]
+synonym: "galio" RELATED [ChEBI]
+synonym: "gallium" EXACT IUPAC_NAME [IUPAC]
+synonym: "gallium" RELATED [ChEBI]
+xref: CAS:7440-55-3 {source="ChemIDplus"}
+xref: CAS:7440-55-3 {source="NIST Chemistry WebBook"}
+xref: WebElements:Ga
+is_a: CHEBI:33317 ! boron group element atom
+property_value: http://purl.obolibrary.org/obo/chebi/charge "0" xsd:string
+property_value: http://purl.obolibrary.org/obo/chebi/formula "Ga" xsd:string
+property_value: http://purl.obolibrary.org/obo/chebi/inchi "InChI=1S/Ga" xsd:string
+property_value: http://purl.obolibrary.org/obo/chebi/inchikey "GYHNNYVSQQEPJS-UHFFFAOYSA-N" xsd:string
+property_value: http://purl.obolibrary.org/obo/chebi/mass "69.72300" xsd:string
+property_value: http://purl.obolibrary.org/obo/chebi/monoisotopicmass "68.92557" xsd:string
+property_value: http://purl.obolibrary.org/obo/chebi/smiles "[Ga]" xsd:string
+
+[Term]
+id: CHEBI:64352
+name: UDP-N-acetyl-D-glucosamine(2-)
+is_obsolete: true
+
+[Term]
+id: CHEBI:64360
+name: tocilizumab
+is_obsolete: true
+
+[Term]
+id: CHEBI:64867
+name: PHS C26
+is_obsolete: true
+
+[Typedef]
+id: has_functional_parent
+name: has functional parent
+is_cyclic: false
+is_transitive: false
+
+[Typedef]
+id: has_major_microspecies_at_pH_7_3
+name: has major microspecies at pH 7.3
+is_cyclic: true
+is_transitive: false
+
+[Typedef]
+id: has_parent_hydride
+name: has parent hydride
+is_cyclic: false
+is_transitive: false
+
+[Typedef]
+id: has_part
+name: has part
+xref: BFO:0000051
+is_cyclic: false
+is_transitive: true
+
+[Typedef]
+id: has_role
+name: has role
+xref: RO:0000087
+is_cyclic: false
+is_transitive: false
+
+[Typedef]
+id: is_conjugate_acid_of
+name: is conjugate acid of
+is_cyclic: true
+is_transitive: false
+inverse_of: is_conjugate_base_of ! is conjugate base of
+
+[Typedef]
+id: is_conjugate_base_of
+name: is conjugate base of
+is_cyclic: true
+is_transitive: false
+
+[Typedef]
+id: is_enantiomer_of
+name: is enantiomer of
+is_cyclic: true
+is_transitive: false
+
+[Typedef]
+id: is_substituent_group_from
+name: is substituent group from
+is_cyclic: false
+is_transitive: false
+
+[Typedef]
+id: is_tautomer_of
+name: is tautomer of
+is_cyclic: true
+is_transitive: true
+

@@ -642,9 +642,56 @@
     <owl:Class rdf:about="&activity;Biospecimen_Management">
         <rdfs:subClassOf rdf:resource="&activity;Activity"/>
         <desc:definition rdf:datatype="&xsd;string">Activity related to the creation, use, or maintenance of a biorepository (http://en.wikipedia.org/wiki/Biorepository)</desc:definition>
+        <rdfs:label xml:lang="fr">Gestion des échantillons biologiques</rdfs:label>
         <core:prefLabel xml:lang="fr">Biospecimen Management</core:prefLabel>
     </owl:Class>
-    
+
+
+
+    <!-- http://bioontology.org/ontologies/Activity.owl#Catalog -->
+
+    <owl:Class rdf:about="&activity;Catalog">
+        <rdfs:subClassOf rdf:resource="&activity;Activity"/>
+        <rdfs:isDefinedBy rdf:resource="http://www.w3.org/TR/vocab-dcat/"/>
+        <skos:definition xml:lang="da">En samling af metadata om ressourcer.</skos:definition>
+        <rdfs:comment xml:lang="it">Una raccolta curata di metadati sulle risorse (ad es. sui dataset e relativi servizi nel contesto di cataloghi di dati).</rdfs:comment>
+        <rdfs:label xml:lang="es">Catálogo</rdfs:label>
+        <rdfs:label xml:lang="ar">فهرس قوائم البيانات</rdfs:label>
+        <skos:scopeNote xml:lang="en">Datasets and data services are examples of resources in the context of a data catalog.</skos:scopeNote>
+        <rdfs:comment xml:lang="da">En udvalgt og arrangeret samling af metadata om ressourcer (fx datasæt og datatjenester i kontekst af et datakatalog). </rdfs:comment>
+        <skos:definition xml:lang="en">A curated collection of metadata about resources.</skos:definition>
+        <skos:definition xml:lang="el">Μια επιμελημένη συλλογή μεταδεδομένων περί συνόλων δεδομένων.</skos:definition>
+        <skos:editorialNote xml:lang="en">Multilingual text not completelly updated. Translations for skos:scopeNote and definitions to doublecheck.</skos:editorialNote>
+        <rdfs:label xml:lang="it">Catalogo</rdfs:label>
+        <rdfs:label xml:lang="cs">Katalog</rdfs:label>
+        <rdfs:label xml:lang="da">Katalog</rdfs:label>
+        <skos:definition xml:lang="fr">Une collection élaborée de métadonnées sur les jeux de données.</skos:definition>
+        <rdfs:comment xml:lang="ja">データ・カタログは、データセットに関するキュレートされたメタデータの集合です。</rdfs:comment>
+        <rdfs:label xml:lang="el">Κατάλογος</rdfs:label>
+        <skos:definition xml:lang="ja">データ・カタログは、データセットに関するキュレートされたメタデータの集合です。</skos:definition>
+        <skos:scopeNote xml:lang="es">Normalmente, un catálogo de datos disponible en la web se representa como una única instancia de esta clase.</skos:scopeNote>
+        <rdfs:comment xml:lang="es">Una colección curada de metadatos sobre recursos (por ejemplo, conjuntos de datos y servicios de datos en el contexto de un catálogo de datos).</rdfs:comment>
+        <skos:scopeNote xml:lang="cs">Webový datový katalog je typicky reprezentován jako jedna instance této třídy.</skos:scopeNote>
+        <skos:scopeNote xml:lang="it">Normalmente, un catalogo di dati nel web viene rappresentato come una singola istanza di questa classe.</skos:scopeNote>
+        <rdf:type rdf:resource="http://www.w3.org/2000/01/rdf-schema#Class"/>
+        <skos:definition xml:lang="cs">Řízená kolekce metadat o datových sadách a datových službách.</skos:definition>
+        <skos:definition xml:lang="es">Una colección curada de metadatos sobre recursos.</skos:definition>
+        <rdfs:comment xml:lang="fr">Une collection élaborée de métadonnées sur les jeux de données</rdfs:comment>
+        <skos:scopeNote xml:lang="da">Et webbaseret datakatalog repræsenteres typisk ved en enkelt instans af denne klasse.</skos:scopeNote>
+        <skos:scopeNote xml:lang="en">A web-based data catalog is typically represented as a single instance of this class.</skos:scopeNote>
+        <rdfs:label xml:lang="ja">カタログ</rdfs:label>
+        <skos:definition xml:lang="it">Una raccolta curata di metadati sulle risorse.</skos:definition>
+        <rdfs:label xml:lang="en">Catalog</rdfs:label>
+        <skos:scopeNote xml:lang="ja">通常、ウェブ・ベースのデータ・カタログは、このクラスの1つのインスタンスとして表わされます。</skos:scopeNote>
+        <rdfs:label xml:lang="fr">Catalogue</rdfs:label>
+        <skos:definition xml:lang="ar">مجموعة من توصيفات قوائم البيانات</skos:definition>
+        <skos:scopeNote xml:lang="el">Συνήθως, ένας κατάλογος δεδομένων στον Παγκόσμιο Ιστό αναπαρίσταται ως ένα στιγμιότυπο αυτής της κλάσης.</skos:scopeNote>
+        <rdfs:comment xml:lang="el">Μια επιμελημένη συλλογή μεταδεδομένων περί συνόλων δεδομένων</rdfs:comment>
+        <rdfs:comment xml:lang="en">A curated collection of metadata about resources (e.g., datasets and data services in the context of a data catalog).</rdfs:comment>
+        <rdfs:comment xml:lang="ar">مجموعة من توصيفات قوائم البيانات</rdfs:comment>
+        <rdfs:comment xml:lang="cs">Řízená kolekce metadat o datových sadách a datových službách</rdfs:comment>
+    </owl:Class>
+
 
 
     <!-- http://bioontology.org/ontologies/Activity.owl#Community_Engagement -->
@@ -652,7 +699,7 @@
     <owl:Class rdf:about="&activity;Community_Engagement">
         <rdfs:subClassOf rdf:resource="&activity;Activity"/>
         <desc:definition rdf:datatype="&xsd;string">As defined in http://en.wikipedia.org/wiki/Community_engagement</desc:definition>
-        <core:prefLabel rdf:datatype="&xsd;string">Community Engagement</core:prefLabel>
+        <core:prefLabel xml:lang="fr">Engagement communautaire</core:prefLabel>
     </owl:Class>
     
 
@@ -672,7 +719,7 @@
     <owl:Class rdf:about="&activity;Gene_Therapy">
         <rdfs:subClassOf rdf:resource="&activity;Therapeutics"/>
         <desc:definition rdf:datatype="&xsd;string">As defined in http://en.wikipedia.org/wiki/Gene_therapy</desc:definition>
-        <core:prefLabel rdf:datatype="&xsd;string">Gene Therapy</core:prefLabel>
+        <rdfs:label xml:lang="fr">Thérapie génique</rdfs:label>
     </owl:Class>
     
 
@@ -737,11 +784,13 @@
     <!-- http://bioontology.org/ontologies/Activity.owl#Regulatory_Compliance -->
 
     <owl:Class rdf:about="&activity;Regulatory_Compliance">
+        <rdfs:label rdf:datatype="&xsd;string">Regulatory Compliance</rdfs:label>
+        <rdfs:label rdf:datatype="&xsd;string">Standard Compliance</rdfs:label>
+        <rdfs:label rdf:datatype="&xsd;string">Statutory Compliance</rdfs:label>
         <rdfs:subClassOf rdf:resource="&activity;Activity"/>
         <desc:definition rdf:datatype="&xsd;string">As defined in http://en.wikipedia.org/wiki/Regulatory_compliance</desc:definition>
-        <core:prefLabel rdf:datatype="&xsd;string">Regulatory Compliance</core:prefLabel>
     </owl:Class>
-    
+
 
 
     <!-- http://bioontology.org/ontologies/Activity.owl#Research_Funding -->
@@ -760,6 +809,8 @@
         <rdfs:subClassOf rdf:resource="&activity;Activity"/>
         <desc:definition rdf:datatype="&xsd;string">Management and communications within the laboratory setting (http://www.umuc.edu/programs/undergrad/certificates/lab_mgmt.shtml)</desc:definition>
         <core:prefLabel rdf:datatype="&xsd;string">Research Lab Management</core:prefLabel>
+        <core:prefLabel xml:lang="fr">Gestion du laboratoire de recherche</core:prefLabel>
+        <core:prefLabel xml:lang="it">Gestione del laboratorio di ricerca</core:prefLabel>
     </owl:Class>
     
 
