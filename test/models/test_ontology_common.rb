@@ -4,12 +4,8 @@ require 'rack'
 module LinkedData
   class TestOntologyCommon < LinkedData::TestCase
     def create_count_mapping
-      count = LinkedData::Models::MappingCount.where.all.length
-      unless count > 2
-        LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
-        count = LinkedData::Models::MappingCount.where.all.length
-      end
-      count
+      LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
+      LinkedData::Models::MappingCount.where.all.length
     end
     def submission_dependent_objects(format, acronym, user_name, name_ont)
       #ontology format
@@ -52,6 +48,10 @@ module LinkedData
     #   delete            = true  # delete any existing submissions
     ##############################################
     def submission_parse(acronym, name, ontologyFile, id, parse_options={})
+      if Goo.backend_vo?
+        old_slices = Goo.slice_loading_size
+        Goo.slice_loading_size = 20
+      end
       return if ENV["SKIP_PARSING"]
       parse_options[:process_rdf].nil? && parse_options[:process_rdf] = true
       parse_options[:index_search].nil? && parse_options[:index_search] = false
@@ -108,10 +108,17 @@ module LinkedData
       assert_equal true, ont_submission.exist?
       begin
         tmp_log = Logger.new(TestLogFile.new)
-        ont_submission.process_submission(tmp_log, parse_options)
+        t = Benchmark.measure do
+          ont_submission.process_submission(tmp_log, parse_options)
+        end
+        puts "process submission time: #{t} "
       rescue Exception => e
         puts "Error, logged in #{tmp_log.instance_variable_get("@logdev").dev.path}"
         raise e
+      ensure
+        if Goo.backend_vo?
+          Goo.slice_loading_size = old_slices
+        end
       end
     end
 
@@ -159,7 +166,7 @@ module LinkedData
       ont_submission.authorProperty = RDF::URI.new("http://bioportal.bioontology.org/ontologies/msotes#myAuthor")
       assert (ont_submission.valid?)
       ont_submission.save
-      assert_equal true, ont_submission.exist?
+      assert_equal true, ont_submission.exist?(reload=true)
       parse_options = {process_rdf: true, extract_metadata: false}
       begin
         tmp_log = Logger.new(TestLogFile.new)
@@ -245,4 +252,3 @@ eos
     end
   end
 end
-

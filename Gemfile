@@ -34,5 +34,5 @@ group :development do
   gem 'rubocop', require: false
 end
 # NCBO gems (can be from a local dev path or from rubygems/git)
-gem 'goo', github: 'ncbo/goo', branch: 'master'
-gem 'sparql-client', github: 'ncbo/sparql-client', branch: 'master'
+gem 'goo', github: 'ontoportal-lirmm/goo', branch: 'development'
+gem 'sparql-client', github: 'ontoportal-lirmm/sparql-client', branch: 'development'

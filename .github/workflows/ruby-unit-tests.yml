@@ -9,7 +9,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        backend: ['ruby', 'ruby-agraph'] # ruby runs tests with 4store backend and ruby-agraph runs with AllegroGraph backend
+        goo-slice: [ '20', '100', '500' ]
+        ruby-version: [ '2.7' ]
+        triplestore: [ 'fs', 'ag', 'vo', 'gb' ]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4

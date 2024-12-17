@@ -6,7 +6,10 @@ GIT
     goo (0.0.2)
       addressable (~> 2.8)
       pry
-      rdf (= 1.0.8)
+      rdf (= 3.2.11)
+      rdf-raptor
+      rdf-rdfxml
+      rdf-vocab
       redis
       request_store
       rest-client
@@ -19,10 +22,9 @@ GIT
   revision: e89c26aa96f184dbe9b52d51e04fb3d9ba998dbc
   branch: master
   specs:
-    sparql-client (1.0.1)
-      json_pure (>= 1.4)
-      net-http-persistent (= 2.9.4)
-      rdf (>= 1.0)
+    sparql-client (3.2.2)
+      net-http-persistent (~> 4.0, >= 4.0.2)
+      rdf (~> 3.2, >= 3.2.11)
 
 GEM
   remote: https://rubygems.org/
@@ -190,6 +192,10 @@ GEM
     uri (1.0.2)
     uuid (2.3.9)
       macaddr (~> 1.0)
+    webmock (3.24.0)
+      addressable (>= 2.8.0)
+      crack (>= 0.3.2)
+      hashdiff (>= 0.4.0, < 2.0.0)
 
 PLATFORMS
   aarch64-linux
@@ -211,6 +217,7 @@ DEPENDENCIES
   multi_json (~> 1.0)
   oj (~> 3.0)
   omni_logger
+  parallel (~> 1.24)
   pony
   pry
   rack
@@ -225,6 +232,7 @@ DEPENDENCIES
   simplecov-cobertura
   sparql-client!
   thin
+  webmock
 
 BUNDLED WITH
    2.5.11

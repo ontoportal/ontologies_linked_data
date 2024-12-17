@@ -75,11 +75,11 @@ module LinkedData
         params = { datatype: RDF::XSD.string }
         lang = language.to_s.downcase
 
-        if !lang.empty? && lang.to_sym != :none
+        if !lang.empty? && lang.to_sym != :none && !lang.to_s.eql?('@none')
           params[:datatype] = RDF.langString
           params[:language] = lang.to_sym
         end
-        return triple(class_id, property, RDF::Literal.new(label, params))
+        triple(class_id, property, RDF::Literal.new(label, params))
       end
 
       def self.generated_label(class_id, existing_label)

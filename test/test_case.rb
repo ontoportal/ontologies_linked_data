@@ -18,6 +18,7 @@ end
 
 require_relative 'test_log_file'
 require_relative '../lib/ontologies_linked_data'
+require_relative '../config/config'
 
 if ENV['OVERRIDE_CONFIG'] == 'true'
   SOLR_HOST = ENV.include?('SOLR_HOST') ? ENV['SOLR_HOST'] : 'localhost'
@@ -38,8 +39,10 @@ if ENV['OVERRIDE_CONFIG'] == 'true'
   end
 end
 
-require_relative '../config/config'
+
 require 'minitest/unit'
+require 'webmock/minitest'
+WebMock.allow_net_connect!
 MiniTest::Unit.autorun
 
 # Check to make sure you want to run if not pointed at localhost
@@ -238,7 +241,11 @@ module LinkedData
       raise StandardError, 'Too many triples in KB, does not seem right to run tests' unless
             count_pattern('?s ?p ?o') < 400000
 
-      Goo.sparql_update_client.update('DELETE {?s ?p ?o } WHERE { ?s ?p ?o }')
+      graphs = Goo.sparql_query_client.query("SELECT DISTINCT  ?g WHERE  { GRAPH ?g { ?s ?p ?o . } }")
+      graphs.each_solution do |sol|
+        Goo.sparql_data_client.delete_graph(sol[:g])
+      end
+
       LinkedData::Models::SubmissionStatus.init_enum
       LinkedData::Models::OntologyType.init_enum
       LinkedData::Models::OntologyFormat.init_enum

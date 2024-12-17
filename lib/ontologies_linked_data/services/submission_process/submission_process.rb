@@ -1,4 +1,4 @@
-  module LinkedData
+module LinkedData
   module Services
     class OntologySubmissionProcess
 

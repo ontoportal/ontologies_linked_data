@@ -10,12 +10,10 @@ module LinkedData
         note.relatedOntology.each { |o| o.bring(:name) if o.bring?(:name); o.bring(:subscriptions) if o.bring?(:subscriptions) }
         ontologies = note.relatedOntology.map { |o| o.name }.join(", ")
         # Fix the note URL when using replace_url_prefix (in another VM than NCBO)
-        if LinkedData.settings.replace_url_prefix
-          note_id = CGI.escape(note.id.to_s.gsub(LinkedData.settings.id_url_prefix, LinkedData.settings.rest_url_prefix))
-        else
-          note_id = CGI.escape(note.id.to_s)
-        end
-        note_url = "http://#{LinkedData.settings.ui_host}/notes/#{note_id}"
+        note_hash = note.id.to_s.split('/').last
+        note_url = "http://#{LinkedData.settings.ui_host}/ontologies/#{note.relatedOntology.first.acronym}?p=notes&noteid=#{note_hash}"
+
+
         subject = "[#{LinkedData.settings.ui_name} Notes] [#{ontologies}] #{note.subject}"
         body = NEW_NOTE.gsub("%username%", note.creator.username)
                        .gsub("%ontologies%", ontologies)
@@ -26,6 +24,7 @@ module LinkedData
 
         note.relatedOntology.each do |ont|
           Notifier.notify_subscribed_separately subject, body, ont, 'NOTES'
+          Notifier.notify_mails_grouped subject, body, Notifier.support_mails + Notifier.admin_mails(ont)
         end
       end
 
@@ -35,13 +34,13 @@ module LinkedData
         ontology.bring(:name, :acronym)
         result = submission.ready? || submission.archived? ? 'Success' : 'Failure'
         status = LinkedData::Models::SubmissionStatus.readable_statuses(submission.submissionStatus)
-
+        ontology_location = "#{LinkedData::Hypermedia.generate_links(ontology)['ui']}?invalidate_cache=true"
         subject = "[#{LinkedData.settings.ui_name}] #{ontology.name} Parsing #{result}"
         body = SUBMISSION_PROCESSED.gsub('%ontology_name%', ontology.name)
                                    .gsub('%ontology_acronym%', ontology.acronym)
                                    .gsub('%statuses%', status.join('<br/>'))
-                                   .gsub('%support_contact%', LinkedData.settings.support_contact_email)
-                                   .gsub('%ontology_location%', LinkedData::Hypermedia.generate_links(ontology)['ui'])
+                                   .gsub('%admin_email%', LinkedData.settings.email_sender)
+                                   .gsub('%ontology_location%', ontology_location)
                                    .gsub('%ui_name%', LinkedData.settings.ui_name)
 
         Notifier.notify_subscribed_separately subject, body, ontology, 'PROCESSING'
@@ -97,7 +96,7 @@ module LinkedData
         subject = "[#{ui_name}] User #{user.username} password reset"
         password_url = "https://#{LinkedData.settings.ui_host}/reset_password?tk=#{token}&em=#{CGI.escape(user.email)}&un=#{CGI.escape(user.username)}"
 
-        body = REST_PASSWORD.gsub('%ui_name%', ui_name)
+        body =  REST_PASSWORD.gsub('%ui_name%', ui_name)
                              .gsub('%username%', user.username.to_s)
                              .gsub('%password_url%', password_url.to_s)
 
@@ -182,19 +181,16 @@ The %ui_name% Team
 EOS
 
       REST_PASSWORD = <<~HTML
-        Someone has requested a password reset for user %username% . If this action
-        was initiated by you, please click on the link below to reset your password.
-        <br/><br/>
+        Someone has requested a password reset for user %username% . If this was
+        you, please click on the link below to reset your password. Otherwise, please
+        ignore this email.<br/><br/>
 
         <a href="%password_url%">%password_url%</a><br/><br/>
-
-        Please note that the password link is valid for one hour only.  If you did not 
-        request this password reset or no longer require it, you may safely ignore this email.
-        <br/><br/>
 
         Thanks,<br/>
         %ui_name% Team
 HTML
+
     end
   end
 end
