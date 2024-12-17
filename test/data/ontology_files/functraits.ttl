@@ -1,0 +1,857 @@
+@prefix : <https://kos.lifewatch.eu/thesauri/functraits/> .
+@prefix grddl: <http://www.w3.org/2003/g/data-view#> .
+@prefix wgs: <http://www.w3.org/2003/01/geo/wgs84_pos#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gn: <http://www.geonames.org/ontology#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix fn: <http://www.w3.org/2005/xpath-functions#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix current: <http://vocab.nerc.ac.uk/collection/R20/current/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix sesame: <http://www.openrdf.org/schema/sesame#> .
+@prefix luc: <http://www.ontotext.com/owlim/lucene#> .
+@prefix c_6: <https://kos.lifewatch.eu/thesauri/phytotraits/c_6#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix rdf4j: <http://rdf4j.org/schema/rdf4j#> .
+
+<https://kos.lifewatch.eu/thesauri/functraits/> a owl:Ontology;
+  owl:imports <http://purl.org/dc/terms/> .
+
+:Trait a skos:Concept;
+  skos:definition "A well-defined, measurable property of organisms, usually measured at the individual level and used comparatively across species."@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_c1329e5a,
+    :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:topConceptOf :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_c1329e5a,
+    :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Trait"@en;
+  skos:altLabel "Traits"@en, "Individual trait"@en, "Species trait"@en, """Organism characteristic
+"""@en,
+    "Phenotype"@en;
+  skos:note "https://doi.org/10.1016/j.tree.2006.02.002"^^xsd:anyURI;
+  skos:narrower :Functional_Trait;
+  skos:closeMatch <http://vocabs.lter-europe.net/EnvThes/10023>;
+  dct:modified "2023-10-19T14:39:49"^^xsd:dateTime;
+  dct:created "2023-05-22"^^xsd:date .
+
+:Functional_Trait a skos:Concept;
+  skos:definition "Any trait that affects the fitness of an organism and determines its effect on processes and its response to environmental factors"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_c1329e5a,
+    :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Functional trait"@en;
+  skos:altLabel "Functional characteristic"@en, "Functional feature"@en, "Functional attribute"@en,
+    "Functional property"@en;
+  skos:note "https://doi.org/10.1016/j.tree.2006.02.002"^^xsd:anyURI, "https://doi.org/10.1111/j.0030-1299.2007.15559.x"^^xsd:anyURI,
+    "https://doi.org/10.1016/j.tree.2009.03.018"^^xsd:anyURI;
+  skos:broader :Trait;
+  skos:narrower :Morphological_Trait, :c_cc244e43, :c_07e68778, :c_66f5f877, :c_415a2a69;
+  skos:exactMatch <http://data.loterre.fr/ark:/67375/BLH-KPTQ65DD-D>;
+  dct:modified "2023-10-10T12:25:02"^^xsd:dateTime;
+  dct:created "2023-05-22"^^xsd:date .
+
+:Morphological_Trait a skos:Concept;
+  skos:definition "Any measurable morphological characteristic (form and structure) of individual organisms or a colony, which is relatively simple to measure, easily observable and with a potentially well-defined relation to physiology and ecology"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_c1329e5a,
+    :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Morphological trait"@en;
+  skos:altLabel "Morphological characteristic"@en, "Morphological attribute"@en, "Morphological feature"@en,
+    "Morphological phenotype"@en;
+  skos:broader :Functional_Trait;
+  skos:narrower :c_d8b26f7b, :c_bb852c2c;
+  skos:exactMatch <http://vocabs.lter-europe.net/EnvThes/21441>;
+  dct:modified "2023-10-10T10:19:46"^^xsd:dateTime .
+
+:conceptScheme_7f9329ec a skos:ConceptScheme;
+  skos:hasTopConcept :Trait;
+  skos:prefLabel "ZooplanktonTraits"@en;
+  dct:modified "2023-02-22T12:10:07"^^xsd:dateTime .
+
+:conceptScheme_45c75a99 a skos:ConceptScheme;
+  skos:hasTopConcept :Trait;
+  skos:prefLabel "PhytoplanktonTraits"@en;
+  dct:modified "2023-02-22T12:09:53"^^xsd:dateTime .
+
+:skosCollection_e82f1f3b a skos:Collection;
+  skos:definition "Traits about the phylum of Rotifera"@en;
+  skos:prefLabel "Rotifera"@en;
+  skos:relatedMatch <https://vocab.lternet.edu/vocab/vocab/index.php?tema=478&/rotifers>;
+  dct:modified "2023-02-20T14:37:17"^^xsd:dateTime;
+  dct:created "2023-02-20T14:25:41"^^xsd:dateTime .
+
+:skosCollection_7a23746f a skos:Collection;
+  skos:definition "Traits about the phylum of Cnidaria"@en;
+  skos:prefLabel "Cnidaria"@en;
+  dct:modified "2023-02-20T14:41:21"^^xsd:dateTime;
+  dct:created "2023-02-20T14:33:14"^^xsd:dateTime .
+
+:conceptScheme_c1329e5a a skos:ConceptScheme;
+  skos:hasTopConcept :Trait;
+  skos:prefLabel "FishTraits"@en;
+  dct:created "2023-02-22T12:09:22"^^xsd:dateTime .
+
+:skosCollection_79a0ab14 a skos:Collection;
+  skos:definition "Traits about the subclass of Copepoda"@en;
+  skos:prefLabel "Copepoda"@en;
+  dct:modified "2023-04-18T12:26:17"^^xsd:dateTime;
+  dct:created "2023-03-20T16:36:37"^^xsd:dateTime .
+
+:c_d8b26f7b a skos:Concept;
+  skos:definition "The approximate shape of an organism"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_c1329e5a,
+    :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Shape"@en;
+  skos:altLabel "Type"@en, "Form"@en;
+  skos:broader :Morphological_Trait;
+  skos:narrower :c_621df9ab, :c_b709e6d3;
+  dct:modified "2023-10-10T10:39:05"^^xsd:dateTime;
+  dct:created "2023-04-18T12:12:23"^^xsd:dateTime .
+
+:c_bb852c2c a skos:Concept;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_c1329e5a,
+    :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Size"@en;
+  skos:broader :Morphological_Trait;
+  skos:narrower :c_73193705, :c_dc77ca7c, :c_efccde31;
+  dct:modified "2023-05-03T15:15:34"^^xsd:dateTime;
+  dct:created "2023-04-18T12:12:38"^^xsd:dateTime .
+
+:conceptScheme_28c2e04a a skos:ConceptScheme;
+  skos:hasTopConcept :Trait;
+  skos:prefLabel "MacroalgaeTraits"@en;
+  dct:created "2023-04-18T12:13:31"^^xsd:dateTime .
+
+:conceptScheme_b24f462c a skos:ConceptScheme;
+  skos:hasTopConcept :Trait;
+  skos:prefLabel "MacrozoobenthosTraits"@en;
+  dct:created "2023-04-18T12:14:55"^^xsd:dateTime .
+
+:c_621df9ab a skos:Concept;
+  skos:definition "The general shape of the body of an organism"@en;
+  skos:inScheme :conceptScheme_c1329e5a, :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Body shape"@en;
+  skos:altLabel "Body type"@en;
+  skos:note "http://www.marinespecies.org/traits/wiki/Traits:BodyShape"@en;
+  skos:broader :c_d8b26f7b;
+  skos:narrower :c_a629aa24, :c_a1d236ce, :c_4b23e06a, :c_e8733568, :c_c8cd05b1, :c_ca9e435b,
+    :c_58da5576, :c_9a0b5a6c, :c_c8560bf8, :c_854ac689, :c_5d5d512a, :c_896c4db8, :c_067cc319,
+    :c_38570681, :c_89163a4a, :c_102062c8, :c_4c6d0676, :c_fed80a36, :c_4f3118ae, :c_ded92048,
+    :c_e94b5d62, :c_f4471b3a, :c_2e8adfc9, :c_e02f03a1, :c_f3ec82c7, :c_f20d593a, :c_54c15f0a,
+    :c_b379a9bb, :c_ff954754, :c_d018abdf, :c_179e5f6a, :c_07baa38c, :c_ba0df0f7, :c_4a75112b,
+    :c_6521c8c1, :c_cbcbe1f3;
+  dct:modified "2023-10-10T12:22:10"^^xsd:dateTime;
+  dct:created "2023-05-03T14:36:49"^^xsd:dateTime .
+
+:c_b709e6d3 a skos:Concept;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99;
+  skos:prefLabel "Geometrical shape"@en;
+  skos:broader :c_d8b26f7b;
+  skos:narrower :c_ee222253, :c_0c407a57;
+  dct:created "2023-05-03T16:26:06"^^xsd:dateTime .
+
+:c_ee222253 a skos:Concept;
+  skos:definition "A geometric model composed of a single geometric shape, requiring 3 linear measurements"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99;
+  skos:prefLabel "Simple shape"@en;
+  skos:broader :c_b709e6d3;
+  skos:narrower :c_ecd75881, :c_fc531894, :c_f093134c, :c_0765a0f5, :c_b61358b3, :c_fc6284dd,
+    :c_c5153870, :c_7fe24297, :c_dd0ae42b, :c_8a790e56, :c_84457450, :c_a9623ad1;
+  dct:modified "2023-06-21T11:43:03"^^xsd:dateTime;
+  dct:created "2023-05-03T16:39:24"^^xsd:dateTime .
+
+:c_0c407a57 a skos:Concept;
+  skos:definition "Geometric model composed of more than 1 geometric shape, requiring up to 3 linear measurements per geometric shape"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99;
+  skos:prefLabel "Complex shape"@en;
+  skos:altLabel "Combination of shapes"@en;
+  skos:broader :c_b709e6d3;
+  skos:narrower :c_5783d52b, :c_cea9fa6b;
+  dct:modified "2023-05-11T08:53:37"^^xsd:dateTime;
+  dct:created "2023-05-03T16:39:35"^^xsd:dateTime .
+
+:c_a629aa24 a skos:Concept;
+  skos:definition "An organism body cup shaped"@en;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Caliculate"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-05-10T11:38:57"^^xsd:dateTime;
+  dct:created "2023-05-10T10:46:22"^^xsd:dateTime .
+
+:c_a1d236ce a skos:Concept;
+  skos:definition "An organism body club shaped"@en;
+  skos:inScheme :conceptScheme_c1329e5a, :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Clavate "@en;
+  skos:altLabel "Claviform"@en;
+  skos:note "https://fishbase.mnhn.fr/glossary/Glossary.php?sc=is&q=claviform"^^xsd:anyURI;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T13:23:54"^^xsd:dateTime;
+  dct:created "2023-05-10T10:53:00"^^xsd:dateTime .
+
+:c_4b23e06a a skos:Concept;
+  skos:definition "Flattened laterally"@en;
+  skos:inScheme :conceptScheme_c1329e5a, :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Compressed"@en;
+  skos:altLabel "Compressiform"@en;
+  skos:note "https://fishbase.mnhn.fr/glossary/Glossary.php?sc=is&q=compressed"^^xsd:anyURI;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T13:25:13"^^xsd:dateTime;
+  dct:created "2023-05-10T10:55:02"^^xsd:dateTime .
+
+:c_e8733568 a skos:Concept;
+  skos:definition "An organism with a massive body shape, with a broad base and large central depression"@en;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Crateriform"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-09T12:22:52"^^xsd:dateTime;
+  dct:created "2023-05-10T10:57:59"^^xsd:dateTime .
+
+:c_c8cd05b1 a skos:Concept;
+  skos:definition "An organism body with straight sides and a circular section"@en;
+  skos:inScheme :conceptScheme_c1329e5a, :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Cylindrical"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T12:08:20"^^xsd:dateTime;
+  dct:created "2023-05-10T11:00:31"^^xsd:dateTime .
+
+:c_ecd75881 a skos:Concept;
+  skos:definition "An organism's shape approximating a cone"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99;
+  skos:prefLabel "Cone"@en;
+  skos:altLabel "Conical"@en, "Coniform"@en, "Cone-shaped"@en, "Conic"@en, "Conoid"@en;
+  skos:broader :c_ee222253;
+  skos:narrower :c_637cce08;
+  dct:modified "2023-05-10T11:14:16"^^xsd:dateTime;
+  dct:created "2023-05-10T11:02:57"^^xsd:dateTime .
+
+:c_ca9e435b a skos:Concept;
+  skos:definition "An organism body deeply divided, finger-like which outgrowths from basal mass"@en;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Digitate"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-05-10T11:33:46"^^xsd:dateTime;
+  dct:created "2023-05-10T11:12:32"^^xsd:dateTime .
+
+:c_58da5576 a skos:Concept;
+  skos:definition "Round and very slender; cord-like; in the form of a thread or filament"@en;
+  skos:inScheme :conceptScheme_c1329e5a, :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Filiform"@en;
+  skos:note "https://fishbase.mnhn.fr/glossary/Glossary.php?sc=is&q=filiform"^^xsd:anyURI;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T13:28:55"^^xsd:dateTime;
+  dct:created "2023-05-10T11:18:17"^^xsd:dateTime .
+
+:c_fc531894 a skos:Concept;
+  skos:definition "An organism's shape approximating a cylinder"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_28c2e04a;
+  skos:prefLabel "Cylinder"@en;
+  skos:altLabel "Cylindrical"@en, "Cylindric"@en;
+  skos:broader :c_ee222253;
+  skos:narrower :c_482cedba;
+  dct:modified "2023-10-09T13:04:49"^^xsd:dateTime;
+  dct:created "2023-05-10T11:19:45"^^xsd:dateTime .
+
+:c_f093134c a skos:Concept;
+  skos:definition "An organism's shape approximating a sphere"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99;
+  skos:prefLabel "Sphere"@en;
+  skos:altLabel "Spherical"@en;
+  skos:broader :c_ee222253;
+  skos:narrower :c_9492dfd7;
+  dct:modified "2023-06-21T09:38:49"^^xsd:dateTime;
+  dct:created "2023-05-10T11:26:54"^^xsd:dateTime .
+
+:c_9a0b5a6c a skos:Concept;
+  skos:definition "An organism shape of a solid, upright cylinder"@en;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Columnar"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-05-10T13:00:41"^^xsd:dateTime;
+  dct:created "2023-05-10T11:40:02"^^xsd:dateTime .
+
+:c_0765a0f5 a skos:Concept;
+  skos:definition "An organism's shape approximating a truncated cone"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99;
+  skos:prefLabel "Truncated cone"@en;
+  skos:altLabel "Truncated cone-shaped"@en, "Truncated conical"@en;
+  skos:broader :c_ee222253;
+  dct:modified "2023-05-10T12:11:36"^^xsd:dateTime;
+  dct:created "2023-05-10T11:40:38"^^xsd:dateTime .
+
+:c_c8560bf8 a skos:Concept;
+  skos:definition "Flattened from op to bottom; wider than deep"@en;
+  skos:inScheme :conceptScheme_c1329e5a, :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Flattened"@en;
+  skos:altLabel "Depressiform"@en, "Flat"@en;
+  skos:note "https://fishbase.mnhn.fr/glossary/Glossary.php?sc=is&q=depressed"^^xsd:anyURI;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T13:29:19"^^xsd:dateTime;
+  dct:created "2023-05-10T11:45:36"^^xsd:dateTime .
+
+:c_854ac689 a skos:Concept;
+  skos:definition "An organism body approximately spherical, ovoid or globular"@en;
+  skos:inScheme :conceptScheme_c1329e5a, :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Globiform"@en;
+  skos:altLabel "Globose"@en, "Spheric"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T12:29:20"^^xsd:dateTime;
+  dct:created "2023-05-10T12:10:50"^^xsd:dateTime .
+
+:c_b61358b3 a skos:Concept;
+  skos:definition "An organism's shape approximating a truncated pyramid"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99;
+  skos:prefLabel "Truncated pyramid"@en;
+  skos:altLabel "Truncated pyramid shape"@en, "Truncated pyramidal"@en;
+  skos:broader :c_ee222253;
+  dct:modified "2023-05-10T12:15:55"^^xsd:dateTime;
+  dct:created "2023-05-10T12:12:09"^^xsd:dateTime .
+
+:c_5d5d512a a skos:Concept;
+  skos:definition "An organism body funnel shaped"@en;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Infundibuliform"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-05-10T12:17:06"^^xsd:dateTime;
+  dct:created "2023-05-10T12:15:22"^^xsd:dateTime .
+
+:c_fc6284dd a skos:Concept;
+  skos:definition "A cell shape that approximates a cube"@en;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Cube"@en;
+  skos:altLabel "Cubic"@en, "Box-shaped"@en;
+  skos:broader :c_ee222253;
+  dct:modified "2023-05-10T12:53:46"^^xsd:dateTime;
+  dct:created "2023-05-10T12:16:40"^^xsd:dateTime .
+
+:c_896c4db8 a skos:Concept;
+  skos:definition "An organism body plate-like erect"@en;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Lamellate"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-05-10T12:19:41"^^xsd:dateTime;
+  dct:created "2023-05-10T12:19:23"^^xsd:dateTime .
+
+:c_067cc319 a skos:Concept;
+  skos:definition "An organism body disk, bell or umbrella shaped and often gelatinous"@en;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Medusiform"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-05-10T12:59:41"^^xsd:dateTime;
+  dct:created "2023-05-10T12:20:35"^^xsd:dateTime .
+
+:c_c5153870 a skos:Concept;
+  skos:definition "A cell shape that approximates a cymbelloid"@en;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Cymbelloid"@en;
+  skos:broader :c_ee222253;
+  dct:modified "2023-05-10T12:24:17"^^xsd:dateTime;
+  dct:created "2023-05-10T12:21:07"^^xsd:dateTime .
+
+:c_38570681 a skos:Concept;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Pedunculate"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-09T12:23:42"^^xsd:dateTime;
+  dct:created "2023-05-10T12:21:48"^^xsd:dateTime .
+
+:c_89163a4a a skos:Concept;
+  skos:definition "An organism body arranged like a star"@en;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Stellate"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-05-10T12:37:00"^^xsd:dateTime;
+  dct:created "2023-05-10T12:34:43"^^xsd:dateTime .
+
+:c_7fe24297 a skos:Concept;
+  skos:definition "An organism's shape approximating an ellipsoid"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99;
+  skos:prefLabel "Ellipsoid"@en;
+  skos:altLabel "Ellipsoidal"@en, "Ovoid"@en, "Ovaloid"@en;
+  skos:broader :c_ee222253;
+  skos:narrower :c_58eae9c1;
+  dct:modified "2023-10-10T10:34:48"^^xsd:dateTime;
+  dct:created "2023-05-10T12:34:47"^^xsd:dateTime .
+
+:c_102062c8 a skos:Concept;
+  skos:definition "Elongate body form as in eels, e.g. Anguillidae."@en;
+  skos:inScheme :conceptScheme_c1329e5a;
+  skos:prefLabel "Anguilliform"@en;
+  skos:altLabel "Eel-shaped"@en;
+  skos:note "https://fishbase.mnhn.fr/glossary/Glossary.php?q=eel-shaped"^^xsd:anyURI;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T13:24:52"^^xsd:dateTime;
+  dct:created "2023-05-10T12:41:53"^^xsd:dateTime .
+
+:c_4c6d0676 a skos:Concept;
+  skos:definition "Spindle-shaped; used in reference to the body shape of a fish which is cylindrical or nearly so and tapers toward the ends"@en;
+  skos:inScheme :conceptScheme_c1329e5a;
+  skos:prefLabel "Fusiform"@en;
+  skos:note "https://fishbase.mnhn.fr/glossary/Glossary.php?sc=is&q=fusiform"^^xsd:anyURI;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T13:29:42"^^xsd:dateTime;
+  dct:created "2023-05-10T12:44:10"^^xsd:dateTime .
+
+:c_dd0ae42b a skos:Concept;
+  skos:definition "A cell shape that approximates a gomphonemoid"@en;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Gomphonemoid"@en;
+  skos:broader :c_ee222253;
+  dct:modified "2023-05-10T12:47:09"^^xsd:dateTime;
+  dct:created "2023-05-10T12:45:44"^^xsd:dateTime .
+
+:c_fed80a36 a skos:Concept;
+  skos:definition "Pike-shaped, dart- or arrow-shaped"@en;
+  skos:inScheme :conceptScheme_c1329e5a;
+  skos:prefLabel "Sagittiform"@en;
+  skos:note "https://fishbase.mnhn.fr/glossary/Glossary.php?sc=is&q=sagittiform"^^xsd:anyURI;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T13:30:16"^^xsd:dateTime;
+  dct:created "2023-05-10T12:45:48"^^xsd:dateTime .
+
+:c_4f3118ae a skos:Concept;
+  skos:definition "An organism body elongated, compressed and deep-bodied, ribbon-like"@en;
+  skos:inScheme :conceptScheme_c1329e5a;
+  skos:prefLabel "Taeniform"@en;
+  skos:note " https://fishbase.mnhn.fr/glossary/Glossary.php?sc=is&q=taeniform"^^xsd:anyURI;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T13:30:37"^^xsd:dateTime;
+  dct:created "2023-05-10T12:46:49"^^xsd:dateTime .
+
+:c_ded92048 a skos:Concept;
+  skos:definition "An organism body elongated, cylindrical and worm-like"@en;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Vermiform"@en;
+  skos:broader :c_621df9ab;
+  skos:narrower :c_62189746, :c_b830a6d8, :c_b6c5452f;
+  dct:modified "2023-05-10T12:52:04"^^xsd:dateTime;
+  dct:created "2023-05-10T12:51:19"^^xsd:dateTime .
+
+:c_62189746 a skos:Concept;
+  skos:definition "An organism body worm-like but lacking true segments although annuli may be present"@en;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Vermiform annulated"@en;
+  skos:broader :c_ded92048;
+  dct:modified "2023-05-10T12:53:39"^^xsd:dateTime;
+  dct:created "2023-05-10T12:52:56"^^xsd:dateTime .
+
+:c_637cce08 a skos:Concept;
+  skos:definition "A cell shape that approximates a half cone"@en;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Half cone"@en;
+  skos:broader :c_ecd75881;
+  dct:modified "2023-05-10T12:55:41"^^xsd:dateTime;
+  dct:created "2023-05-10T12:53:16"^^xsd:dateTime .
+
+:c_b830a6d8 a skos:Concept;
+  skos:definition "An organism body worm-like divided into semi-independent, serially repeated units"@en;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Vermiform segmented"@en;
+  skos:broader :c_ded92048;
+  dct:modified "2023-05-10T12:55:13"^^xsd:dateTime;
+  dct:created "2023-05-10T12:54:09"^^xsd:dateTime .
+
+:c_b6c5452f a skos:Concept;
+  skos:definition "An organism body worm-like not divided into a chain of rings or 'annuli'"@en;
+  skos:inScheme :conceptScheme_b24f462c;
+  skos:prefLabel "Vermiform unsegmented"@en;
+  skos:broader :c_ded92048;
+  dct:modified "2023-05-10T12:56:36"^^xsd:dateTime;
+  dct:created "2023-05-10T12:56:02"^^xsd:dateTime .
+
+:c_482cedba a skos:Concept;
+  skos:definition "A cell shape that approximates a half cylinder"@en;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Half cylinder"@en;
+  skos:broader :c_fc531894;
+  dct:modified "2023-05-10T12:59:41"^^xsd:dateTime;
+  dct:created "2023-05-10T12:59:06"^^xsd:dateTime .
+
+:c_9492dfd7 a skos:Concept;
+  skos:definition "An organism's shape approximating a half sphere"@en;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Half sphere"@en;
+  skos:broader :c_f093134c;
+  dct:modified "2023-05-11T09:02:33"^^xsd:dateTime;
+  dct:created "2023-05-10T12:59:53"^^xsd:dateTime .
+
+:c_58eae9c1 a skos:Concept;
+  skos:definition "A cell shape that approximates a half ellipsoid"@en;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Half ellipsoid"@en;
+  skos:broader :c_7fe24297;
+  dct:modified "2023-05-10T13:01:29"^^xsd:dateTime;
+  dct:created "2023-05-10T13:00:55"^^xsd:dateTime .
+
+:c_8a790e56 a skos:Concept;
+  skos:definition "A cell shape that approximates a prism on elliptic base"@en;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Prism on elliptic base"@en;
+  skos:broader :c_ee222253;
+  skos:narrower :c_b63fc28f;
+  dct:modified "2023-05-10T13:03:31"^^xsd:dateTime;
+  dct:created "2023-05-10T13:02:15"^^xsd:dateTime .
+
+:c_b63fc28f a skos:Concept;
+  skos:definition "A cell shape that approximates a half prism on elliptic base"@en;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Half prism on elliptic base"@en;
+  skos:broader :c_8a790e56;
+  dct:modified "2023-05-10T13:05:20"^^xsd:dateTime;
+  dct:created "2023-05-10T13:04:47"^^xsd:dateTime .
+
+:c_84457450 a skos:Concept;
+  skos:definition "A cell shape that approximates a parallelepiped"@en;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Parallelepiped"@en;
+  skos:broader :c_ee222253;
+  dct:modified "2023-05-10T13:23:29"^^xsd:dateTime;
+  dct:created "2023-05-10T13:22:58"^^xsd:dateTime .
+
+:c_a9623ad1 a skos:Concept;
+  skos:definition "An organism's shape approximating a prolate spheroid"@en;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Prolate spheroid"@en;
+  skos:broader :c_ee222253;
+  dct:modified "2023-05-11T09:35:21"^^xsd:dateTime;
+  dct:created "2023-05-11T09:00:17"^^xsd:dateTime .
+
+:c_cc244e43 a skos:Concept;
+  skos:definition "Any measurable or observable behavioral characteristic related to biological activity of the organism"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_c1329e5a,
+    :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Behavioural trait"@en;
+  skos:altLabel "Behavioral trait"@en;
+  skos:broader :Functional_Trait;
+  skos:exactMatch <http://data.loterre.fr/ark:/67375/BLH-LNVG87FM-7>;
+  dct:modified "2023-10-10T10:12:51"^^xsd:dateTime;
+  dct:created "2023-05-22T10:19:08"^^xsd:dateTime .
+
+:c_07e68778 a skos:Concept;
+  skos:definition "Any trait that describes the life history characteristics of an organism"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_c1329e5a,
+    :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Life-history trait"@en;
+  skos:altLabel "Life history characteristic"@en, "Life histrory attribute"@en, "Reproductive trait"@en;
+  skos:broader :Functional_Trait;
+  skos:exactMatch <http://vocabs.lter-europe.net/EnvThes/21440>;
+  dct:modified "2023-10-10T10:18:29"^^xsd:dateTime;
+  dct:created "2023-05-22T10:19:46"^^xsd:dateTime .
+
+:c_66f5f877 a skos:Concept;
+  skos:definition "Any trait involving physiological processes consistent with the normal functioning of an organism"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_c1329e5a,
+    :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Physiological trait"@en;
+  skos:altLabel "Physiological process"@en;
+  skos:broader :Functional_Trait;
+  skos:narrower :c_9372fdb4;
+  dct:modified "2023-10-10T10:31:39"^^xsd:dateTime;
+  dct:created "2023-05-22T10:20:15"^^xsd:dateTime .
+
+:c_5783d52b a skos:Concept;
+  skos:definition "A cell shape that approximates 2 cones"@en;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "2 Cones"@en;
+  skos:broader :c_0c407a57;
+  dct:modified "2023-10-09T10:12:41"^^xsd:dateTime;
+  dct:created "2023-06-21T09:55:15"^^xsd:dateTime .
+
+:c_cea9fa6b a skos:Concept;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "2 Half ellipsoids + Prism on elliptic base"@en;
+  skos:broader :c_0c407a57;
+  dct:created "2023-06-21T10:05:33"^^xsd:dateTime .
+
+:c_73193705 a skos:Concept;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Cell size"@en;
+  skos:broader :c_bb852c2c;
+  skos:narrower :c_2453c25b, :c_3b8b8532, :c_99b35ac0;
+  dct:modified "2023-10-04T17:12:53"^^xsd:dateTime;
+  dct:created "2023-07-27T10:59:17"^^xsd:dateTime .
+
+:c_dc77ca7c a skos:Concept;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_c1329e5a,
+    :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Colony size"@en;
+  skos:broader :c_bb852c2c;
+  dct:created "2023-07-27T10:59:26"^^xsd:dateTime .
+
+:c_efccde31 a skos:Concept;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_c1329e5a, :conceptScheme_28c2e04a,
+    :conceptScheme_b24f462c;
+  skos:prefLabel "Body size"@en;
+  skos:broader :c_bb852c2c;
+  skos:narrower :c_d266fb02, :c_cf1364a4, :c_7e1b0714;
+  dct:modified "2023-10-04T17:12:43"^^xsd:dateTime;
+  dct:created "2023-07-27T10:59:38"^^xsd:dateTime .
+
+:c_d266fb02 a skos:Concept;
+  skos:definition """The total distance from point to point along the longest axis of the body of an organism.
+"""@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_c1329e5a, :conceptScheme_28c2e04a,
+    :conceptScheme_b24f462c;
+  skos:prefLabel "Body length"@en;
+  skos:altLabel "Length"@en, "BL"@en;
+  skos:broader :c_efccde31;
+  skos:narrower :c_acdfbaa8, :c_c64288a6, :c_35a45f59, :c_88d07ed1;
+  dct:modified "2023-10-04T17:41:01"^^xsd:dateTime;
+  dct:created "2023-10-04T17:14:24"^^xsd:dateTime .
+
+:c_cf1364a4 a skos:Concept;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_c1329e5a, :conceptScheme_28c2e04a,
+    :conceptScheme_b24f462c;
+  skos:prefLabel "Body width"@en;
+  skos:broader :c_efccde31;
+  dct:created "2023-10-04T17:14:54"^^xsd:dateTime .
+
+:c_7e1b0714 a skos:Concept;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_c1329e5a, :conceptScheme_28c2e04a,
+    :conceptScheme_b24f462c;
+  skos:prefLabel "Body heigth"@en;
+  skos:broader :c_efccde31;
+  dct:created "2023-10-04T17:26:46"^^xsd:dateTime .
+
+:c_2453c25b a skos:Concept;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Cell length"@en;
+  skos:broader :c_73193705;
+  dct:created "2023-10-04T17:29:46"^^xsd:dateTime .
+
+:c_3b8b8532 a skos:Concept;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Cell width"@en;
+  skos:broader :c_73193705;
+  dct:created "2023-10-04T17:30:23"^^xsd:dateTime .
+
+:c_99b35ac0 a skos:Concept;
+  skos:inScheme :conceptScheme_45c75a99;
+  skos:prefLabel "Cell thickness"@en;
+  skos:broader :c_73193705;
+  dct:created "2023-10-04T17:30:52"^^xsd:dateTime .
+
+:c_acdfbaa8 a skos:Concept;
+  skos:definition "The body length measurement of a specifc taxonomic group."@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_c1329e5a, :conceptScheme_28c2e04a,
+    :conceptScheme_b24f462c;
+  skos:prefLabel "Taxon specific body length"@en;
+  skos:broader :c_d266fb02;
+  skos:narrower :c_4cf88961;
+  dct:modified "2023-10-04T17:57:46"^^xsd:dateTime;
+  dct:created "2023-10-04T17:31:28"^^xsd:dateTime .
+
+:c_c64288a6 a skos:Concept;
+  skos:definition "The maximum value in a range of body length values."@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_c1329e5a, :conceptScheme_28c2e04a,
+    :conceptScheme_b24f462c;
+  skos:prefLabel "Maximum body length"@en;
+  skos:altLabel "Maximal length"@en, "Max BL"@en, """Maximum length
+"""@en, "Max length"@en;
+  skos:broader :c_d266fb02;
+  dct:modified "2023-10-04T17:53:23"^^xsd:dateTime;
+  dct:created "2023-10-04T17:31:58"^^xsd:dateTime .
+
+:c_35a45f59 a skos:Concept;
+  skos:definition "The minimum value in a range of body length values."@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_c1329e5a, :conceptScheme_28c2e04a,
+    :conceptScheme_b24f462c;
+  skos:prefLabel "Minimum body length"@en;
+  skos:altLabel "Min BL"@en, "Minimal length"@en, "Minimum size"@en, "Min length"@en;
+  skos:broader :c_d266fb02;
+  dct:modified "2023-10-04T17:50:05"^^xsd:dateTime;
+  dct:created "2023-10-04T17:32:10"^^xsd:dateTime .
+
+:c_88d07ed1 a skos:Concept;
+  skos:definition "The mean value in a range of body length values. It is calculated as the sum of the body lenght values of all organisms divided by the number of organisms measured."@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_c1329e5a, :conceptScheme_28c2e04a,
+    :conceptScheme_b24f462c;
+  skos:prefLabel "Mean body length"@en;
+  skos:altLabel "Average body length"@en, """Mean length
+"""@en, "Average length"@en,
+    "AVG length"@en;
+  skos:broader :c_d266fb02;
+  dct:modified "2023-10-04T17:56:09"^^xsd:dateTime;
+  dct:created "2023-10-04T17:32:20"^^xsd:dateTime .
+
+:c_4cf88961 a skos:Concept;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_b24f462c;
+  skos:prefLabel "Crustacea body length"@en;
+  skos:broader :c_acdfbaa8;
+  dct:created "2023-10-04T17:34:00"^^xsd:dateTime .
+
+:c_9372fdb4 a skos:Concept;
+  skos:definition "Any trait which refers to the elemental chemical composition of an organism and involves biochemical processes consistent with the normal functioning of an organism"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_c1329e5a,
+    :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Biochemical trait"@en;
+  skos:broader :c_66f5f877;
+  dct:modified "2023-10-10T10:32:07"^^xsd:dateTime;
+  dct:created "2023-10-10T10:31:13"^^xsd:dateTime .
+
+:c_415a2a69 a skos:Concept;
+  skos:definition "Any trait which refers to the elemental chemical composition of an organism and involves biochemical processes consistent with the normal functioning of an organism"@en;
+  skos:inScheme :conceptScheme_7f9329ec, :conceptScheme_45c75a99, :conceptScheme_c1329e5a,
+    :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Genetic trait"@en;
+  skos:broader :Functional_Trait;
+  dct:modified "2023-10-10T10:33:01"^^xsd:dateTime;
+  dct:created "2023-10-10T10:32:47"^^xsd:dateTime .
+
+:c_e94b5d62 a skos:Concept;
+  skos:inScheme :conceptScheme_28c2e04a;
+  skos:prefLabel "Capitate"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T11:18:45"^^xsd:dateTime;
+  dct:created "2023-10-10T10:55:44"^^xsd:dateTime .
+
+:c_f4471b3a a skos:Concept;
+  skos:inScheme :conceptScheme_28c2e04a;
+  skos:prefLabel "Caespitose"@en;
+  skos:broader :c_621df9ab;
+  dct:created "2023-10-10T11:20:20"^^xsd:dateTime .
+
+:c_2e8adfc9 a skos:Concept;
+  skos:inScheme :conceptScheme_28c2e04a;
+  skos:prefLabel "Cordate"@en;
+  skos:altLabel "Heart shaped"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T11:27:19"^^xsd:dateTime;
+  dct:created "2023-10-10T11:27:05"^^xsd:dateTime .
+
+:c_e02f03a1 a skos:Concept;
+  skos:inScheme :conceptScheme_28c2e04a;
+  skos:prefLabel "Crustose"@en;
+  skos:broader :c_621df9ab;
+  dct:created "2023-10-10T11:27:50"^^xsd:dateTime .
+
+:c_f3ec82c7 a skos:Concept;
+  skos:definition "Wedge-shaped"@en;
+  skos:inScheme :conceptScheme_c1329e5a, :conceptScheme_28c2e04a;
+  skos:prefLabel "Cuneate"@en;
+  skos:altLabel "Cuneiform"@en;
+  skos:note "https://fishbase.mnhn.fr/glossary/Glossary.php?sc=is&q=cuneiform"^^xsd:anyURI;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T13:26:09"^^xsd:dateTime;
+  dct:created "2023-10-10T11:29:03"^^xsd:dateTime .
+
+:c_f20d593a a skos:Concept;
+  skos:inScheme :conceptScheme_28c2e04a;
+  skos:prefLabel "Cuscion-like"@en;
+  skos:altLabel "Pulvinate"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T12:07:16"^^xsd:dateTime;
+  dct:created "2023-10-10T12:06:57"^^xsd:dateTime .
+
+:c_54c15f0a a skos:Concept;
+  skos:definition "Form of a tree, branching"@en;
+  skos:inScheme :conceptScheme_c1329e5a, :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Arboriform"@en;
+  skos:altLabel "Dendroid"@en;
+  skos:note "https://fishbase.mnhn.fr/glossary/Glossary.php?sc=is&q=arboriform"^^xsd:anyURI;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T13:24:17"^^xsd:dateTime;
+  dct:created "2023-10-10T12:09:04"^^xsd:dateTime .
+
+:c_b379a9bb a skos:Concept;
+  skos:inScheme :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Dentate"@en;
+  skos:broader :c_621df9ab;
+  dct:created "2023-10-10T12:10:04"^^xsd:dateTime .
+
+:c_ff954754 a skos:Concept;
+  skos:inScheme :conceptScheme_c1329e5a, :conceptScheme_28c2e04a;
+  skos:prefLabel "Discoidal"@en;
+  skos:altLabel "Discoid"@en, "Plate"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T12:12:52"^^xsd:dateTime;
+  dct:created "2023-10-10T12:12:27"^^xsd:dateTime .
+
+:c_d018abdf a skos:Concept;
+  skos:inScheme :conceptScheme_c1329e5a, :conceptScheme_28c2e04a, :conceptScheme_b24f462c;
+  skos:prefLabel "Ellipsoidal"@en;
+  skos:broader :c_621df9ab;
+  dct:created "2023-10-10T12:14:25"^^xsd:dateTime .
+
+:c_179e5f6a a skos:Concept;
+  skos:inScheme :conceptScheme_28c2e04a;
+  skos:prefLabel "Encrustring"@en;
+  skos:broader :c_621df9ab;
+  dct:created "2023-10-10T12:15:56"^^xsd:dateTime .
+
+:c_07baa38c a skos:Concept;
+  skos:inScheme :conceptScheme_28c2e04a;
+  skos:prefLabel "Erect"@en;
+  skos:broader :c_621df9ab;
+  dct:created "2023-10-10T12:16:14"^^xsd:dateTime .
+
+:c_ba0df0f7 a skos:Concept;
+  skos:inScheme :conceptScheme_28c2e04a;
+  skos:prefLabel "Flabellate"@en;
+  skos:broader :c_621df9ab;
+  dct:created "2023-10-10T12:23:11"^^xsd:dateTime .
+
+:c_4a75112b a skos:Concept;
+  skos:inScheme :conceptScheme_28c2e04a;
+  skos:prefLabel "Foliose"@en;
+  skos:altLabel "Leaf-like"@en, "Leaf-shaped"@en;
+  skos:broader :c_621df9ab;
+  dct:modified "2023-10-10T12:27:51"^^xsd:dateTime;
+  dct:created "2023-10-10T12:27:18"^^xsd:dateTime .
+
+:c_6521c8c1 a skos:Concept;
+  skos:inScheme :conceptScheme_28c2e04a;
+  skos:prefLabel "Fruticose"@en;
+  skos:broader :c_621df9ab;
+  dct:created "2023-10-10T12:28:18"^^xsd:dateTime .
+
+:c_cbcbe1f3 a skos:Concept;
+  skos:inScheme :conceptScheme_28c2e04a;
+  skos:prefLabel "Furcate"@en;
+  skos:broader :c_621df9ab;
+  dct:created "2023-10-10T12:28:29"^^xsd:dateTime .
+
+:note_96c6a53b rdf:value "Total volume of a single organism. It is calculated according to the geometric equations, after association of geometric shape to the real shape of the organism and measurements of linear dimensions (length, width). It is mainly used for microzooplankton. It is used for mesozooplankton when samples are analysed with image systems."@en;
+  dct:modified "2023-02-21T09:43:17"^^xsd:dateTime;
+  dct:created "2023-02-21T09:40:06"^^xsd:dateTime;
+  dct:source <https://www.elsevier.com/books/ices-zooplankton-methodology-manual/harris/978-0-12-327645-2> .
+
+:note_70f616ed rdf:value "Total volume of a single cell or colony. It is calculated according to the geometric equations, after association of geometric shape to the real shape of the organism and measurements of linear dimensions (e.g., length, width, height) for each single cell or colony."@en;
+  dct:created "2023-02-21T09:47:32"^^xsd:dateTime;
+  dct:source <https://example.org#DOI:10.1046/j.1529-8817.1999.3520403.x.> .
+
+:note_a5b0aa9b rdf:value "Total volume of a single organism. It is calculated according to the geometric equations, after association of geometric shape to the real shape of the organism and measurements of linear dimensions (length, width). It is mainly used for microzooplankton. It is used for mesozooplankton when samples are analysed with image systems."@en;
+  dct:created "2023-02-21T09:56:40"^^xsd:dateTime;
+  dct:source <https://dx.doi.org/10.1016/B978-0-12-327645-2.X5000-2> .
+
+:note_b040772f rdf:value """	
+Total volume of a single cell or colony. It is calculated according to the geometric equations, after association of geometric shape to the real shape of the organism and measurements of linear dimensions (e.g., length, width, height) for each single cell or colony."""@en;
+  dct:created "2023-02-21T10:19:54"^^xsd:dateTime;
+  dct:source <https://doi.org/10.1046/j.1529-8817.1999.3520403.x> .
+
+:note_62b3aaa4 rdf:value "Cubic micrometres"@en;
+  dct:created "2023-02-21T11:07:31"^^xsd:dateTime;
+  dct:source <http://qudt.org/vocab/unit/MicroM3> .
+
+:note_c2833b9d rdf:value "Cubic micrometres"@en;
+  dct:created "2023-02-21T11:09:28"^^xsd:dateTime;
+  dct:source <http://vocab.nerc.ac.uk/collection/P06/current/UMCU/> .
+
+:note_c7d1e9f1 rdf:value "Total volume of a single cell or colony. It is calculated according to the geometric equations, after association of geometric shape to the real shape of the organism and measurements of linear dimensions (e.g., length, width, height) for each single cell or colony."@en;
+  dct:created "2023-02-22T10:19:22"^^xsd:dateTime;
+  dct:source <https://example.org#doi:10.1046/j.1529-8817.1999.3520403.x> .
+
+:note_e62250d1 rdf:value "cubic micrometers (μm3) "@en;
+  dct:created "2023-02-22T10:21:56"^^xsd:dateTime;
+  dct:source <http://vocab.nerc.ac.uk/collection/P06/current/UMCU/> .
+
+<https://vocab.lternet.edu/vocab/vocab/index.php?tema=478&/rotifers> skos:relatedMatch
+    :skosCollection_e82f1f3b .
+
+<http://data.loterre.fr/ark:/67375/BLH-KPTQ65DD-D> skos:exactMatch :Functional_Trait .
+
+<http://vocabs.lter-europe.net/EnvThes/21440> skos:exactMatch :c_07e68778 .
+
+<http://vocabs.lter-europe.net/EnvThes/21441> skos:exactMatch :Morphological_Trait .
+
+<http://data.loterre.fr/ark:/67375/BLH-LNVG87FM-7> skos:exactMatch :c_cc244e43 .
+
+<http://vocabs.lter-europe.net/EnvThes/10023> skos:closeMatch :Trait .

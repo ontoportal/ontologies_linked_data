@@ -2,99 +2,35 @@ require 'csv'
 
 module LinkedData
   module Metrics
-    def self.metrics_for_submission(submission, logger)
-      metrics = nil
-      logger.info("metrics_for_submission start")
-      logger.flush
-      begin
-        submission.bring(:submissionStatus) if submission.bring?(:submissionStatus)
-        cls_metrics = class_metrics(submission, logger)
-        logger.info("class_metrics finished")
-        logger.flush
-        metrics = LinkedData::Models::Metric.new
-
-        cls_metrics.each do |k,v|
-          unless v.instance_of?(Integer)
-            begin
-              v = Integer(v)
-            rescue ArgumentError
-              v = 0
-            rescue TypeError
-              v = 0
-            end
-          end
-          metrics.send("#{k}=",v)
-        end
-        indiv_count = number_individuals(logger, submission)
-        metrics.individuals = indiv_count
-        logger.info("individuals finished")
-        logger.flush
-        prop_count = number_properties(logger, submission)
-        metrics.properties = prop_count
-        logger.info("properties finished")
-        logger.flush
-
-        # re-generate metrics file
-        submission.generate_metrics_file(cls_metrics[:classes], indiv_count, prop_count, cls_metrics[:maxDepth])
-        logger.info("generation of metrics file finished")
-        logger.flush
-
-      rescue Exception => e
-        logger.error(e.message)
-        logger.error(e)
-        logger.flush
-        metrics = nil
-      end
-      metrics
-    end
-
-
-    def self.max_depth_fn(submission, logger, is_flat, rdfsSC)
-      max_depth = 0
-      mx_from_file = submission.metrics_from_file(logger)
-      if (mx_from_file && mx_from_file.length == 2 && mx_from_file[0].length >= 4)
-      then
-        max_depth = mx_from_file[1][3].to_i
-        logger.info("Metrics max_depth retrieved #{max_depth} from the metrics csv file.")
-      else
-        logger.info("Unable to find metrics providing max_depth in file for submission #{submission.id.to_s}.  Using ruby calculation of max_depth.")  
-        roots = submission.roots
-
-        unless is_flat
-          depths = []
-          roots.each do |root|
-            ok = true
-            n=1
-            while ok
-              ok = hierarchy_depth?(submission.id.to_s,root.id.to_s,n,rdfsSC)
-              if ok
-                n += 1
-              end
-              if n > 40
-                #safe guard
-                ok = false
-              end
-            end
-            n -= 1
-            depths << n
-          end
-          max_depth = depths.max
-        end
-      end
-      max_depth
-    end
-
     def self.class_metrics(submission, logger)
       t00 = Time.now
       submission.ontology.bring(:flat) if submission.ontology.bring?(:flat)
 
       is_flat = submission.ontology.flat
-      rdfsSC = nil
+      roots = submission.roots
+      
+      max_depth = 0
+      rdfsSC = Goo.namespaces[:rdfs][:subClassOf]
       unless is_flat
-          rdfsSC = Goo.namespaces[:rdfs][:subClassOf]
+        depths = []
+        roots.each do |root|
+          ok = true
+          n=1
+          while ok
+            ok = hierarchy_depth?(submission.id.to_s,root.id.to_s,n,rdfsSC)
+            if ok
+              n += 1
+            end
+            if n > 40
+              #safe guard
+              ok = false
+            end
+          end
+          n -= 1
+          depths << n
+        end
+        max_depth = depths.max
       end
-      max_depth = max_depth_fn(submission, logger, is_flat, rdfsSC) 
-
       cls_metrics = {}
       cls_metrics[:classes] = 0
       cls_metrics[:averageChildCount] = 0

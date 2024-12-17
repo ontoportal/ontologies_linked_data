@@ -13,22 +13,27 @@ module LinkedData
     class OntologySubmission < LinkedData::Models::Base
 
       include LinkedData::Concerns::SubmissionProcessable
-      include LinkedData::Concerns::OntologySubmission::MetadataExtractor
+      include LinkedData::Concerns::SubmissionDiffParser
 
       FLAT_ROOTS_LIMIT = 1000
 
-      model :ontology_submission, name_with: lambda { |s| submission_id_generator(s) }
-      attribute :submissionId, enforce: [:integer, :existence]
+      model :ontology_submission, scheme: File.join(__dir__, '../../../config/schemes/ontology_submission.yml'),
+                                  name_with: ->(s) { submission_id_generator(s) }
 
+      attribute :submissionId, type: :integer, enforce: [:existence]
+
+      # Object description properties metadata
       # Configurable properties for processing
-      attribute :prefLabelProperty, enforce: [:uri]
-      attribute :definitionProperty, enforce: [:uri]
-      attribute :synonymProperty, enforce: [:uri]
-      attribute :authorProperty, enforce: [:uri]
-      attribute :classType, enforce: [:uri]
-      attribute :hierarchyProperty, enforce: [:uri]
-      attribute :obsoleteProperty, enforce: [:uri]
-      attribute :obsoleteParent, enforce: [:uri]
+      attribute :prefLabelProperty, type: :uri, default: ->(s) { Goo.vocabulary(:skos)[:prefLabel] }
+      attribute :definitionProperty, type: :uri, default: ->(s) { Goo.vocabulary(:skos)[:definition] }
+      attribute :synonymProperty, type: :uri, default: ->(s) { Goo.vocabulary(:skos)[:altLabel] }
+      attribute :authorProperty, type: :uri, default: ->(s) { Goo.vocabulary(:dc)[:creator] }
+      attribute :classType, type: :uri
+      attribute :hierarchyProperty, type: :uri, default: ->(s) { default_hierarchy_property(s) }
+      attribute :obsoleteProperty, type: :uri, default: ->(s) { Goo.vocabulary(:owl)[:deprecated] }
+      attribute :obsoleteParent, type: :uri
+      attribute :createdProperty, type: :uri, default: ->(s) { Goo.vocabulary(:dc)[:created] }
+      attribute :modifiedProperty, type: :uri, default: ->(s) { Goo.vocabulary(:dc)[:modified] }
 
       # Ontology metadata
       attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
@@ -38,48 +43,175 @@ module LinkedData
       attribute :naturalLanguage, namespace: :omv, enforce: [:list]
       attribute :documentation, namespace: :omv
       attribute :version, namespace: :omv
-      attribute :creationDate, namespace: :omv, enforce: [:date_time], default: lambda { |record| DateTime.now }
-      attribute :description, namespace: :omv
-      attribute :status, namespace: :omv
-      attribute :contact, enforce: [:existence, :contact, :list]
-      attribute :released, enforce: [:date_time, :existence]
+      attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' }
+      attribute :deprecated, namespace: :owl, type: :boolean, default: ->(x) { false }
+      attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
+      attribute :hasFormalityLevel, namespace: :omv, type: :uri
+      attribute :hasOntologySyntax, namespace: :omv, type: :uri, default: ->(s) { ontology_syntax_default(s) }
+      attribute :naturalLanguage, namespace: :omv, type: %i[list uri], enforce: [:lexvo_language]
+      attribute :isOfType, namespace: :omv, type: :uri
+      attribute :identifier, namespace: :dct, type: %i[list uri], enforce: [:distinct_of_URI]
 
-      # Internal values for parsing - not definitive
+      # Description metadata
+      attribute :description, namespace: :omv, enforce: %i[concatenate existence], fuzzy_search: true
+      attribute :homepage, namespace: :foaf, type: :uri
+      attribute :documentation, namespace: :omv, type: :uri
+      attribute :notes, namespace: :omv, type: :list
+      attribute :keywords, namespace: :omv, type: :list
+      attribute :hiddenLabel, namespace: :skos, type: :list
+      attribute :alternative, namespace: :dct, type: :list
+      attribute :abstract, namespace: :dct
+      attribute :publication, type: %i[uri list]
+
+      # Licensing metadata
+      attribute :hasLicense, namespace: :omv, type: :uri
+      attribute :useGuidelines, namespace: :cc
+      attribute :morePermissions, namespace: :cc
+      attribute :copyrightHolder, namespace: :schema, type: :Agent
+
+      # Date metadata
+      attribute :released, type: :date_time, enforce: [:existence]
+      attribute :valid, namespace: :dct, type: :date_time
+      attribute :curatedOn, namespace: :pav, type: %i[date_time list]
+      attribute :creationDate, namespace: :omv, type: :date_time, default: ->(x) { Date.today.to_datetime }
+      attribute :modificationDate, namespace: :omv, type: :date_time
+
+      # Person and organizations metadata
+      attribute :contact, type: %i[contact list], enforce: [:existence]
+      attribute :hasCreator, namespace: :omv, type: %i[list Agent]
+      attribute :hasContributor, namespace: :omv, type: %i[list Agent]
+      attribute :curatedBy, namespace: :pav, type: %i[list Agent]
+      attribute :publisher, namespace: :dct, type: %i[list Agent]
+      attribute :fundedBy, namespace: :foaf, type: %i[list Agent]
+      attribute :endorsedBy, namespace: :omv, type: %i[list Agent]
+      attribute :translator, namespace: :schema, type: %i[list Agent]
+
+      # Community metadata
+      attribute :audience, namespace: :dct
+      attribute :repository, namespace: :doap, type: :uri
+      attribute :bugDatabase, namespace: :doap, type: :uri
+      attribute :mailingList, namespace: :doap
+      attribute :toDoList, namespace: :voaf, type: :list
+      attribute :award, namespace: :schema, type: :list
+
+      # Usage metadata
+      attribute :knownUsage, namespace: :omv, type: :list
+      attribute :designedForOntologyTask, namespace: :omv, type: %i[list uri]
+      attribute :hasDomain, namespace: :omv, type: :list, default: ->(s) { ontology_has_domain(s) }
+      attribute :coverage, namespace: :dct
+      attribute :example, namespace: :vann, type: :list
+
+      # Methodology metadata
+      attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv
+      attribute :usedOntologyEngineeringMethodology, namespace: :omv
+      attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list]
+      attribute :accrualMethod, namespace: :dct, type: %i[list]
+      attribute :accrualPeriodicity, namespace: :dct
+      attribute :accrualPolicy, namespace: :dct
+      attribute :competencyQuestion, namespace: :mod, type: :list
+      attribute :wasGeneratedBy, namespace: :prov, type: :list
+      attribute :wasInvalidatedBy, namespace: :prov, type: :list
+
+      # Links
+      attribute :pullLocation, type: :uri # URI for pulling ontology
+      attribute :isFormatOf, namespace: :dct, type: :uri
+      attribute :hasFormat, namespace: :dct, type: %i[uri list]
+      attribute :dataDump, namespace: :void, type: :uri, default: -> (s) { data_dump_default(s) }
+      attribute :csvDump, type: :uri, default: -> (s) { csv_dump_default(s) }
+      attribute :uriLookupEndpoint, namespace: :void, type: :uri, default: -> (s) { uri_lookup_default(s) }
+      attribute :openSearchDescription, namespace: :void, type: :uri, default: -> (s) { open_search_default(s) }
+      attribute :source, namespace: :dct, type: :list
+      attribute :endpoint, namespace: :sd, type: %i[uri list],
+                           default: ->(s) { default_sparql_endpoint(s) }
+      attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
+
+      # Relations
+      attribute :hasPriorVersion, namespace: :omv, type: :uri
+      attribute :hasPart, namespace: :dct, type: %i[uri list]
+      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri]
+      attribute :similarTo, namespace: :door, type: %i[list uri]
+      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri]
+      attribute :isAlignedTo, namespace: :door, type: %i[list uri]
+      attribute :isBackwardCompatibleWith, namespace: :omv, type: %i[list uri]
+      attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri]
+      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri]
+      attribute :hasDisjunctionsWith, namespace: :voaf, type: %i[uri list]
+      attribute :generalizes, namespace: :voaf, type: %i[list uri]
+      attribute :explanationEvolution, namespace: :door, type: %i[list uri]
+      attribute :useImports, namespace: :omv, type: %i[list uri]
+      attribute :usedBy, namespace: :voaf, type: %i[uri list]
+      attribute :workTranslation, namespace: :schema, type: %i[uri list]
+      attribute :translationOfWork, namespace: :schema, type: %i[uri list]
+
+      # Content metadata
+      attribute :uriRegexPattern, namespace: :void
+      attribute :preferredNamespaceUri, namespace: :vann, type: :uri
+      attribute :preferredNamespacePrefix, namespace: :vann
+      attribute :exampleIdentifier, namespace: :idot
+      attribute :keyClasses, namespace: :omv, type: %i[list]
+      attribute :metadataVoc, namespace: :voaf, type: %i[uri list]
       attribute :uploadFilePath
       attribute :diffFilePath
       attribute :masterFileName
-      attribute :submissionStatus, enforce: [:submission_status, :list], default: lambda { |record| [LinkedData::Models::SubmissionStatus.find("UPLOADED").first] }
-      attribute :missingImports, enforce: [:list]
 
-      # URI for pulling ontology
-      attribute :pullLocation, enforce: [:uri]
+      # Media metadata
+      attribute :associatedMedia, namespace: :schema, type: %i[uri list]
+      attribute :depiction, namespace: :foaf, type: %i[uri list]
+      attribute :logo, namespace: :foaf, type: :uri
+
+      # Metrics metadata
+      attribute :metrics, type: :metrics
+
+      # Configuration metadata
+
+      # Internal values for parsing - not definitive
+      attribute :submissionStatus, type: %i[submission_status list], default: ->(record) { [LinkedData::Models::SubmissionStatus.find("UPLOADED").first] }
+      attribute :missingImports, type: :list
 
       # Link to ontology
-      attribute :ontology, enforce: [:existence, :ontology]
+      attribute :ontology, type: :ontology, enforce: [:existence]
 
-      #Link to metrics
-      attribute :metrics, enforce: [:metrics]
+      def self.agents_attrs
+        %i[hasCreator publisher copyrightHolder hasContributor
+         translator endorsedBy fundedBy curatedBy]
+      end
 
       # Hypermedia settings
-      embed :contact, :ontology
-      embed_values :submissionStatus => [:code], :hasOntologyLanguage => [:acronym]
+      embed *%i[contact ontology metrics] + agents_attrs
+
+      def self.embed_values_hash
+        out = {
+          submissionStatus: [:code], hasOntologyLanguage: [:acronym]
+        }
+
+        agent_attributes = LinkedData::Models::Agent.goo_attrs_to_load +
+          [identifiers: LinkedData::Models::AgentIdentifier.goo_attrs_to_load, affiliations: LinkedData::Models::Agent.goo_attrs_to_load]
+
+        agents_attrs.each { |k| out[k] = agent_attributes }
+        out
+      end
+
+      embed_values self.embed_values_hash
+
       serialize_default :contact, :ontology, :hasOntologyLanguage, :released, :creationDate, :homepage,
                         :publication, :documentation, :version, :description, :status, :submissionId
 
       # Links
       links_load :submissionId, ontology: [:acronym]
-      link_to LinkedData::Hypermedia::Link.new("metrics", lambda {|s| "#{self.ontology_link(s)}/submissions/#{s.submissionId}/metrics"}, self.type_uri)
-      LinkedData::Hypermedia::Link.new("download", lambda {|s| "#{self.ontology_link(s)}/submissions/#{s.submissionId}/download"}, self.type_uri)
+      link_to LinkedData::Hypermedia::Link.new("metrics", ->(s) { "#{self.ontology_link(s)}/submissions/#{s.submissionId}/metrics" }, self.type_uri)
+      LinkedData::Hypermedia::Link.new("download", ->(s) { "#{self.ontology_link(s)}/submissions/#{s.submissionId}/download" }, self.type_uri)
 
       # HTTP Cache settings
       cache_timeout 3600
-      cache_segment_instance lambda {|sub| segment_instance(sub)}
+      cache_segment_instance ->(sub) { segment_instance(sub) }
       cache_segment_keys [:ontology_submission]
       cache_load ontology: [:acronym]
 
       # Access control
-      read_restriction_based_on lambda {|sub| sub.ontology}
-      access_control_load ontology: [:administeredBy, :acl, :viewingRestriction]
+      read_restriction_based_on ->(sub) { sub.ontology }
+      access_control_load ontology: %i[administeredBy acl viewingRestriction]
+
+      enable_indexing(:ontology_metadata)
 
       def initialize(*args)
         super(*args)
@@ -113,27 +245,46 @@ module LinkedData
         ontology_link
       end
 
+      # Override the bring_remaining method from Goo::Base::Resource : https://github.com/ncbo/goo/blob/master/lib/goo/base/resource.rb#L383
+      # Because the old way to query the 4store was not working when lots of attributes
+      # Now it is querying attributes 5 by 5 (way faster than 1 by 1)
+      def bring_remaining
+        to_bring = []
+        i = 0
+        self.class.attributes.each do |attr|
+          to_bring << attr if self.bring?(attr)
+          if i == 5
+            self.bring(*to_bring)
+            to_bring = []
+            i = 0
+          end
+          i = i + 1
+        end
+        self.bring(*to_bring)
+      end
+
       def self.segment_instance(sub)
         sub.bring(:ontology) unless sub.loaded_attributes.include?(:ontology)
         sub.ontology.bring(:acronym) unless sub.ontology.loaded_attributes.include?(:acronym)
-        [sub.ontology.acronym] rescue []
+        begin
+          [sub.ontology.acronym]
+        rescue
+          []
+        end
       end
 
       def self.submission_id_generator(ss)
-        if !ss.ontology.loaded_attributes.include?(:acronym)
-          ss.ontology.bring(:acronym)
-        end
-        if ss.ontology.acronym.nil?
-          raise ArgumentError, "Submission cannot be saved if ontology does not have acronym"
-        end
+        ss.ontology.bring(:acronym) if !ss.ontology.loaded_attributes.include?(:acronym)
+        raise ArgumentError, "Submission cannot be saved if ontology does not have acronym" if ss.ontology.acronym.nil?
         return RDF::URI.new(
           "#{(Goo.id_prefix)}ontologies/#{CGI.escape(ss.ontology.acronym.to_s)}/submissions/#{ss.submissionId.to_s}"
         )
       end
 
+      # Copy file from /tmp/uncompressed-ont-rest-file to /srv/ncbo/repository/MY_ONT/1/
       def self.copy_file_repository(acronym, submissionId, src, filename = nil)
         path_to_repo = File.join([LinkedData.settings.repository_folder, acronym.to_s, submissionId.to_s])
-        name = filename || File.basename(File.new(src).path)
+        name = filename.nil? ? File.basename(File.new(src).path) : File.basename(filename)
         # THIS LOGGER IS JUST FOR DEBUG - remove after NCBO-795 is closed
         # https://github.com/ncbo/bioportal-project/issues/323
         # logger = Logger.new(Dir.pwd + "/logs/create_permissions.log")
@@ -143,11 +294,19 @@ module LinkedData
         end
         dst = File.join([path_to_repo, name])
         FileUtils.copy(src, dst)
-        # logger.debug("File created #{dst} | #{"%o" % File.stat(dst).mode} | umask: #{File.umask}") # NCBO-795
-        if not File.exist? dst
-          raise Exception, "Unable to copy #{src} to #{dst}"
-        end
+        logger.debug("File created #{dst} | #{"%o" % File.stat(dst).mode} | umask: #{File.umask}") # NCBO-795
+        raise Exception, "Unable to copy #{src} to #{dst}" if not File.exist? dst
         return dst
+      end
+
+      def self.clear_indexed_content(ontology)
+        conn = Goo.init_search_connection(:ontology_data)
+        begin
+          conn.delete_by_query("ontology_t:\"#{ontology}\"")
+        rescue StandardError => e
+          # puts e.message
+        end
+        conn
       end
 
       def valid?
@@ -200,9 +359,7 @@ module LinkedData
             rescue Exception => e1
               sum_only = nil
 
-              if i == num_calls
-                raise $!, "#{$!} after retrying #{i} times...", $!.backtrace
-              end
+              raise $!, "#{$!} after retrying #{i} times...", $!.backtrace if i == num_calls
             end
           end
         end
@@ -214,14 +371,12 @@ module LinkedData
           return false
         elsif self.pullLocation
           self.errors[:pullLocation] = ["File at #{self.pullLocation.to_s} does not exist"]
-          if self.uploadFilePath.nil?
-            return remote_file_exists?(self.pullLocation.to_s)
-          end
+          return remote_file_exists?(self.pullLocation.to_s) if self.uploadFilePath.nil?
           return true
         end
 
         zip = zipped?
-        files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
+        files = LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
 
         if not zip and self.masterFileName.nil?
           return true
@@ -232,13 +387,11 @@ module LinkedData
           self.masterFileName = LinkedData::Utils::FileHelpers.automaster(self.uploadFilePath, self.hasOntologyLanguage.file_extension)
           return true
         elsif zip and self.masterFileName.nil?
-          #zip and masterFileName not set. The user has to choose.
-          if self.errors[:uploadFilePath].nil?
-            self.errors[:uploadFilePath] = []
-          end
+          # zip and masterFileName not set. The user has to choose.
+          self.errors[:uploadFilePath] = [] if self.errors[:uploadFilePath].nil?
 
-          #check for duplicated names
-          repeated_names =  LinkedData::Utils::FileHelpers.repeated_names_in_file_list(files)
+          # check for duplicated names
+          repeated_names = LinkedData::Utils::FileHelpers.repeated_names_in_file_list(files)
           if repeated_names.length > 0
             names = repeated_names.keys.to_s
             self.errors[:uploadFilePath] <<
@@ -246,14 +399,14 @@ module LinkedData
             return false
           end
 
-          #error message with options to choose from.
+          # error message with options to choose from.
           self.errors[:uploadFilePath] << {
             :message => "Zip file detected, choose the master file.", :options => files }
           return false
 
         elsif zip and not self.masterFileName.nil?
-          #if zip and the user chose a file then we make sure the file is in the list.
-          files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath)
+          # if zip and the user chose a file then we make sure the file is in the list.
+          files = LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath)
           if not files.include? self.masterFileName
             if self.errors[:uploadFilePath].nil?
               self.errors[:uploadFilePath] = []
@@ -277,6 +430,9 @@ module LinkedData
       end
 
       def zipped?(full_file_path = uploadFilePath)
+        return false if full_file_path.nil?
+        return false unless File.exist?(full_file_path)
+
         LinkedData::Utils::FileHelpers.zip?(full_file_path) || LinkedData::Utils::FileHelpers.gzip?(full_file_path)
       end
 
@@ -316,14 +472,13 @@ module LinkedData
       end
 
       def unzip_submission(logger)
+
         zip_dst = nil
 
         if zipped?
           zip_dst = self.zip_folder
 
-          if Dir.exist? zip_dst
-            FileUtils.rm_r [zip_dst]
-          end
+          FileUtils.rm_r [zip_dst] if Dir.exist? zip_dst
           FileUtils.mkdir_p zip_dst
           extracted = LinkedData::Utils::FileHelpers.unzip(self.uploadFilePath, zip_dst)
 
@@ -334,14 +489,14 @@ module LinkedData
           end
 
           if logger
-            logger.info("Files extracted from zip #{extracted}")
+            logger.info("Files extracted from zip/gz #{extracted}")
             logger.flush
           end
         end
         zip_dst
       end
 
-      def class_count(logger=nil)
+      def class_count(logger = nil)
         logger ||= LinkedData::Parser.logger || Logger.new($stderr)
         count = -1
         count_set = false
@@ -372,9 +527,7 @@ module LinkedData
           unless mx.empty?
             count = mx[1][0].to_i
 
-            if self.hasOntologyLanguage.skos?
-              count += mx[1][1].to_i
-            end
+            count += mx[1][1].to_i if self.hasOntologyLanguage.skos?
             count_set = true
           end
         end
@@ -386,7 +539,7 @@ module LinkedData
         count
       end
 
-      def metrics_from_file(logger=nil)
+      def metrics_from_file(logger = nil)
         logger ||= LinkedData::Parser.logger || Logger.new($stderr)
         metrics = []
         m_path = self.metrics_path
@@ -404,7 +557,7 @@ module LinkedData
         valid = status.is_a?(LinkedData::Models::SubmissionStatus)
         raise ArgumentError, "The status being added is not SubmissionStatus object" unless valid
 
-        #archive removes the other status
+        # archive removes the other status
         if status.archived?
           self.submissionStatus = [status]
           return self.submissionStatus
@@ -416,7 +569,9 @@ module LinkedData
         if (status.error?)
           # remove the corresponding non_error status (if exists)
           non_error_status = status.get_non_error_status()
-          s.reject! { |stat| stat.get_code_from_id() == non_error_status.get_code_from_id() } unless non_error_status.nil?
+          unless non_error_status.nil?
+            s.reject! { |stat| stat.get_code_from_id() == non_error_status.get_code_from_id() }
+          end
         else
           # remove the corresponding non_error status (if exists)
           error_status = status.get_error_status()
@@ -457,7 +612,7 @@ module LinkedData
       # allows to optionally submit a list of statuses
       # that would define the "ready" state of this
       # submission in this context
-      def ready?(options={})
+      def ready?(options = {})
         self.bring(:submissionStatus) if self.bring?(:submissionStatus)
         status = options[:status] || :ready
         status = status.is_a?(Array) ? status : [status]
@@ -481,16 +636,15 @@ module LinkedData
       end
 
       # Override delete to add removal from the search index
-      #TODO: revise this with a better process
+      # TODO: revise this with a better process
       def delete(*args)
         options = {}
-        args.each {|e| options.merge!(e) if e.is_a?(Hash)}
+        args.each { |e| options.merge!(e) if e.is_a?(Hash) }
         remove_index = options[:remove_index] ? true : false
         index_commit = options[:index_commit] == false ? false : true
 
         super(*args)
-        self.ontology.unindex(index_commit)
-        self.ontology.unindex_properties(index_commit)
+        self.ontology.unindex_all_data(index_commit)
 
         self.bring(:metrics) if self.bring?(:metrics)
         self.metrics.delete if self.metrics
@@ -503,17 +657,19 @@ module LinkedData
             prev_sub = self.ontology.latest_submission
 
             if prev_sub
-              prev_sub.index(LinkedData::Parser.logger || Logger.new($stderr))
+              prev_sub.index_terms(LinkedData::Parser.logger || Logger.new($stderr))
               prev_sub.index_properties(LinkedData::Parser.logger || Logger.new($stderr))
             end
           end
         end
 
+        self.archive(force: true)
+
         # delete the folder and files
         FileUtils.remove_dir(self.data_folder) if Dir.exist?(self.data_folder)
       end
 
-      def roots(extra_include=nil, page=nil, pagesize=nil)
+      def roots(extra_include = [], page = nil, pagesize = nil, concept_schemes: [], concept_collections: [])
         self.bring(:ontology) unless self.loaded_attributes.include?(:ontology)
         self.bring(:hasOntologyLanguage) unless self.loaded_attributes.include?(:hasOntologyLanguage)
         paged = false
@@ -525,46 +681,12 @@ module LinkedData
           paged = true
         end
 
-        skos = self.hasOntologyLanguage&.skos?
+        skos = self.skos?
         classes = []
 
         if skos
-          root_skos = <<eos
-SELECT DISTINCT ?root WHERE {
-GRAPH #{self.id.to_ntriples} {
-  ?x #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
-}}
-eos
-          count = 0
-
-          if paged
-            query = <<eos
-SELECT (COUNT(?x) as ?count) WHERE {
-GRAPH #{self.id.to_ntriples} {
-  ?x #{RDF::SKOS[:hasTopConcept].to_ntriples} ?root .
-}}
-eos
-            rs = Goo.sparql_query_client.query(query)
-            rs.each do |sol|
-              count = sol[:count].object
-            end
-
-            offset = (page - 1) * pagesize
-            root_skos = "#{root_skos} LIMIT #{pagesize} OFFSET #{offset}"
-          end
-
-          #needs to get cached
-          class_ids = []
-
-          Goo.sparql_query_client.query(root_skos, { :graphs => [self.id] }).each_solution do |s|
-            class_ids << s[:root]
-          end
-
-          class_ids.each do |id|
-            classes << LinkedData::Models::Class.find(id).in(self).disable_rules.first
-          end
-
-          classes = Goo::Base::Page.new(page, pagesize, count, classes) if paged
+          classes = skos_roots(concept_schemes, page, paged, pagesize)
+          extra_include += LinkedData::Models::Class.concept_is_in_attributes
         else
           self.ontology.bring(:flat)
           data_query = nil
@@ -597,7 +719,7 @@ eos
         where = LinkedData::Models::Class.in(self).models(classes).include(:prefLabel, :definition, :synonym, :obsolete)
 
         if extra_include
-          [:prefLabel, :definition, :synonym, :obsolete, :childrenCount].each do |x|
+          %i[prefLabel definition synonym obsolete childrenCount].each do |x|
             extra_include.delete x
           end
         end
@@ -617,27 +739,75 @@ eos
             load_children = [:children]
           end
 
-          if extra_include.length > 0
-            where.include(extra_include)
-          end
+          where.include(extra_include) if extra_include.length > 0
         end
         where.all
 
-        if load_children.length > 0
-          LinkedData::Models::Class.partially_load_children(classes, 99, self)
-        end
+        LinkedData::Models::Class.partially_load_children(classes, 99, self) if load_children.length > 0
 
         classes.delete_if { |c|
           obs = !c.obsolete.nil? && c.obsolete == true
-          c.load_has_children if extra_include&.include?(:hasChildren) && !obs
+          if !obs
+            c.load_computed_attributes(to_load: extra_include,
+                                       options: { schemes: current_schemes(concept_schemes), collections: concept_collections })
+          end
           obs
         }
-
         classes
       end
 
-      def roots_sorted(extra_include=nil)
-        classes = roots(extra_include)
+      def children(cls, includes_param: [], concept_schemes: [], concept_collections: [], page: 1, size: 50)
+        ld = LinkedData::Models::Class.goo_attrs_to_load(includes_param)
+        unmapped = ld.delete(:properties)
+
+        ld += LinkedData::Models::Class.concept_is_in_attributes if skos?
+
+        page_data_query = LinkedData::Models::Class.where(parents: cls).in(self).include(ld)
+        aggregates = LinkedData::Models::Class.goo_aggregates_to_load(ld)
+        page_data_query.aggregate(*aggregates) unless aggregates.empty?
+        page_data = page_data_query.page(page, size).all
+        LinkedData::Models::Class.in(self).models(page_data).include(:unmapped).all if unmapped
+
+        page_data.delete_if { |x| x.id.to_s == cls.id.to_s }
+        if ld.include?(:hasChildren) || ld.include?(:isInActiveScheme) || ld.include?(:isInActiveCollection)
+          page_data.each do |c|
+            c.load_computed_attributes(to_load: ld,
+                                       options: { schemes: concept_schemes, collections: concept_collections })
+          end
+        end
+
+        unless concept_schemes.empty?
+          page_data.delete_if { |c| Array(c.isInActiveScheme).empty? && !c.load_has_children }
+          if (page_data.size < size) && page_data.next_page
+            page_data += children(cls, includes_param: includes_param, concept_schemes: concept_schemes,
+                                      concept_collections: concept_collections,
+                                 page: page_data.next_page, size: size)
+          end
+        end
+
+        page_data
+      end
+
+      def skos?
+        self.bring :hasOntologyLanguage if bring? :hasOntologyLanguage
+        self.hasOntologyLanguage&.skos?
+      end
+
+      def ontology_uri
+        self.bring(:URI) if self.bring? :URI
+        RDF::URI.new(self.URI)
+      end
+
+      def uri
+        self.ontology_uri.to_s
+      end
+
+      def uri=(uri)
+        self.URI = RDF::URI.new(uri)
+      end
+
+      def roots_sorted(extra_include = nil, concept_schemes: [])
+        classes = roots(extra_include, concept_schemes: concept_schemes)
         LinkedData::Models::Class.sort_classes(classes)
       end
 
@@ -662,6 +832,7 @@ eos
         check
       end
 
+      # Download ont file from pullLocation in /tmp/uncompressed-ont-rest-file
       def download_ontology_file
         file, filename = LinkedData::Utils::FileHelpers.download_file(self.pullLocation.to_s)
         return file, filename
@@ -670,7 +841,6 @@ eos
       def delete_classes_graph
         Goo.sparql_data_client.delete_graph(self.id)
       end
-
 
       def master_file_path
         path = if zipped?
@@ -753,9 +923,7 @@ eos
       def self.loom_transform_literal(lit)
         res = []
         lit.each_char do |c|
-          if (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')
-            res << c.downcase
-          end
+          res << c.downcase if (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')
         end
         return res.join ''
       end

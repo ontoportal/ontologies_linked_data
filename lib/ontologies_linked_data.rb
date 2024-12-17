@@ -7,6 +7,13 @@ $LOAD_PATH.unshift lib_dir unless $LOAD_PATH.include?(lib_dir)
 # Setup Goo (repo connection and namespaces)
 require 'ontologies_linked_data/config/config'
 
+project_root = File.dirname(File.absolute_path(__FILE__))
+
+models = Dir.glob("#{project_root}/ontologies_linked_data/concerns/**/*.rb").sort
+models.each do |m|
+  require m
+end
+
 # Include other dependent code
 require "ontologies_linked_data/security/authorization"
 require "ontologies_linked_data/security/access_control"
@@ -33,16 +40,13 @@ require "ontologies_linked_data/metrics/metrics"
 # Require base model
 require 'ontologies_linked_data/models/base'
 
+
+
+
 # Require all models and services
 project_root = File.dirname(File.absolute_path(__FILE__))
-
+# Require base services
 require 'ontologies_linked_data/services/submission_process/submission_process'
-models = Dir.glob("#{project_root}/ontologies_linked_data/concerns/**/*.rb").sort
-models.each do |m|
-  require m
-end
-
-
 
 # We need to require deterministic - that is why we have the sort.
 
@@ -57,10 +61,6 @@ models.each do |m|
   require m
 end
 
-models = Dir.glob("#{project_root}/ontologies_linked_data/concerns/**/*.rb").sort
-models.each do |m|
-  require m
-end
 # We need to require deterministic - that is why we have the sort.
 models = Dir.glob("#{project_root}/ontologies_linked_data/models/**/*.rb").sort
 models.each do |m|

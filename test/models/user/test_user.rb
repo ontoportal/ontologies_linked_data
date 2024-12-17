@@ -83,4 +83,9 @@ class TestUser < LinkedData::TestCase
     u.delete
   end
 
+  def test_user_subscription_load
+    to_load = LinkedData::Models::User.goo_attrs_to_load([:subscription])
+    assert_equal [{ subscription: [:ontology, { notification_type: [:type] }], role: [:role] }], to_load
+  end
+
 end

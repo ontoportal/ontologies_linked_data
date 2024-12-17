@@ -21,10 +21,14 @@ class TestNotifications < LinkedData::TestCase
     @@ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(ont_count: 1, submission_count: 1)[2].first
     @@ont.bring_remaining
     @@user = @@ont.administeredBy.first
-    @@subscription = self.new("before_suite")._subscription(@@ont)
     @@user.bring_remaining
-    @@user.subscription = [@@subscription]
-    @@user.save
+
+    @@subscription = self.new("before_suite")._subscription(@@ont)
+
+    @@user2 = LinkedData::Models::User.new(username: "tim2", email: "tim2@example.org", password: "password").save
+    @@user2.bring_remaining
+    @@user2.subscription = [@@subscription]
+    @@user2.save
   end
 
   def self.after_suite
@@ -61,14 +65,21 @@ class TestNotifications < LinkedData::TestCase
     # Disable override
     LinkedData.settings.email_disable_override = true
     LinkedData::Utils::Notifier.notify({
-                                              recipients: recipients,
-                                              subject: subject,
-                                              body: body
-                                            })
+                                         recipients: recipients,
+                                         subject: subject,
+                                         body: body
+                                       })
     assert_equal recipients, last_email_sent.to
     assert_equal [LinkedData.settings.email_sender], last_email_sent.from
     assert_equal last_email_sent.body.raw_source, body
     assert_equal last_email_sent.subject, subject
+  end
+
+  def test_new_user_notification
+    @@user2.save(send_notifications: true)
+
+    assert_equal LinkedData.settings.admin_emails, last_email_sent.to
+    assert last_email_sent.body.raw_source['A new user have been created']
   end
 
   def test_new_note_notification

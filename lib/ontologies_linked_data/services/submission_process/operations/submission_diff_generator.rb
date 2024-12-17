@@ -18,9 +18,8 @@ module LinkedData
         older.bring(:uploadFilePath)
 
         LinkedData::Diff::BubastisDiffCommand.new(
-          File.expand_path(older.uploadFilePath.to_s),
-          File.expand_path(@submission.uploadFilePath.to_s),
-          File.expand_path(@submission.data_folder.to_s))
+          File.expand_path(older.uploadFilePath),
+          File.expand_path(@submission.uploadFilePath))
       end
 
       def process_diff(logger)
@@ -73,7 +72,7 @@ module LinkedData
           @submission.save
           logger.info("Diff generated successfully for #{@submission.id}")
           logger.flush
-        rescue StandardError => e
+        rescue StoreError => e
           logger.error("Diff process for #{@submission.id} failed - #{e.class}: #{e.message}")
           logger.flush
           raise e
