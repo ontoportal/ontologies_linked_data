@@ -14,51 +14,193 @@ module LinkedData
 
       include LinkedData::Concerns::SubmissionProcessable
       include LinkedData::Concerns::OntologySubmission::MetadataExtractor
+      include LinkedData::Concerns::OntologySubmission::Validators
 
       FLAT_ROOTS_LIMIT = 1000
 
-      model :ontology_submission, name_with: lambda { |s| submission_id_generator(s) }
-      attribute :submissionId, enforce: [:integer, :existence]
+      model :ontology_submission, scheme: File.join(__dir__, '../../../config/schemes/ontology_submission.yml'),
+            name_with: ->(s) { submission_id_generator(s) }
 
+      attribute :submissionId, type: :integer, enforce: [:existence]
+
+      # Object description properties metadata
       # Configurable properties for processing
-      attribute :prefLabelProperty, enforce: [:uri]
-      attribute :definitionProperty, enforce: [:uri]
-      attribute :synonymProperty, enforce: [:uri]
-      attribute :authorProperty, enforce: [:uri]
-      attribute :classType, enforce: [:uri]
-      attribute :hierarchyProperty, enforce: [:uri]
-      attribute :obsoleteProperty, enforce: [:uri]
-      attribute :obsoleteParent, enforce: [:uri]
+      attribute :prefLabelProperty, type: :uri, default: ->(s) { Goo.vocabulary(:skos)[:prefLabel] }
+      attribute :definitionProperty, type: :uri, default: ->(s) { Goo.vocabulary(:skos)[:definition] }
+      attribute :synonymProperty, type: :uri, default: ->(s) { Goo.vocabulary(:skos)[:altLabel] }
+      attribute :authorProperty, type: :uri, default: ->(s) { Goo.vocabulary(:dc)[:creator] }
+      attribute :classType, type: :uri
+      attribute :hierarchyProperty, type: :uri, default: ->(s) { default_hierarchy_property(s) }
+      attribute :obsoleteProperty, type: :uri, default: ->(s) { Goo.vocabulary(:owl)[:deprecated] }
+      attribute :obsoleteParent, type: :uri
+      attribute :createdProperty, type: :uri, default: ->(s) { Goo.vocabulary(:dc)[:created] }
+      attribute :modifiedProperty, type: :uri, default: ->(s) { Goo.vocabulary(:dc)[:modified] }
 
       # Ontology metadata
-      attribute :hasOntologyLanguage, namespace: :omv, enforce: [:existence, :ontology_format]
-      attribute :homepage
-      attribute :publication
-      attribute :uri, namespace: :omv
-      attribute :naturalLanguage, namespace: :omv, enforce: [:list]
-      attribute :documentation, namespace: :omv
+      # General metadata
+      attribute :URI, namespace: :omv, type: :uri, enforce: %i[existence distinct_of_identifier], fuzzy_search: true
+      attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
       attribute :version, namespace: :omv
-      attribute :creationDate, namespace: :omv, enforce: [:date_time], default: lambda { |record| DateTime.now }
-      attribute :description, namespace: :omv
-      attribute :status, namespace: :omv
-      attribute :contact, enforce: [:existence, :contact, :list]
-      attribute :released, enforce: [:date_time, :existence]
+      attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' }
+      attribute :deprecated, namespace: :owl, type: :boolean, default: ->(x) { false }
+      attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
+      attribute :hasFormalityLevel, namespace: :omv, type: :uri
+      attribute :hasOntologySyntax, namespace: :omv, type: :uri, default: ->(s) { ontology_syntax_default(s) }
+      attribute :naturalLanguage, namespace: :omv, type: %i[list uri], enforce: [:lexvo_language]
+      attribute :isOfType, namespace: :omv, type: :uri
+      attribute :identifier, namespace: :dct, type: %i[list uri], enforce: [:distinct_of_URI]
 
-      # Internal values for parsing - not definitive
+      # Description metadata
+      attribute :description, namespace: :omv, enforce: %i[concatenate existence], fuzzy_search: true
+      attribute :homepage, namespace: :foaf, type: :uri
+      attribute :documentation, namespace: :omv, type: :uri
+      attribute :notes, namespace: :omv, type: :list
+      attribute :keywords, namespace: :omv, type: :list
+      attribute :hiddenLabel, namespace: :skos, type: :list
+      attribute :alternative, namespace: :dct, type: :list
+      attribute :abstract, namespace: :dct
+      attribute :publication, type: %i[uri list]
+
+      # Licensing metadata
+      attribute :hasLicense, namespace: :omv, type: :uri
+      attribute :useGuidelines, namespace: :cc
+      attribute :morePermissions, namespace: :cc
+      # attribute :copyrightHolder, namespace: :schema, type: :Agent
+
+      # Date metadata
+      attribute :released, type: :date_time, enforce: [:existence]
+      attribute :valid, namespace: :dct, type: :date_time
+      attribute :curatedOn, namespace: :pav, type: %i[date_time list]
+      attribute :creationDate, namespace: :omv, type: :date_time, default: ->(x) { Date.today.to_datetime }
+      attribute :modificationDate, namespace: :omv, type: :date_time
+
+      # Person and organizations metadata
+      attribute :contact, type: %i[contact list], enforce: [:existence]
+      # attribute :hasCreator, namespace: :omv, type: %i[list Agent]
+      # attribute :hasContributor, namespace: :omv, type: %i[list Agent]
+      # attribute :curatedBy, namespace: :pav, type: %i[list Agent]
+      # attribute :publisher, namespace: :dct, type: %i[list Agent]
+      # attribute :fundedBy, namespace: :foaf, type: %i[list Agent]
+      # attribute :endorsedBy, namespace: :omv, type: %i[list Agent]
+      # attribute :translator, namespace: :schema, type: %i[list Agent]
+
+      # Community metadata
+      attribute :audience, namespace: :dct
+      attribute :repository, namespace: :doap, type: :uri
+      attribute :bugDatabase, namespace: :doap, type: :uri
+      attribute :mailingList, namespace: :doap
+      attribute :toDoList, namespace: :voaf, type: :list
+      attribute :award, namespace: :schema, type: :list
+
+      # Usage metadata
+      attribute :knownUsage, namespace: :omv, type: :list
+      attribute :designedForOntologyTask, namespace: :omv, type: %i[list uri]
+      attribute :hasDomain, namespace: :omv, type: :list, default: ->(s) { ontology_has_domain(s) }
+      attribute :coverage, namespace: :dct
+      attribute :example, namespace: :vann, type: :list
+
+      # Methodology metadata
+      attribute :conformsToKnowledgeRepresentationParadigm, namespace: :omv
+      attribute :usedOntologyEngineeringMethodology, namespace: :omv
+      attribute :usedOntologyEngineeringTool, namespace: :omv, type: %i[list]
+      attribute :accrualMethod, namespace: :dct, type: %i[list]
+      attribute :accrualPeriodicity, namespace: :dct
+      attribute :accrualPolicy, namespace: :dct
+      attribute :competencyQuestion, namespace: :mod, type: :list
+      attribute :wasGeneratedBy, namespace: :prov, type: :list
+      attribute :wasInvalidatedBy, namespace: :prov, type: :list
+
+      # Links
+      attribute :pullLocation, type: :uri # URI for pulling ontology
+      attribute :isFormatOf, namespace: :dct, type: :uri
+      attribute :hasFormat, namespace: :dct, type: %i[uri list]
+      attribute :dataDump, namespace: :void, type: :uri, default: -> (s) { data_dump_default(s) }
+      attribute :csvDump, type: :uri, default: -> (s) { csv_dump_default(s) }
+      attribute :uriLookupEndpoint, namespace: :void, type: :uri, default: -> (s) { uri_lookup_default(s) }
+      attribute :openSearchDescription, namespace: :void, type: :uri, default: -> (s) { open_search_default(s) }
+      attribute :source, namespace: :dct, type: :list
+      attribute :endpoint, namespace: :sd, type: %i[uri list],
+                default: ->(s) { default_sparql_endpoint(s) }
+      attribute :includedInDataCatalog, namespace: :schema, type: %i[list uri]
+
+      # Relations
+      attribute :hasPriorVersion, namespace: :omv, type: :uri
+      attribute :hasPart, namespace: :dct, type: %i[uri list]
+      attribute :ontologyRelatedTo, namespace: :door, type: %i[list uri]
+      attribute :similarTo, namespace: :door, type: %i[list uri]
+      attribute :comesFromTheSameDomain, namespace: :door, type: %i[list uri]
+      attribute :isAlignedTo, namespace: :door, type: %i[list uri]
+      attribute :isBackwardCompatibleWith, namespace: :omv, type: %i[list uri]
+      attribute :isIncompatibleWith, namespace: :omv, type: %i[list uri]
+      attribute :hasDisparateModelling, namespace: :door, type: %i[list uri]
+      attribute :hasDisjunctionsWith, namespace: :voaf, type: %i[uri list]
+      attribute :generalizes, namespace: :voaf, type: %i[list uri]
+      attribute :explanationEvolution, namespace: :door, type: %i[list uri]
+      attribute :useImports, namespace: :omv, type: %i[list uri]
+      attribute :usedBy, namespace: :voaf, type: %i[uri list]
+      attribute :workTranslation, namespace: :schema, type: %i[uri list]
+      attribute :translationOfWork, namespace: :schema, type: %i[uri list]
+
+      # Content metadata
+      attribute :uriRegexPattern, namespace: :void
+      attribute :preferredNamespaceUri, namespace: :vann, type: :uri
+      attribute :preferredNamespacePrefix, namespace: :vann
+      attribute :exampleIdentifier, namespace: :idot
+      attribute :keyClasses, namespace: :omv, type: %i[list]
+      attribute :metadataVoc, namespace: :voaf, type: %i[uri list]
       attribute :uploadFilePath
       attribute :diffFilePath
       attribute :masterFileName
-      attribute :submissionStatus, enforce: [:submission_status, :list], default: lambda { |record| [LinkedData::Models::SubmissionStatus.find("UPLOADED").first] }
-      attribute :missingImports, enforce: [:list]
 
-      # URI for pulling ontology
-      attribute :pullLocation, enforce: [:uri]
+      # Media metadata
+      attribute :associatedMedia, namespace: :schema, type: %i[uri list]
+      attribute :depiction, namespace: :foaf, type: %i[uri list]
+      attribute :logo, namespace: :foaf, type: :uri
+
+      # Metrics metadata
+      attribute :metrics, type: :metrics
+
+      # Configuration metadata
+
+      # Internal values for parsing - not definitive
+      attribute :submissionStatus, type: %i[submission_status list], default: ->(record) { [LinkedData::Models::SubmissionStatus.find("UPLOADED").first] }
+      attribute :missingImports, type: :list
 
       # Link to ontology
-      attribute :ontology, enforce: [:existence, :ontology]
+      attribute :ontology, type: :ontology, enforce: [:existence]
 
-      #Link to metrics
-      attribute :metrics, enforce: [:metrics]
+      def self.agents_attrs
+        return [] #TODO implement agent separately
+        %i[hasCreator publisher copyrightHolder hasContributor
+         translator endorsedBy fundedBy curatedBy]
+      end
+
+      # Hypermedia settings
+      embed *%i[contact ontology metrics] + agents_attrs
+
+      def self.embed_values_hash
+        out = {
+          submissionStatus: [:code], hasOntologyLanguage: [:acronym]
+        }
+
+        # TODO implement agents separately
+        # agent_attributes = LinkedData::Models::Agent.goo_attrs_to_load +
+        #   [identifiers: LinkedData::Models::AgentIdentifier.goo_attrs_to_load, affiliations: LinkedData::Models::Agent.goo_attrs_to_load]
+        #
+        # agents_attrs.each { |k| out[k] = agent_attributes }
+        out
+      end
+
+      embed_values self.embed_values_hash
+
+      serialize_default :contact, :ontology, :hasOntologyLanguage, :released, :creationDate, :homepage,
+                        :publication, :documentation, :version, :description, :status, :submissionId
+
+      # Links
+      links_load :submissionId, ontology: [:acronym]
+      link_to LinkedData::Hypermedia::Link.new("metrics", ->(s) { "#{self.ontology_link(s)}/submissions/#{s.submissionId}/metrics" }, self.type_uri)
+      LinkedData::Hypermedia::Link.new("download", ->(s) { "#{self.ontology_link(s)}/submissions/#{s.submissionId}/download" }, self.type_uri)
+
 
       # Hypermedia settings
       embed :contact, :ontology
