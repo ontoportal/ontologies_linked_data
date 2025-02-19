@@ -47,7 +47,7 @@ module LinkedData
       attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
       attribute :hasFormalityLevel, namespace: :omv, type: :uri
       attribute :hasOntologySyntax, namespace: :omv, type: :uri, default: ->(s) { ontology_syntax_default(s) }
-      attribute :naturalLanguage, namespace: :omv, type: %i[list uri], enforce: [:lexvo_language]
+      attribute :naturalLanguage, namespace: :omv, type: %i[list]
       attribute :isOfType, namespace: :omv, type: :uri
       attribute :identifier, namespace: :dct, type: %i[list uri], enforce: [:distinct_of_URI]
 
