@@ -15,6 +15,7 @@ module LinkedData
       include LinkedData::Concerns::SubmissionProcessable
       include LinkedData::Concerns::OntologySubmission::MetadataExtractor
       include LinkedData::Concerns::OntologySubmission::Validators
+      extend LinkedData::Concerns::OntologySubmission::DefaultCallbacks
 
       FLAT_ROOTS_LIMIT = 1000
 
@@ -38,10 +39,10 @@ module LinkedData
 
       # Ontology metadata
       # General metadata
-      attribute :URI, namespace: :omv, type: :uri, enforce: %i[existence distinct_of_identifier], fuzzy_search: true
+      attribute :uri, namespace: :omv, type: :uri, enforce: %i[distinct_of_identifier], fuzzy_search: true
       attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
       attribute :version, namespace: :omv
-      attribute :status, namespace: :omv, enforce: %i[existence], default: ->(x) { 'production' }
+      attribute :status, namespace: :omv, default: ->(x) { 'production' }
       attribute :deprecated, namespace: :owl, type: :boolean, default: ->(x) { false }
       attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
       attribute :hasFormalityLevel, namespace: :omv, type: :uri
@@ -51,7 +52,7 @@ module LinkedData
       attribute :identifier, namespace: :dct, type: %i[list uri], enforce: [:distinct_of_URI]
 
       # Description metadata
-      attribute :description, namespace: :omv, enforce: %i[concatenate existence], fuzzy_search: true
+      attribute :description, namespace: :omv, enforce: %i[concatenate], fuzzy_search: true
       attribute :homepage, namespace: :foaf, type: :uri
       attribute :documentation, namespace: :omv, type: :uri
       attribute :notes, namespace: :omv, type: :list
