@@ -8,7 +8,7 @@ module LinkedData
           ontology_iri = extract_ontology_iri
 
           self.version = version_info if version_info
-          self.uri = ontology_iri if ontology_iri
+          self.uri = RDF::URI.new(ontology_iri) if ontology_iri
 
         end
 
