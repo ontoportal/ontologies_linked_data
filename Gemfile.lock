@@ -133,7 +133,7 @@ GEM
     pry (0.15.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
-    public_suffix (5.1.1)
+    public_suffix (6.0.1)
     racc (1.8.1)
     rack (2.2.11)
     rack-test (0.8.3)
@@ -238,4 +238,4 @@ DEPENDENCIES
   thin
 
 BUNDLED WITH
-   2.4.22
+   2.5.11

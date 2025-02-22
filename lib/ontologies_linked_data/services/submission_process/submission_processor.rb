@@ -56,6 +56,8 @@ module LinkedData
               @submission.index_properties(logger, commit: index_commit)
             end
 
+            @submission.generate_diff(logger) if diff
+
             if run_metrics
               unless parsed
                 raise StandardError, "Metrics cannot be generated on the submission
@@ -64,7 +66,6 @@ module LinkedData
               end
               @submission.generate_metrics(logger)
             end
-            @submission.generate_diff(logger) if diff
           end
 
           @submission.save
