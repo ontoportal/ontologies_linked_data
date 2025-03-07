@@ -4,7 +4,7 @@ x-app: &app
       args:
         RUBY_VERSION: '3.1'
     # Increase the version number in the image tag every time Dockerfile or its arguments is changed
-    image: ontologies_ld-dev:0.0.3
+    image: ontologies_ld-dev:0.0.4
     environment: &env
       # default bundle config resolves to /usr/local/bundle/config inside of the container
       # we are setting it to local app directory if we need to use 'bundle config local'
