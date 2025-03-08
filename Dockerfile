@@ -1,5 +1,5 @@
 ARG RUBY_VERSION=3.1
-ARG DISTRO=slim-bullseye
+ARG DISTRO=bullseye
 
 FROM ruby:$RUBY_VERSION-$DISTRO
 
