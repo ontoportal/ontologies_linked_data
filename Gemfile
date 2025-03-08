@@ -1,5 +1,7 @@
 source 'https://rubygems.org'
 
+gemspec
+
 gem 'activesupport', '~> 4'
 gem 'addressable', '~> 2.8'
 gem 'bcrypt', '~> 3.0'
@@ -37,6 +39,5 @@ end
 gem 'goo', github: 'ncbo/goo', branch: 'master'
 gem 'sparql-client', github: 'ncbo/sparql-client', branch: 'master'
 
-gem 'net-ftp'
 gem 'public_suffix', '~> 5.1.1'
 gem 'net-imap', '~> 0.4.18'

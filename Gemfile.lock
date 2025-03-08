@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 39f67ab7fae7675b6ff417ace0ab923e40ffcbcd
+  revision: b9019ad9e1eb78c74105fc6c6a879085066da17d
   branch: master
   specs:
     goo (0.0.2)
@@ -23,6 +23,25 @@ GIT
       json_pure (>= 1.4)
       net-http-persistent (= 2.9.4)
       rdf (>= 1.0)
+
+PATH
+  remote: .
+  specs:
+    ontologies_linked_data (0.0.1)
+      activesupport
+      bcrypt
+      goo
+      json
+      libxml-ruby
+      multi_json
+      net-ftp
+      oj
+      omni_logger
+      pony
+      rack
+      rack-test
+      rsolr
+      rubyzip
 
 GEM
   remote: https://rubygems.org/
@@ -203,6 +222,7 @@ GEM
 PLATFORMS
   aarch64-linux
   arm64-darwin-22
+  arm64-darwin-23
   x86_64-linux
 
 DEPENDENCIES
@@ -217,10 +237,10 @@ DEPENDENCIES
   minitest (~> 4)
   minitest-reporters (>= 0.5.0)
   multi_json (~> 1.0)
-  net-ftp
   net-imap (~> 0.4.18)
   oj (~> 3.0)
   omni_logger
+  ontologies_linked_data!
   pony
   pry
   public_suffix (~> 5.1.1)
@@ -238,4 +258,4 @@ DEPENDENCIES
   thin
 
 BUNDLED WITH
-   2.5.11
+   2.5.20
