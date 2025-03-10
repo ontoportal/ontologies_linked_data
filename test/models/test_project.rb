@@ -32,12 +32,12 @@ class TestProject < LinkedData::TestCase
 
   def teardown
     super
-    delete_goo_models(LinkedData::Models::User.where.all)
     delete_goo_models(LinkedData::Models::Ontology.where.all)
     delete_goo_models(LinkedData::Models::Project.where.all)
-    @user = nil
+    delete_goo_models(LinkedData::Models::User.where.all)
     @ont = nil
     @project_params = nil
+    @user = nil
   end
 
   def test_project_acronym
@@ -90,7 +90,7 @@ class TestProject < LinkedData::TestCase
     users = Array.new(3) { LinkedData::Models::User.new }
     users.each_with_index do |user, i|
       user.username = "Test User #{i}"
-      user.email = 'test_user@example.org'
+      user.email = "test_user#{i}@example.org"
       user.password = 'password'
       user.save
       assert user.valid?, user.errors

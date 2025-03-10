@@ -54,7 +54,7 @@ class TestSlice < LinkedData::TestCase
     s = LinkedData::Models::Slice.new({
       :name => "Test Slice",
       :description => "This is a test slice",
-      :acronym => "test_slice",
+      :acronym => "test-slice",
       :ontologies => @@onts[3..-1]
     })
 
@@ -68,6 +68,27 @@ class TestSlice < LinkedData::TestCase
   def test_synchronization
     slices = LinkedData::Models::Slice.where.include(:acronym).all
     assert slices.map {|s| s.acronym}.include?(@@group_acronym)
+  end
+
+  def test_slice_acronym_validity
+    s = LinkedData::Models::Slice.new({
+                                        :name => "Test Slice",
+                                        :description => "This is a test slice",
+                                        :acronym => "test_slice",
+                                        :ontologies => @@onts[3..-1]
+                                      })
+
+    refute s.valid?
+
+    s = LinkedData::Models::Slice.new({
+                                        :name => "Test Slice",
+                                        :description => "This is a test slice",
+                                        :acronym => "test-slice",
+                                        :ontologies => @@onts[3..-1]
+                                      })
+
+    assert s.valid?
+
   end
 
   private

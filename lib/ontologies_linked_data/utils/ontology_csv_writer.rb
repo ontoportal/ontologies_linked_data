@@ -32,13 +32,14 @@ module LinkedData
       end
 
       def write_class(ont_class)
+        ont_class.bring_remaining
         row = CSV::Row.new(@headers, Array.new(@headers.size), false)
 
         # ID
         row[CLASS_ID] = ont_class.id
 
         # Preferred label
-        row[PREF_LABEL] = ont_class.prefLabel
+        row[PREF_LABEL] = Array(ont_class.prefLabel).first
 
         # Synonyms
         synonyms = ont_class.synonym
@@ -49,7 +50,7 @@ module LinkedData
         row[DEFINITIONS] = definitions.join('|') unless definitions.empty?
 
         # Obsolete
-        row[OBSOLETE] = ont_class.obsolete
+        row[OBSOLETE] = Array(ont_class.obsolete).first.to_s.upcase
 
         # CUI
         cuis = ont_class.cui

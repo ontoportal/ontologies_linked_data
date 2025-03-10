@@ -27,12 +27,10 @@ module LinkedData
       # Override find method to make sure the id matches what is in the RDF store
       # Only do this if the setting is enabled, string comparison sucks
       def self.find(id, *options)
-        if LinkedData.settings.replace_url_prefix && id.to_s.start_with?(LinkedData.settings.rest_url_prefix)
-          id = RDF::IRI.new(id.to_s.sub(LinkedData.settings.rest_url_prefix, LinkedData.settings.id_url_prefix))
-        end
+        id = replace_url_prefix_to_id(id)
 
         # Handle `+` to ` ` conversion here because Sinatra doesn't do it for URI's
-        id = id.gsub("+", " ") unless id.start_with?("http")
+        id = id.gsub('+', ' ') unless id.start_with?('http')
 
         super(id, *options)
       end
@@ -44,17 +42,17 @@ module LinkedData
         raise ArgumentError, "`attributes` should be an array" unless attributes.is_a?(Array)
 
         # Get attributes, either provided, all, or default
-        if !attributes.empty?
-          if attributes.first == :all
-            default_attrs = self.attributes
-          else
-            default_attrs = attributes
-          end
-        elsif self.hypermedia_settings[:serialize_default].empty?
-          default_attrs = self.attributes
-        else
-          default_attrs = self.hypermedia_settings[:serialize_default].dup
-        end
+        default_attrs = if !attributes.empty?
+                          if attributes.first == :all
+                            (self.attributes + self.hypermedia_settings[:serialize_default]).uniq
+                          else
+                            attributes - self.hypermedia_settings[:serialize_never]
+                          end
+                        elsif self.hypermedia_settings[:serialize_default].empty?
+                          self.attributes
+                        else
+                          self.hypermedia_settings[:serialize_default].dup
+                        end
 
         embed_attrs = {}
         extra_attrs = []
@@ -137,7 +135,32 @@ module LinkedData
         included_aggregates
       end
 
+      def self.replace_url_prefix_to_id(id)
+        if replace_url_prefix?(id)
+          id = RDF::IRI.new(id.to_s.sub(LinkedData.settings.rest_url_prefix, LinkedData.settings.id_url_prefix))
+        end
+        id
+      end
+
+      def self.replace_url_id_to_prefix(id)
+        if replace_url_id?(id)
+          id.to_s.gsub(LinkedData.settings.id_url_prefix, LinkedData.settings.rest_url_prefix)
+        else
+          id
+        end
+      end
+
+      def self.replace_url_prefix?(id)
+        LinkedData.settings.replace_url_prefix && id.to_s.start_with?(LinkedData.settings.rest_url_prefix)
+      end
+
+      def self.replace_url_id?(id)
+        LinkedData.settings.replace_url_prefix && id.to_s.start_with?(LinkedData.settings.id_url_prefix)
+      end
+
       private
+
+
 
       ##
       # Looks for an object 'owner' and looks in Thread.current[:remote_user]
