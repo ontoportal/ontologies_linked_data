@@ -22,7 +22,7 @@
 #Name => Ontology object (omv:name)
 
 #URI
-URI:
+uri:
   display: "general"
   label: "URI"
   helpText: "The URI of the ontology which is described by these metadata."
