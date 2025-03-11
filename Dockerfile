@@ -14,27 +14,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Use a dedicated bundle path
-ENV BUNDLE_PATH=/bundle
-ENV GEM_HOME=/bundle
-ENV PATH="$BUNDLE_PATH/bin:$PATH"
-
 COPY Gemfile* *.gemspec ./
 
 # Copy only the `version.rb` file to prevent missing file errors!
 COPY lib/ontologies_linked_data/version.rb lib/ontologies_linked_data/
 
-RUN gem update --system
-
-#I nstall the exact Bundler version from Gemfile.lock (if it exists)
-RUN if [ -f Gemfile.lock ]; then \
+#Install the exact Bundler version from Gemfile.lock (if it exists)
+RUN gem update --system && \
+    if [ -f Gemfile.lock ]; then \
       BUNDLER_VERSION=$(grep -A 1 "BUNDLED WITH" Gemfile.lock | tail -n 1 | tr -d ' '); \
       gem install bundler -v "$BUNDLER_VERSION"; \
     else \
       gem install bundler; \
     fi
 
-RUN bundle config set --local path '/bundle'
 RUN bundle config set --global no-document 'true'
 RUN bundle install --jobs 4 --retry 3
 
