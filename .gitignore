@@ -1,5 +1,7 @@
+.bundle/
 *.swp
 *.gemtags
+.bundle
 *.tags*
 .DS_Store
 
@@ -23,7 +25,6 @@ migration/test*
 *.sublime-workspace
 
 # Rbenv artifacts
-.ruby-version
 test/test_run.log
 
 # Debug output
