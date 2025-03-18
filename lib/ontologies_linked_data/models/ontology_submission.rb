@@ -39,7 +39,6 @@ module LinkedData
 
       # Ontology metadata
       # General metadata
-      attribute :uri, namespace: :omv, type: :uri, enforce: %i[distinct_of_identifier], fuzzy_search: true
       attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
       attribute :version, namespace: :omv
       attribute :status, namespace: :omv, default: ->(x) { 'production' }
@@ -53,14 +52,21 @@ module LinkedData
 
       # Description metadata
       attribute :description, namespace: :omv, enforce: %i[concatenate], fuzzy_search: true
+
+      # attribute :homepage
+      # attribute :documentation, namespace: :omv
+      # attribute :publication
+      # attribute :uri, namespace: :omv
       attribute :homepage, namespace: :foaf, type: :uri
       attribute :documentation, namespace: :omv, type: :uri
+      attribute :publication, type: %i[uri list]
+      attribute :uri, namespace: :omv, type: :uri, enforce: %i[distinct_of_identifier], fuzzy_search: true
+
       attribute :notes, namespace: :omv, type: :list
       attribute :keywords, namespace: :omv, type: :list
       attribute :hiddenLabel, namespace: :skos, type: :list
       attribute :alternative, namespace: :dct, type: :list
       attribute :abstract, namespace: :dct
-      attribute :publication, type: %i[uri list]
 
       # Licensing metadata
       attribute :hasLicense, namespace: :omv, type: :uri
@@ -356,9 +362,10 @@ module LinkedData
           self.errors[:uploadFilePath] = ["In non-summary only submissions a data file or url must be provided."]
           return false
         elsif self.pullLocation
-          self.errors[:pullLocation] = ["File at #{self.pullLocation.to_s} does not exist"]
           if self.uploadFilePath.nil?
-            return remote_file_exists?(self.pullLocation.to_s)
+            remote_exists = remote_file_exists?(self.pullLocation.to_s)
+            self.errors[:pullLocation] = ["File at #{self.pullLocation.to_s} does not exist"] unless remote_exists
+            return remote_exists
           end
           return true
         end
