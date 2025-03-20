@@ -40,7 +40,7 @@ module LinkedData
       # Ontology metadata
       # General metadata
       attribute :uri, namespace: :omv, type: :uri, enforce: %i[distinct_of_identifier], fuzzy_search: true
-      attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_URI]
+      attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_uri]
       attribute :version, namespace: :omv
       attribute :status, namespace: :omv, default: ->(x) { 'production' }
       attribute :deprecated, namespace: :owl, type: :boolean, default: ->(x) { false }
@@ -49,7 +49,7 @@ module LinkedData
       attribute :hasOntologySyntax, namespace: :omv, type: :uri, default: ->(s) { ontology_syntax_default(s) }
       attribute :naturalLanguage, namespace: :omv, type: %i[list]
       attribute :isOfType, namespace: :omv, type: :uri
-      attribute :identifier, namespace: :dct, type: %i[list uri], enforce: [:distinct_of_URI]
+      attribute :identifier, namespace: :dct, type: %i[list uri], enforce: [:distinct_of_uri]
 
       # Description metadata
       attribute :description, namespace: :omv, enforce: %i[concatenate], fuzzy_search: true
@@ -236,6 +236,7 @@ module LinkedData
       def URI=(value)
         self.uri  = value
       end
+
       def URI
         self.uri
       end

@@ -7,6 +7,7 @@ module LinkedData
           logger ||= Logger.new(STDOUT)
           logger.info('Extracting metadata from the ontology submission.')
 
+          @submission = self
           version_info = extract_version
           ontology_iri = extract_ontology_iri
           @submission.version = version_info if version_info
