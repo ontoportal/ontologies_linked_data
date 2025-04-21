@@ -18,6 +18,9 @@ module LinkedData
       extend LinkedData::Concerns::OntologySubmission::DefaultCallbacks
 
       FLAT_ROOTS_LIMIT = 1000
+      # default file permissions for files copied from tempdir
+      REPOSITORY_FILE_MODE = 0o660   # rw-rw----
+      REPOSITORY_DIR_MODE  = 0o2770  # rwxrws--- + set-GID
 
       model :ontology_submission, scheme: File.join(__dir__, '../../../config/schemes/ontology_submission.yml'),
             name_with: ->(s) { submission_id_generator(s) }
@@ -280,23 +283,33 @@ module LinkedData
         )
       end
 
-      def self.copy_file_repository(acronym, submissionId, src, filename = nil)
-        path_to_repo = File.join([LinkedData.settings.repository_folder, acronym.to_s, submissionId.to_s])
-        name = filename || File.basename(File.new(src).path)
-        # THIS LOGGER IS JUST FOR DEBUG - remove after NCBO-795 is closed
-        # https://github.com/ncbo/bioportal-project/issues/323
-        # logger = Logger.new(Dir.pwd + "/logs/create_permissions.log")
-        if not Dir.exist? path_to_repo
-          FileUtils.mkdir_p path_to_repo
-          # logger.debug("Dir created #{path_to_repo} | #{"%o" % File.stat(path_to_repo).mode} | umask: #{File.umask}") # NCBO-795
+      def self.copy_file_repository(acronym, submission_id, src, filename = nil)
+        path_to_repo = File.join(
+          LinkedData.settings.repository_folder,
+          acronym.to_s,
+          submission_id.to_s
+        )
+
+        name = filename || File.basename(src)
+        dst  = File.join(path_to_repo, name)
+
+        begin
+          FileUtils.mkdir_p(path_to_repo)
+          FileUtils.chmod(REPOSITORY_DIR_MODE, path_to_repo)
+
+          FileUtils.copy(src, dst)
+          # Uploaded files are initially written to a Tempfile in tmpdir with
+          # permissions 0600 (owner read/write only) for security. To ensure
+          # repository files are also accessible by the service group as intended,
+          # we explicitly chmod the destination file to REPOSITORY_FILE_MODE.
+          FileUtils.chmod(REPOSITORY_FILE_MODE, dst)
+
+          raise "Unable to copy #{src} to #{dst}" unless File.exist?(dst)
+
+          dst
+        rescue StandardError => e
+          raise "Failed to copy #{src} to #{dst}: [#{e.class}] #{e.message}"
         end
-        dst = File.join([path_to_repo, name])
-        FileUtils.copy(src, dst)
-        # logger.debug("File created #{dst} | #{"%o" % File.stat(dst).mode} | umask: #{File.umask}") # NCBO-795
-        if not File.exist? dst
-          raise Exception, "Unable to copy #{src} to #{dst}"
-        end
-        return dst
       end
 
       def valid?
