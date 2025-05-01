@@ -4,12 +4,8 @@ x-app: &app
       args:
         RUBY_VERSION: '3.1'
     # Increase the version number in the image tag every time Dockerfile or its arguments is changed
-    image: ontologies_ld-dev:0.0.3
+    image: ontologies_ld-dev:0.0.4
     environment: &env
-      # default bundle config resolves to /usr/local/bundle/config inside of the container
-      # we are setting it to local app directory if we need to use 'bundle config local'
-      BUNDLE_APP_CONFIG: /srv/ontoportal/ontologies_api/.bundle
-      BUNDLE_PATH: /srv/ontoportal/bundle
       COVERAGE: 'true' # enable simplecov code coverage
       REDIS_HOST: redis-ut
       REDIS_PORT: 6379
@@ -20,8 +16,8 @@ x-app: &app
     command: /bin/bash
     volumes:
       # bundle volume for hosting gems installed by bundle; it speeds up gem install in local development
-      - bundle:/srv/ontoportal/bundle
-      - .:/srv/ontoportal/ontologies_linked_data
+      - bundle:/usr/local/bundle
+      - .:/app
       # mount directory containing development version of the gems if you need to use 'bundle config local'
       #- /Users/alexskr/ontoportal:/Users/alexskr/ontoportal
     depends_on: &depends_on
@@ -117,7 +113,7 @@ services:
       retries: 5
 
   agraph-ut:
-    image: franzinc/agraph:v8.1.0
+    image: franzinc/agraph:v8.3.1
     platform: linux/amd64
     environment:
       - AGRAPH_SUPER_USER=test
