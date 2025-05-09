@@ -1225,6 +1225,39 @@ eos
     assert !Dir.exist?(data_folder)
   end
 
+  def test_copy_file_repository_from_tempfile
+    # Simulate a Rack Tempfile upload from tmpdir;
+    # tmpfile get 0600 permission and we need 660 for the copy to repository
+    fixture = "./test/data/ontology_files/BRO_v3.2.owl"
+    tmp     = Tempfile.new(["upload", ".owl"])
+    begin
+      FileUtils.cp(fixture, tmp.path)
+      tmp.close
+
+      # Assert the source Tempfile has default 0600 permissions
+      # `& 0o777` is a bitwise AND that out all non-permission bits
+      # convers 0o100600 (regular file with owner rw) to 0600
+      src_mode = File.stat(tmp.path).mode & 0o0777
+      assert_equal 0o0600, src_mode
+
+      dst = LinkedData::Models::OntologySubmission
+        .copy_file_repository("TMPTEST", 99, tmp.path)
+
+      repo_root = LinkedData.settings.repository_folder
+      assert_match(
+        %r{\A#{Regexp.escape(repo_root)}/TMPTEST/99/},
+        dst,
+        "Expected file to be copied into #{repo_root}/TMPTEST/99/"
+      )
+      assert File.exist?(dst), "Destination file should exist"
+
+      mode = File.stat(dst).mode & 0o0777
+      assert_equal 0o0660, mode, format("Expected file mode 0660, got %o", mode)
+    ensure
+      tmp.unlink
+    end
+  end
+
    # To test extraction of metadata when parsing a submission (we extract the submission attributes that have the
   # extractedMetadata on true)
   def test_submission_extract_metadata

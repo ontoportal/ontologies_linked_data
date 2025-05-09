@@ -21,10 +21,10 @@
 #Acronym => Ontology object (omv:acronym)
 #Name => Ontology object (omv:name)
 
-#URI
+#uri
 uri:
   display: "general"
-  label: "URI"
+  label: "uri"
   helpText: "The URI of the ontology which is described by these metadata."
   example: 'https://w3id.org/myontology'
   description: [
@@ -175,7 +175,7 @@ hasOntologySyntax:
 naturalLanguage:
   display: "general"
   label: "Natural language"
-  helpText: "The language of the content of the ontology (with values in Lexvo/iso639-1)."
+  helpText: "The language of the content of the ontology (with values in ISO 639-1)."
   description: [
     "DCTERMS: A language of the resource. Recommended practice is to use either a non-literal value representing a language from a controlled vocabulary such as ISO 639-2 or ISO 639-3, or a literal value consisting of an IETF Best Current Practice 47 language tag.",
     "OMV: The language of the content of the ontology, i.e. English, French, etc.",
@@ -183,20 +183,57 @@ naturalLanguage:
     "SCHEMA: The language of the content or performance or used in an action. Please use one of the language codes from the IETF BCP 47 standard." ]
   extractedMetadata: true
   enforcedValues: {
-    "http://lexvo.org/id/iso639-1/en": "English",
-    "http://lexvo.org/id/iso639-1/fr": "French",
-    "http://lexvo.org/id/iso639-1/es": "Spanish",
-    "http://lexvo.org/id/iso639-1/pt": "Portuguese",
-    "http://lexvo.org/id/iso639-1/it": "Italian",
-    "http://lexvo.org/id/iso639-1/de": "German",
-    "http://lexvo.org/id/iso639-1/ar": "Arabic",
-    "http://lexvo.org/id/iso639-1/zh": "Chinese",
-    "http://lexvo.org/id/iso639-1/hi": "Hindi",
-    "http://lexvo.org/id/iso639-1/nl": "Dutch",
-    "http://lexvo.org/id/iso639-1/fi": "Finnish",
-    "http://lexvo.org/id/iso639-1/el": "Greek",
-    "http://lexvo.org/id/iso639-1/ja": "Japanese",
-    "http://lexvo.org/id/iso639-1/pt-br": "Brazilian"
+    "ar": "Arabic",
+    "az": "Azerbaijani",
+    "be": "Belarusian",
+    "bn": "Bengali",
+    "cs": "Czech",
+    "da": "Danish",
+    "de": "German",
+    "el": "Greek",
+    "en": "English",
+    "es": "Spanish",
+    "et": "Estonian",
+    "eu": "Basque",
+    "fa": "Persian",
+    "fi": "Finnish",
+    "fr": "French",
+    "he": "Hebrew",
+    "hi": "Hindi",
+    "hr": "Croatian",
+    "hu": "Hungarian",
+    "id": "Indonesian",
+    "it": "Italian",
+    "ja": "Japanese",
+    "ka": "Georgian",
+    "kk": "Kazakh",
+    "ko": "Korean",
+    "lt": "Lithuanian",
+    "lv": "Latvian",
+    "mn": "Mongolian",
+    "ms": "Malay",
+    "my": "Burmese",
+    "nl": "Dutch",
+    "no": "Norwegian",
+    "pa": "Punjabi",
+    "pl": "Polish",
+    "pt": "Portuguese",
+    "pt-br": "Brazilian Portuguese",
+    "ro": "Romanian",
+    "ru": "Russian",
+    "sk": "Slovak",
+    "sl": "Slovenian",
+    "sr": "Serbian",
+    "sv": "Swedish",
+    "sw": "Swahili",
+    "ta": "Tamil",
+    "te": "Telugu",
+    "th": "Thai",
+    "tr": "Turkish",
+    "uk": "Ukrainian",
+    "uz": "Uzbek",
+    "vi": "Vietnamese",
+    "zh": "Chinese"
   }
   metadataMappings: [ "omv:naturalLanguage", "dc:language", "dcterms:language", "doap:language", "schema:inLanguage" ]
 
