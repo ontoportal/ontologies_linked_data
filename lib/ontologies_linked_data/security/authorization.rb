@@ -78,6 +78,8 @@ module LinkedData
           apikey = params["apikey"]
         elsif apikey.nil? && header_auth
           token = Rack::Utils.parse_query(header_auth.split(" ")[1])
+          return unless token["token"]
+
           # Strip spaces from start and end of string
           apikey = token["token"].gsub(/\"/, "")
           # If the user apikey is passed, use that instead

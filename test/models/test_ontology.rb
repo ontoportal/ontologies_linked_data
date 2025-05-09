@@ -5,15 +5,7 @@ require 'rack'
 class TestOntology < LinkedData::TestOntologyCommon
 
   def self.before_suite
-    @@port = Random.rand(55000..65535) # http://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers#Dynamic.2C_private_or_ephemeral_ports
-    @@thread = Thread.new do
-      Rack::Server.start(
-        app: lambda do |e|
-          [200, {'Content-Type' => 'text/plain'}, ['test file']]
-        end,
-        Port: @@port
-      )
-    end
+    url , @@thread, @@port= self.new('').start_server
   end
 
   def self.after_suite
@@ -59,7 +51,10 @@ class TestOntology < LinkedData::TestOntologyCommon
       pullLocation: RDF::IRI.new("http://localhost:#{@@port}/"),
       submissionId: o.next_submission_id,
       contact: [@contact],
-      released: DateTime.now - 5
+      released: DateTime.now - 5,
+      description: 'description example',
+      uri: RDF::URI.new('https://test.com'),
+      status: 'beta'
     })
     os.save
   end
@@ -158,7 +153,7 @@ class TestOntology < LinkedData::TestOntologyCommon
     ont.bring(:submissions)
     sub = ont.submissions[0]
     props = ont.properties()
-    assert_equal 82, props.length
+    assert_equal 85, props.length
 
     # verify sorting
     assert_equal "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#AlgorithmPurpose", props[0].id.to_s
@@ -197,7 +192,7 @@ class TestOntology < LinkedData::TestOntologyCommon
 
     # test property roots
     pr = ont.property_roots(sub, extra_include=[:hasChildren, :children])
-    assert_equal 61, pr.length
+    assert_equal 64, pr.length
 
     # verify sorting
     assert_equal "http://bioontology.org/ontologies/BiomedicalResourceOntology.owl#AlgorithmPurpose", pr[0].id.to_s
@@ -211,13 +206,13 @@ class TestOntology < LinkedData::TestOntologyCommon
     assert_equal 33, dpr.length
     # count annotation properties
     apr = pr.select { |p| p.class == LinkedData::Models::AnnotationProperty }
-    assert_equal 10, apr.length
+    assert_equal 13, apr.length
     # check for non-root properties
     assert_empty pr.select { |p| ["http://www.w3.org/2004/02/skos/core#broaderTransitive",
-                  "http://www.w3.org/2004/02/skos/core#topConceptOf",
-                  "http://www.w3.org/2004/02/skos/core#relatedMatch",
-                  "http://www.w3.org/2004/02/skos/core#exactMatch",
-                  "http://www.w3.org/2004/02/skos/core#narrowMatch"].include?(p.id.to_s) },
+                                  "http://www.w3.org/2004/02/skos/core#topConceptOf",
+                                  "http://www.w3.org/2004/02/skos/core#relatedMatch",
+                                  "http://www.w3.org/2004/02/skos/core#exactMatch",
+                                  "http://www.w3.org/2004/02/skos/core#narrowMatch"].include?(p.id.to_s) },
                  "Non-root nodes found where roots are expected"
 
     # test property trees
@@ -296,22 +291,23 @@ class TestOntology < LinkedData::TestOntologyCommon
   end
 
   def test_ontology_delete
-    count, acronyms, ontologies = create_ontologies_and_submissions(ont_count: 2, submission_count: 1, process_submission: true)
+    count, acronyms, ontologies = create_ontologies_and_submissions(ont_count: 2, submission_count: 1, process_submission: false)
     u, of, contact = ontology_objects()
     o1 = ontologies[0]
     o2 = ontologies[1]
     pc = LinkedData::Models::ProvisionalClass.new({label: "Test Provisional Class", creator: u, ontology: o1})
+    pc.save
     n = LinkedData::Models::Note.new({
                                          creator: u,
                                          relatedOntology: [o1]
                                      })
     assert pc.valid?
     pc.save
-    assert_equal true, pc.exist?(reload=true)
+    assert_equal true, pc.exist?
 
     assert n.valid?
     n.save()
-    assert_equal true, n.exist?(reload=true)
+    assert_equal true, n.exist?
 
     review_params = {
         :creator => u,
@@ -328,12 +324,12 @@ class TestOntology < LinkedData::TestOntologyCommon
 
     r = LinkedData::Models::Review.new(review_params)
     r.save()
-    assert_equal true, r.exist?(reload=true)
+    assert_equal true, r.exist?
 
     o1.delete()
-    assert_equal false, n.exist?(reload=true)
-    assert_equal false, r.exist?(reload=true)
-    assert_equal false, o1.exist?(reload=true)
+    assert_equal false, n.exist?
+    assert_equal false, r.exist?
+    assert_equal false, o1.exist?
     o2.delete()
   end
 
@@ -345,13 +341,13 @@ class TestOntology < LinkedData::TestOntologyCommon
     })
 
     # Create
-    assert_equal false, o.exist?(reload=true)
+    assert_equal false, o.exist?
     o.save
-    assert_equal true, o.exist?(reload=true)
+    assert_equal true, o.exist?
 
     # Delete
     o.delete
-    assert_equal false, o.exist?(reload=true)
+    assert_equal false, o.exist?
   end
 
   def test_next_submission_id
@@ -389,7 +385,7 @@ class TestOntology < LinkedData::TestOntologyCommon
     count, acronyms, ont = create_ontologies_and_submissions(ont_count: 1, submission_count: 3)
     ont = ont.first
     ont.bring(submissions: [:submissionId])
-    sub = ont.submissions[1]
+    sub = ont.submissions.sort_by(&:id)[1]
     sub.bring(*LinkedData::Models::OntologySubmission.attributes)
     sub.set_ready
     sub.save

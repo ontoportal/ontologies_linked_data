@@ -11,33 +11,28 @@ class TestMapping < LinkedData::TestOntologyCommon
 
 
   def self.before_suite
-    LinkedData::TestCase.backend_4s_delete
-    ontologies_parse()
+    backend_4s_delete
+    ontologies_parse
   end
 
-  def self.ontologies_parse()
+  def self.ontologies_parse
     helper = LinkedData::TestOntologyCommon.new(self)
     helper.submission_parse(ONT_ACR1,
                      "MappingOntTest1",
                      "./test/data/ontology_files/BRO_v3.3.owl", 11,
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: true)
+                     process_rdf: true, extract_metadata: false)
     helper.submission_parse(ONT_ACR2,
                      "MappingOntTest2",
                      "./test/data/ontology_files/CNO_05.owl", 22,
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: true)
+                     process_rdf: true, extract_metadata: false)
     helper.submission_parse(ONT_ACR3,
                      "MappingOntTest3",
                      "./test/data/ontology_files/aero.owl", 33,
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: true)
+                     process_rdf: true, extract_metadata: false)
     helper.submission_parse(ONT_ACR4,
                      "MappingOntTest4",
                      "./test/data/ontology_files/fake_for_mappings.owl", 44,
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: true)
-    LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
+                     process_rdf: true, extract_metadata: false)
   end
 
   def delete_all_rest_mappings
@@ -46,9 +41,8 @@ class TestMapping < LinkedData::TestOntologyCommon
     end
   end
   def test_mapping_count_models
-    LinkedData::Models::MappingCount.where.all do |x|
-      x.delete
-    end
+    LinkedData::Models::MappingCount.where.all(&:delete)
+
     m = LinkedData::Models::MappingCount.new
     assert !m.valid?
     m.ontologies = ["BRO"]
@@ -75,46 +69,17 @@ class TestMapping < LinkedData::TestOntologyCommon
                                                 .all
     assert result.length == 1
     assert result.first.count == 321
-    LinkedData::Models::MappingCount.where.all do |x|
-      x.delete
-    end
+    LinkedData::Models::MappingCount.where.all(&:delete)
   end
 
-  def validate_mapping(map)
-    prop = map.source.downcase.to_sym
-    prop = :prefLabel if map.source == "LOOM"
-    prop = nil if map.source == "SAME_URI"
 
-    classes = []
-    map.classes.each do |t|
-      sub = LinkedData::Models::Ontology.find(t.submission.ontology.id)
-                .first.latest_submission
-      cls = LinkedData::Models::Class.find(t.id).in(sub)
-      unless prop.nil?
-        cls.include(prop)
-      end
-      cls = cls.first
-      classes << cls unless cls.nil?
-    end
-    if map.source == "SAME_URI"
-      return classes[0].id.to_s == classes[1].id.to_s
-    end
-    if map.source == "LOOM"
-      ldOntSub = LinkedData::Models::OntologySubmission
-      label0 = ldOntSub.loom_transform_literal(classes[0].prefLabel)
-      label1 = ldOntSub.loom_transform_literal(classes[1].prefLabel)
-      return label0 == label1
-    end
-    if map.source == "CUI"
-      return classes[0].cui == classes[1].cui
-    end
-    return false
-  end
 
   def test_mappings_ontology
-    delete_all_rest_mappings
-    LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
-    assert LinkedData::Models::MappingCount.where.all.length > 2
+    LinkedData::Models::RestBackupMapping.all.each do |m|
+      LinkedData::Mappings.delete_rest_mapping(m.id)
+    end
+
+    assert create_count_mapping > 2
     #bro
     ont1 = LinkedData::Models::Ontology.where({ :acronym => ONT_ACR1 }).to_a[0]
 
@@ -149,6 +114,8 @@ class TestMapping < LinkedData::TestOntologyCommon
       end
       assert validate_mapping(map), "mapping is not valid"
     end
+    assert create_count_mapping > 2
+
     by_ont_counts = LinkedData::Mappings.mapping_ontologies_count(latest_sub,nil)
     total = 0
     by_ont_counts.each do |k,v|
@@ -176,9 +143,7 @@ class TestMapping < LinkedData::TestOntologyCommon
   end
 
   def test_mappings_two_ontologies
-    LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
-    map_ct = LinkedData::Models::MappingCount.where.all.length
-    assert map_ct > 2, "Mapping count should exceed the value of 2"
+    assert create_count_mapping > 2, "Mapping count should exceed the value of 2"
     #bro
     ont1 = LinkedData::Models::Ontology.where({ :acronym => ONT_ACR1 }).to_a[0]
     #fake ont
@@ -229,7 +194,9 @@ class TestMapping < LinkedData::TestOntologyCommon
   end
 
   def test_mappings_rest
-    delete_all_rest_mappings
+    LinkedData::Models::RestBackupMapping.all.each do |m|
+      LinkedData::Mappings.delete_rest_mapping(m.id)
+    end
     mapping_term_a, mapping_term_b, submissions_a, submissions_b, relations, user = rest_mapping_data
 
     mappings_created = []
@@ -248,49 +215,51 @@ class TestMapping < LinkedData::TestOntologyCommon
     latest_sub = LinkedData::Models::Ontology.find(RDF::URI.new(ont_id)).first.latest_submission
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
     ct = LinkedData::Models::MappingCount.where.all.length
-    assert ct > 2
+    assert_operator 2, :<, ct
     mappings = LinkedData::Mappings.mappings_ontology(latest_sub, 1, 1000)
     rest_mapping_count = 0
 
     mappings.each do |m|
       if m.source == "REST"
         rest_mapping_count += 1
-        assert_equal m.classes.length, 2
-        c1 =  m.classes.select {
+        assert_equal 2, m.classes.length
+        c1 = m.classes.select {
                         |c| c.submission.id.to_s["TEST1"] }.first
         c2 = m.classes.select {
                         |c| c.submission.id.to_s["TEST2"] }.first
-        assert c1 != nil
-        assert c2 != nil
+        refute_nil c1
+        refute_nil c2
         ia = mapping_term_a.index c1.id.to_s
         ib = mapping_term_b.index c2.id.to_s
-        assert ia != nil
-        assert ib != nil
-        assert ia == ib
+        refute_nil ia
+        refute_nil ib
+        assert_equal ia, ib
       end
     end
-    #depending on the order could be 2 or three
-    #some other test is leaving mappings persisted
-    assert rest_mapping_count > 1 || rest_mapping_count < 4
-    #in a new submission we should have moved the rest mappings
+    assert_equal 3, rest_mapping_count
+    # in a new submission we should have moved the rest mappings
     helper = LinkedData::TestOntologyCommon.new(self)
     helper.submission_parse(ONT_ACR1,
                      "MappingOntTest1",
                      "./test/data/ontology_files/BRO_v3.3.owl", 12,
-                     process_rdf: true, index_search: false,
-                     run_metrics: false, reasoning: true)
+                     process_rdf: true, extract_metadata: false)
+
+    assert create_count_mapping > 2
+
     latest_sub1 = LinkedData::Models::Ontology.find(RDF::URI.new(ont_id)).first.latest_submission
     LinkedData::Mappings.create_mapping_counts(Logger.new(TestLogFile.new))
     ct1 = LinkedData::Models::MappingCount.where.all.length
-    assert ct1 > 2
+    assert_operator 2, :<, ct1
     mappings = LinkedData::Mappings.mappings_ontology(latest_sub1, 1, 1000)
     rest_mapping_count = 0
     mappings.each do |m|
-      if m.source == "REST"
-        rest_mapping_count += 1
-      end
+      rest_mapping_count += 1 if m.source == "REST"
     end
     assert_equal 3, rest_mapping_count
+
+    mappings_created.each do |m|
+      LinkedData::Mappings.delete_rest_mapping(m.id)
+    end
   end
 
   def test_get_rest_mapping
@@ -320,6 +289,10 @@ class TestMapping < LinkedData::TestOntologyCommon
 
     LinkedData.settings.rest_url_prefix = old_rest_url
     LinkedData.settings.replace_url_prefix = old_replace
+
+    mappings_created.each do |m|
+      LinkedData::Mappings.delete_rest_mapping(m.id)
+    end
   end
 
   private
@@ -353,7 +326,7 @@ class TestMapping < LinkedData::TestOntologyCommon
                   "http://www.w3.org/2004/02/skos/core#relatedMatch" ]
 
     user = LinkedData::Models::User.where.include(:username).all[0]
-    assert user != nil
+    refute_nil user
 
     [mapping_term_a, mapping_term_b, submissions_a, submissions_b, relations, user]
   end
@@ -365,5 +338,36 @@ class TestMapping < LinkedData::TestOntologyCommon
     process.creator = user
     process.save
     LinkedData::Mappings.create_rest_mapping(classes, process)
+  end
+
+  def validate_mapping(map)
+    prop = map.source.downcase.to_sym
+    prop = :prefLabel if map.source == "LOOM"
+    prop = nil if map.source == "SAME_URI"
+
+    classes = []
+    map.classes.each do |t|
+      sub = LinkedData::Models::Ontology.find(t.submission.ontology.id)
+                                        .first.latest_submission
+      cls = LinkedData::Models::Class.find(t.id).in(sub)
+      unless prop.nil?
+        cls.include(prop)
+      end
+      cls = cls.first
+      classes << cls unless cls.nil?
+    end
+    if map.source == "SAME_URI"
+      return classes[0].id.to_s == classes[1].id.to_s
+    end
+    if map.source == "LOOM"
+      ldOntSub = LinkedData::Models::OntologySubmission
+      label0 = ldOntSub.loom_transform_literal(classes[0].prefLabel)
+      label1 = ldOntSub.loom_transform_literal(classes[1].prefLabel)
+      return label0 == label1
+    end
+    if map.source == "CUI"
+      return classes[0].cui == classes[1].cui
+    end
+    return false
   end
 end
