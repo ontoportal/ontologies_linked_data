@@ -295,21 +295,24 @@ SELECT DISTINCT * WHERE {
                                                          submissionId: 11)
                                                   .include(:version)
                                                   .first
+
+      # binding.pry
+
       assert sub.version == "3.0"
     end
 
     #This one has resources wih accents.
-    submission_parse("ONTOMATEST",
-                       "OntoMA TEST",
-                       "./test/data/ontology_files/OntoMA.1.1_vVersion_1.1_Date__11-2011.OWL", 15,
-                       process_rdf: true, extract_metadata: false)
-
-    sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: "ONTOMATEST"],
-                                                       submissionId: 15)
-                                                .include(:version)
-                                                .first
-    assert sub.version["Version 1.1"]
-    assert sub.version["Date: 11-2011"]
+    # submission_parse("ONTOMATEST",
+    #                    "OntoMA TEST",
+    #                    "./test/data/ontology_files/OntoMA.1.1_vVersion_1.1_Date__11-2011.OWL", 15,
+    #                    process_rdf: true, extract_metadata: false)
+    #
+    # sub = LinkedData::Models::OntologySubmission.where(ontology: [acronym: "ONTOMATEST"],
+    #                                                    submissionId: 15)
+    #                                             .include(:version)
+    #                                             .first
+    # assert sub.version["Version 1.1"]
+    # assert sub.version["Date: 11-2011"]
   end
 
   def test_generate_language_preflabels

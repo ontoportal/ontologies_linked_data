@@ -17,7 +17,7 @@ module LinkedData
           if heavy_extraction
             begin
               # Extract metadata directly from the ontology
-              extract_ontology_metadata(logger, user_params)
+              extract_ontology_metadata(logger, user_params, skip_attrs: [:version, :uri])
               logger.info('Additional metadata extracted.')
             rescue StandardError => e
               e.backtrace
@@ -57,13 +57,14 @@ module LinkedData
 
         # Extract additional metadata about the ontology
         # First it extracts the main metadata, then the mapped metadata
-        def extract_ontology_metadata(logger, user_params)
+        def extract_ontology_metadata(logger, user_params, skip_attrs: [])
           user_params = {} if user_params.nil? || !user_params
           ontology_uri = @submission.uri
           logger.info("Extraction metadata from ontology #{ontology_uri}")
 
           # go through all OntologySubmission attributes. Returns symbols
           LinkedData::Models::OntologySubmission.attributes(:all).each do |attr|
+            next if skip_attrs.include? attr
             # for attribute with the :extractedMetadata setting on, and that have not been defined by the user
             attr_settings = LinkedData::Models::OntologySubmission.attribute_settings(attr)
 
