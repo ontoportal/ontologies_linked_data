@@ -12,6 +12,8 @@ module LinkedData
     class Class < LinkedData::Models::Base
       include LinkedData::Concerns::Concept::Sort
       include LinkedData::Concerns::Concept::Tree
+      include LinkedData::Concerns::Concept::InScheme
+      include LinkedData::Concerns::Concept::InCollection
 
       model :class, name_with: :id, collection: :submission,
             namespace: :owl, :schemaless => :true,
@@ -43,6 +45,9 @@ module LinkedData
 
       attribute :label, namespace: :rdfs, enforce: [:list]
       attribute :prefLabel, namespace: :skos, enforce: [:existence], alias: true
+      attribute :prefLabelXl, property: :prefLabel, namespace: :skosxl, enforce: [:label, :list], alias: true
+      attribute :altLabelXl, property: :altLabel, namespace: :skosxl, enforce: [:label, :list], alias: true
+      attribute :hiddenLabelXl, property: :hiddenLabel, namespace: :skosxl, enforce: [:label, :list], alias: true
       attribute :synonym, namespace: :skos, enforce: [:list], property: :altLabel, alias: true
       attribute :definition, namespace: :skos, enforce: [:list], alias: true
       attribute :obsolete, namespace: :owl, property: :deprecated, alias: true
@@ -79,18 +84,22 @@ module LinkedData
 
       attribute :notes,
                 inverse: { on: :note, attribute: :relatedClass }
+      attribute :inScheme, enforce: [:list, :uri], namespace: :skos
+      attribute :memberOf, namespace: :uneskos, inverse: { on: :collection , :attribute => :member }
       attribute :created, namespace:  :dcterms
       attribute :modified, namespace:  :dcterms
 
       # Hypermedia settings
-      embed :children, :ancestors, :descendants, :parents
-      serialize_default :prefLabel, :synonym, :definition, :cui, :semanticType, :obsolete, :matchType, :ontologyType, :provisional # an attribute used in Search (not shown out of context)
+      embed :children, :ancestors, :descendants, :parents, :prefLabelXl, :altLabelXl, :hiddenLabelXl
+      serialize_default :prefLabel, :synonym, :definition, :cui, :semanticType, :obsolete, :matchType,
+                        :ontologyType, :provisional, # an attribute used in Search (not shown out of context)
+                        :created, :modified, :memberOf, :inScheme
       serialize_methods :properties, :childrenCount, :hasChildren
       serialize_never :submissionAcronym, :submissionId, :submission, :descendants
       aggregates childrenCount: [:count, :children]
       links_load submission: [ontology: [:acronym]]
       do_not_load :descendants, :ancestors
-      prevent_serialize_when_nested :properties, :parents, :children, :ancestors, :descendants
+      prevent_serialize_when_nested :properties, :parents, :children, :ancestors, :descendants, :memberOf
       link_to LinkedData::Hypermedia::Link.new("self", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}"}, self.uri_type),
               LinkedData::Hypermedia::Link.new("ontology", lambda {|s| "ontologies/#{s.submission.ontology.acronym}"}, Goo.vocabulary["Ontology"]),
               LinkedData::Hypermedia::Link.new("children", lambda {|s| "ontologies/#{s.submission.ontology.acronym}/classes/#{CGI.escape(s.id.to_s)}/children"}, self.uri_type),
