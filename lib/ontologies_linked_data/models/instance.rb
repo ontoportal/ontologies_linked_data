@@ -4,7 +4,7 @@ module LinkedData
     class Instance < LinkedData::Models::Base
 
       model :named_individual, name_with: :id, collection: :submission,
-                               namespace: :owl, schemaless: :true ,  rdf_type: lambda { |*x| RDF::OWL[:NamedIndividual]}
+            namespace: :owl, schemaless: :true ,  rdf_type: lambda { |*x| RDF::OWL[:NamedIndividual]}
 
       attribute :label, namespace: :rdfs, enforce: [:list]
       attribute :prefLabel, namespace: :skos, enforce: [:existence], alias: true
@@ -54,14 +54,14 @@ module LinkedData
     end
 
     def self.instances_by_class_where_query(submission, class_id: nil, page_no: nil, size: nil)
-        where_condition = class_id.nil? ? nil : {types: RDF::URI.new(class_id.to_s)}
-        query = LinkedData::Models::Instance.where(where_condition).in(submission).include(:types, :label, :prefLabel)
-        query.page(page_no, size) unless page_no.nil?
-        query
+      where_condition = class_id.nil? ? nil : {types: RDF::URI.new(class_id.to_s)}
+      query = LinkedData::Models::Instance.where(where_condition).in(submission).include(:types, :label, :prefLabel)
+      query.page(page_no, size) unless page_no.nil?
+      query
     end
 
     def self.load_unmapped(submission, models)
-        LinkedData::Models::Instance.where.in(submission).models(models).include(:unmapped).all
+      LinkedData::Models::Instance.where.in(submission).models(models).include(:unmapped).all
     end
 
 
