@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: c3f9a7f789bf2f52ed31f0272d2725117d3ac04e
-  branch: develop
+  revision: 011c0ef0fba8e6a9c0d86bcd04ff11af735d745c
+  branch: feature/new-validators
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
@@ -16,7 +16,7 @@ GIT
 
 GIT
   remote: https://github.com/ncbo/sparql-client.git
-  revision: 1657f0dd69fd4b522d3549a6848670175f5e98cc
+  revision: 86c873a0d2873794489126c3c85165234785a96b
   branch: develop
   specs:
     sparql-client (1.0.1)
@@ -165,7 +165,7 @@ GEM
       addressable (>= 2.2)
     redis (5.4.0)
       redis-client (>= 0.22.0)
-    redis-client (0.24.0)
+    redis-client (0.25.0)
       connection_pool
     regexp_parser (2.10.0)
     request_store (1.7.0)
