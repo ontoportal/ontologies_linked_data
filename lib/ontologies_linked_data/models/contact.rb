@@ -3,7 +3,7 @@ module LinkedData
     class Contact < LinkedData::Models::Base
       model :contact, name_with: lambda { |c| uuid_uri_generator(c) }
       attribute :name, enforce: [:existence]
-      attribute :email, enforce: [:existence]
+      attribute :email, enforce: [:existence, :email]
 
       embedded true
     end

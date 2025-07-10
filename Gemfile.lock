@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: c3f9a7f789bf2f52ed31f0272d2725117d3ac04e
-  branch: develop
+  revision: 592f837899e55e0639397eee0bf4b165cb302b60
+  branch: feature/improve-email-validator
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
