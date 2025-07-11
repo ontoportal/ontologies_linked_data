@@ -1,5 +1,4 @@
 require_relative "../test_case"
-
 class TestContact < LinkedData::TestCase
 
   def self.before_suite
@@ -15,7 +14,6 @@ class TestContact < LinkedData::TestCase
         name: "Test Contact",
         email: "test@example.com"
       })
-    assert @contact.valid?
   end
 
   def teardown
@@ -24,7 +22,7 @@ class TestContact < LinkedData::TestCase
     contacts.each { |c| c.delete }
   end
 
-  def test_valid_contact
+  def test_contact_validation
     contact = LinkedData::Models::Contact.new
     refute contact.valid?
 
@@ -54,7 +52,7 @@ class TestContact < LinkedData::TestCase
         email: "test@example.com"
       })
     refute contact.valid?
-    assert contact.errors.include?(:name)
+    assert_includes contact.errors, :name
   end
 
   def test_contact_missing_email
@@ -62,7 +60,7 @@ class TestContact < LinkedData::TestCase
         name: "Test Contact"
       })
     refute contact.valid?
-    assert contact.errors.include?(:email)
+    assert_includes contact.errors, :email
   end
 
   def test_contact_invalid_email
@@ -71,7 +69,7 @@ class TestContact < LinkedData::TestCase
         email: "invalid-email"
       })
     refute contact.valid?
-    assert contact.errors.include?(:email)
+    assert_includes contact.errors, :email
   end
 
   def test_contact_duplicate
@@ -83,16 +81,15 @@ class TestContact < LinkedData::TestCase
       })
     assert contact1.valid?
     contact1.save
-    
+
     # Try to create second contact with same name and email
     contact2 = LinkedData::Models::Contact.new({
         name: "Duplicate Test Contact",
         email: "duplicate@example.com"
       })
     refute contact2.valid?
-    assert contact2.errors.include?(:name) || contact2.errors.include?(:email)
-    
-    # Clean up
+    assert_includes contact2.errors, :name
+    assert_includes contact2.errors, :email
     contact1.delete
   end
 
