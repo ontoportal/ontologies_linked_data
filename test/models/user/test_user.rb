@@ -28,7 +28,7 @@ class TestUser < LinkedData::TestCase
 
   def test_valid_user
     u = LinkedData::Models::User.new
-    assert (not u.valid?)
+    refute u.valid?
 
     u.username = "test_user1"
     u.email = "test@example.com"
@@ -62,12 +62,12 @@ class TestUser < LinkedData::TestCase
   end
 
   def test_user_lifecycle
-    assert_equal false, @u.exist?(reload=true)
+    refute @u.exist?(reload=true)
     assert @u.valid?
     @u.save
-    assert_equal true, @u.exist?(reload=true)
+    assert @u.exist?(reload=true)
     @u.delete
-    assert_equal false, @u.exist?(reload=true)
+    refute @u.exist?(reload=true)
   end
 
   def test_user_role_assign
@@ -106,6 +106,84 @@ class TestUser < LinkedData::TestCase
     u.save
     assert u.apikey.instance_of?(String)
     u.delete
+  end
+
+  def test_user_email_validation_missing_email
+    u = LinkedData::Models::User.new({
+        username: "test_user_no_email",
+        password: "a_password"
+      })
+    refute u.valid?
+    assert u.errors.include?(:email)
+  end
+
+  def test_user_email_validation_empty_email
+    u = LinkedData::Models::User.new({
+        username: "test_user_empty_email",
+        email: "",
+        password: "a_password"
+      })
+    refute u.valid?
+    assert u.errors.include?(:email)
+  end
+
+  def test_user_email_validation_nil_email
+    u = LinkedData::Models::User.new({
+        username: "test_user_nil_email",
+        email: nil,
+        password: "a_password"
+      })
+    refute u.valid?
+    assert u.errors.include?(:email)
+  end
+
+  def test_user_email_validation_invalid_formats
+    invalid_emails = [
+      "invalid-email",
+      "@example.com",
+      "test@",
+      "test@.com",
+      "test..test@example.com",
+      "test@example..com",
+      "test@example",
+      "test space@example.com",
+      "test@example com",
+      "test@example.com.",
+      ".test@example.com"
+    ]
+
+    invalid_emails.each_with_index do |email, index|
+      u = LinkedData::Models::User.new({
+          username: "test_user_invalid_email_#{index}",
+          email: email,
+          password: "a_password"
+        })
+      refute u.valid?, "Email '#{email}' should be invalid"
+      assert u.errors.include?(:email), "Email '#{email}' should have email validation error"
+    end
+  end
+
+  def test_user_email_validation_valid_formats
+    valid_emails = [
+      "test@example.com",
+      "user.name@example.com",
+      "user+tag@example.com",
+      "user@subdomain.example.com",
+      "user@example.co.uk",
+      "user@example-domain.com",
+      "user123@example.com",
+      "user-name@example.com"
+    ]
+
+    valid_emails.each_with_index do |email, index|
+      u = LinkedData::Models::User.new({
+          username: "test_user_valid_email_#{index}",
+          email: email,
+          password: "a_password"
+        })
+      assert u.valid?, "Email '#{email}' should be valid"
+      refute u.errors.include?(:email), "Email '#{email}' should not have email validation error"
+    end
   end
 
 end
