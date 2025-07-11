@@ -39,7 +39,7 @@ group :development do
 end
 # NCBO gems (can be from a local dev path or from rubygems/git)
 # gem 'goo', github: 'ncbo/goo', branch: 'develop'
-gem 'goo', github: 'ncbo/goo', branch: 'feature/improve-email-validator'
+gem 'goo', github: 'ncbo/goo', branch: 'feature/new-validators'
 gem 'sparql-client', github: 'ncbo/sparql-client', branch: 'develop'
 
 gem 'public_suffix', '~> 5.1.1'

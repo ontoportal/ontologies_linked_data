@@ -34,6 +34,31 @@ class TestUser < LinkedData::TestCase
     u.email = "test@example.com"
     u.password = "a_password"
     assert u.valid?
+
+    u.username = "really_really_really_really_really_really_really_long_username"
+    refute u.valid?
+
+    u.username = 'username_with_🌍_character'
+    refute u.valid?
+
+    u.username = "username_with\nnewline"
+    refute u.valid?
+
+    u.username = "username_with\ntab"
+    refute u.valid?
+
+    u.username = "username_<1>!"
+    refute u.valid?
+
+    u.username = "username_with\u200Bhidden_char"
+    refute u.valid?
+
+    # u.username = "test bad username"
+    # refute u.valid?
+    # u.username = "test.bad.username"
+    # refute u.valid?
+    # u.username = "<test_bad_username>"
+    # refute u.valid?
   end
 
   def test_user_lifecycle
