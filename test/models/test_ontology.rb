@@ -288,6 +288,18 @@ class TestOntology < LinkedData::TestOntologyCommon
     u = LinkedData::Models::User.new(username: "tim")
     o.administeredBy = [@user]
     assert o.valid?
+
+    o.name = "This name has\u200Bhidden content"
+    refute o.valid?
+
+    o.name = "This ontology price is < than $1!"
+    refute o.valid?
+
+    o.name = "This ontology looks like 🌍"
+    refute o.valid?
+
+    o.name = "Ontology for the Comprehensive Integration of Multimodal Biomedical Research Data Covering Genomics, Proteomics, Transcriptomics, Metabolomics, Pharmacogenomics, and Clinical Trial Metadata in Global Health and Disease Surveillance Systems for Pandemic Preparedness and Precision Medicine Applications"
+    refute o.valid?
   end
 
   def test_ontology_delete
