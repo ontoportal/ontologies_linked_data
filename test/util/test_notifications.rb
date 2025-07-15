@@ -166,6 +166,43 @@ class TestNotifications < LinkedData::TestCase
     end
   end
 
+  def test_cloudflare_analytics_success_notification
+    start_time = Time.now - 3600
+    end_time = Time.now
+    result_data = {
+      start_time: start_time,
+      end_time: end_time,
+      duration: 3600,
+      status: 'success',
+      error: nil
+    }
+
+    LinkedData::Utils::Notifications.cloudflare_analytics(result_data)
+
+    assert_equal 1, all_emails.size
+    assert_match 'success', last_email_sent.subject
+    assert_includes last_email_sent.body.raw_source, 'completed successfully'
+    assert_includes last_email_sent.body.raw_source, start_time.to_s
+  end
+
+  def test_cloudflare_analytics_failure_notification
+    start_time = Time.now - 3600
+    end_time = Time.now
+    result_data = {
+      start_time: start_time,
+      end_time: end_time,
+      duration: 3600,
+      status: 'error',
+      error: 'Connection timeout'
+    }
+
+    LinkedData::Utils::Notifications.cloudflare_analytics(result_data)
+
+    assert_equal 1, all_emails.size
+    assert_match 'error', last_email_sent.subject
+    assert_includes last_email_sent.body.raw_source, 'Connection timeout'
+  end
+
   def test_render_template
     gem_path = "/fake/gem/path"
     Gem.loaded_specs.stubs(:[]).with('ontologies_linked_data').returns(
