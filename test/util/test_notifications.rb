@@ -2,6 +2,7 @@ require_relative '../test_case'
 
 require 'email_spec'
 require 'logger'
+require 'mocha/minitest'
 
 class TestNotifications < LinkedData::TestCase
   include EmailSpec::Helpers
@@ -162,6 +163,32 @@ class TestNotifications < LinkedData::TestCase
   ensure
     ont_admins.each do |user|
       user&.delete
+    end
+  end
+
+  def test_render_template
+    gem_path = "/fake/gem/path"
+    Gem.loaded_specs.stubs(:[]).with('ontologies_linked_data').returns(
+      stub(full_gem_path: gem_path)
+    )
+
+    template_content = "Hello <%= name %>!"
+    File.expects(:read).with("#{gem_path}/views/emails/test.erb").returns(template_content)
+
+    result = LinkedData::Utils::Notifications.render_template('test.erb', { name: 'World' })
+    assert_equal "Hello World!", result
+  end
+
+  def test_render_template_file_not_found
+    gem_path = "/fake/gem/path"
+    Gem.loaded_specs.stubs(:[]).with('ontologies_linked_data').returns(
+      stub(full_gem_path: gem_path)
+    )
+
+    File.expects(:read).raises(Errno::ENOENT)
+
+    assert_raises(RuntimeError, "Template not found") do
+      LinkedData::Utils::Notifications.render_template('nonexistent.erb', {})
     end
   end
 
