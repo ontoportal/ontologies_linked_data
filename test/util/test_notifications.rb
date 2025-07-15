@@ -8,17 +8,20 @@ class TestNotifications < LinkedData::TestCase
   include EmailSpec::Helpers
 
   def self.before_suite
-    @@notifications_enabled = LinkedData.settings.enable_notifications
-    @@disable_override = LinkedData.settings.email_disable_override
-    @@old_support_mails = LinkedData.settings.ontoportal_admin_emails
-    if @@old_support_mails.nil? || @@old_support_mails.empty?
-      LinkedData.settings.ontoportal_admin_emails = ['ontoportal-support@mail.com']
-    end
+    # Store original settings
+    @original_settings = {
+      notifications_enabled: LinkedData.settings.enable_notifications,
+      disable_override: LinkedData.settings.email_disable_override,
+      admin_emails: LinkedData.settings.ontoportal_admin_emails
+    }
+
     LinkedData.settings.email_disable_override = true
     LinkedData.settings.enable_notifications = true
+    LinkedData.settings.ontoportal_admin_emails = ['ontoportal-support@mail.com']
+
     @@ui_name = LinkedData.settings.ui_name
     @@support_mails = LinkedData.settings.ontoportal_admin_emails
-    @@ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(ont_count: 1, 
+    @@ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(ont_count: 1,
                                                                                submission_count: 1)[2].first
     @@ont.bring_remaining
     @@user = @@ont.administeredBy.first
@@ -29,12 +32,12 @@ class TestNotifications < LinkedData::TestCase
   end
 
   def self.after_suite
-    LinkedData.settings.enable_notifications = @@notifications_enabled
-    LinkedData.settings.email_disable_override = @@disable_override
-    LinkedData.settings.ontoportal_admin_emails = @@old_support_mails
-    @@ont.delete if defined?(@@ont)
-    @@subscription.delete if defined?(@@subscription)
-    @@user.delete if defined?(@@user)
+    # Restore original settings
+    LinkedData.settings.enable_notifications = @original_settings[:notifications_enabled]
+    LinkedData.settings.email_disable_override = @original_settings[:disable_override]
+    LinkedData.settings.ontoportal_admin_emails = @original_settings[:admin_emails]
+
+    [@@ont, @@subscription, @@user].each(&:delete)
   end
 
   def setup
