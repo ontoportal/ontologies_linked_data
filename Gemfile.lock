@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: da59c7be857028b97563e52169d11cb4386b7c98
-  branch: develop
+  revision: 26c0a69e67ac59778a46caf51202ebd38ccac767
+  branch: master
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
@@ -169,7 +169,7 @@ GEM
       addressable (>= 2.2)
     redis (5.4.0)
       redis-client (>= 0.22.0)
-    redis-client (0.25.0)
+    redis-client (0.25.1)
       connection_pool
     regexp_parser (2.10.0)
     request_store (1.7.0)
