@@ -117,6 +117,17 @@ module LinkedData
         Notifier.notify_mails_grouped(subject, body, recipients)
       end
 
+      def self.cloudflare_analytics(result_data)
+        ui_name = LinkedData.settings.ui_name
+        subject = "[#{ui_name}] Cloudflare Analytics daily collection result: #{result_data[:status]}"
+        recipients = Notifier.ontoportal_admin_emails
+        body = render_template('cloudflare_analytics.erb', {
+          result_data: result_data
+        })
+
+        Notifier.notify_mails_grouped(subject, body, recipients)
+      end
+
       def self.render_template(template_name, locals = {})
         # template_path = File.join(File.dirname(__FILE__), '..', '..', 'views', template_name)
         gem_path = Gem.loaded_specs['ontologies_linked_data'].full_gem_path
