@@ -128,8 +128,9 @@ module LinkedData
         Notifier.notify_mails_grouped(subject, body, recipients)
       end
 
+      private
+
       def self.render_template(template_name, locals = {})
-        # template_path = File.join(File.dirname(__FILE__), '..', '..', 'views', template_name)
         gem_path = Gem.loaded_specs['ontologies_linked_data'].full_gem_path
         template_path = File.join(gem_path, 'views', 'emails', template_name)
         template = File.read(template_path)
