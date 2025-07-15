@@ -53,8 +53,9 @@ module LinkedData
     @settings.goo_redis_port                ||= 6379
 
     # Ontology Analytics Redis
-    @settings.ontology_analytics_redis_host ||= 'localhost'
-    @settings.ontology_analytics_redis_port ||= 6379
+    @settings.ontology_analytics_redis_host  ||= 'localhost'
+    @settings.ontology_analytics_redis_port  ||= 6379
+    @settings.ontology_analytics_redis_field ||= 'cloudflare_analytics'
 
     # PURL server config parameters
     @settings.enable_purl                   ||= false
