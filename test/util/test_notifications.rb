@@ -18,7 +18,8 @@ class TestNotifications < LinkedData::TestCase
     LinkedData.settings.enable_notifications = true
     @@ui_name = LinkedData.settings.ui_name
     @@support_mails = LinkedData.settings.ontoportal_admin_emails
-    @@ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(ont_count: 1, submission_count: 1)[2].first
+    @@ont = LinkedData::SampleData::Ontology.create_ontologies_and_submissions(ont_count: 1, 
+                                                                               submission_count: 1)[2].first
     @@ont.bring_remaining
     @@user = @@ont.administeredBy.first
     @@subscription = new('before_suite')._subscription(@@ont)
@@ -204,27 +205,27 @@ class TestNotifications < LinkedData::TestCase
   end
 
   def test_render_template
-    gem_path = "/fake/gem/path"
+    gem_path = '/fake/gem/path'
     Gem.loaded_specs.stubs(:[]).with('ontologies_linked_data').returns(
       stub(full_gem_path: gem_path)
     )
 
-    template_content = "Hello <%= name %>!"
+    template_content = 'Hello <%= name %>!'
     File.expects(:read).with("#{gem_path}/views/emails/test.erb").returns(template_content)
 
     result = LinkedData::Utils::Notifications.render_template('test.erb', { name: 'World' })
-    assert_equal "Hello World!", result
+    assert_equal 'Hello World!', result
   end
 
   def test_render_template_file_not_found
-    gem_path = "/fake/gem/path"
+    gem_path = '/fake/gem/path'
     Gem.loaded_specs.stubs(:[]).with('ontologies_linked_data').returns(
       stub(full_gem_path: gem_path)
     )
 
     File.expects(:read).raises(Errno::ENOENT)
 
-    assert_raises(RuntimeError, "Template not found") do
+    assert_raises(RuntimeError, 'Template not found') do
       LinkedData::Utils::Notifications.render_template('nonexistent.erb', {})
     end
   end
