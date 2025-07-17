@@ -33,7 +33,7 @@ module LinkedData
     # Java/JVM options
     @settings.java_max_heap_size            ||= '10240M'
 
-    @settings.ui_name                       ||= 'Bioportal'
+    @settings.ui_name                       ||= 'BioPortal'
     @settings.ui_host                       ||= 'bioportal.bioontology.org'
     @settings.replace_url_prefix            ||= false
     @settings.id_url_prefix                 ||= DEFAULT_PREFIX
