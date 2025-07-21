@@ -15,7 +15,6 @@ module LinkedData
       class ParsedSubmissionError < StandardError; end
       class OntologyAnalyticsError < StandardError; end
 
-      ONTOLOGY_ANALYTICS_REDIS_FIELD = "ontology_analytics"
       ONTOLOGY_RANK_REDIS_FIELD = "ontology_rank"
       DEFAULT_RANK_WEIGHT_ANALYTICS = 0.50
       DEFAULT_RANK_WEIGHT_UMLS = 0.50
@@ -23,7 +22,7 @@ module LinkedData
       model :ontology, :name_with => :acronym
       attribute :acronym, namespace: :omv,
         enforce: [:unique, :existence, lambda { |inst,attr| validate_acronym(inst,attr) } ]
-      attribute :name, :namespace => :omv, enforce: [:unique, :existence]
+      attribute :name, :namespace => :omv, enforce: [:unique, :existence, :safe_text_256]
       attribute :submissions,
                   inverse: { on: :ontology_submission, attribute: :ontology }
       attribute :projects,
@@ -309,7 +308,8 @@ module LinkedData
       end
 
       def self.load_analytics_data
-        self.load_data(ONTOLOGY_ANALYTICS_REDIS_FIELD)
+        redis_field = LinkedData.settings.ontology_analytics_redis_field
+        self.load_data(redis_field)
       end
 
       def self.load_ranking_data
