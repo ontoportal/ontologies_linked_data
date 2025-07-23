@@ -91,7 +91,7 @@ module LinkedData
             # for attribute with the :extractedMetadata setting on, and that have not been defined by the user
             attr_settings = LinkedData::Models::OntologySubmission.attribute_settings(attr)
 
-            # Check if the user provided a non-empty value for this attribute and override_attrs is not set for this attribute
+            # Check if the user provided a non-empty value for this attribute
             user_provided_value = user_params.key?(attr) && !empty_value?(user_params[attr])
             # Proceed only if the attribute is marked as extractable and the user did NOT provide a value
             should_extract = attr_settings[:extractedMetadata] && !user_provided_value
