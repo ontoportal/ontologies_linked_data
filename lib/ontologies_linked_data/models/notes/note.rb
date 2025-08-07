@@ -6,8 +6,8 @@ module LinkedData
   module Models
     class Note < LinkedData::Models::Base
       model :note, name_with: lambda { |inst| uuid_uri_generator(inst) }
-      attribute :subject
-      attribute :body
+      attribute :subject, enforce: [:safe_text_64]
+      attribute :body, enforce: [:safe_text]
       attribute :creator, enforce: [:existence, :user]
       attribute :created, enforce: [:date_time], :default => lambda { |record| DateTime.now }
       attribute :archived, enforce: [:boolean]
@@ -21,6 +21,8 @@ module LinkedData
       embed_values proposal: LinkedData::Models::Notes::Proposal.goo_attrs_to_load
       link_to LinkedData::Hypermedia::Link.new("replies", lambda {|n| "notes/#{n.id.to_s.split('/').last}/replies"}, LinkedData::Models::Notes::Reply.type_uri),
               LinkedData::Hypermedia::Link.new("ui", lambda {|n| "http://#{LinkedData.settings.ui_host}/notes/#{CGI.escape(n.id)}"}, self.type_uri)
+
+      system_controlled :creator, :created
 
       # HTTP Cache settings
       cache_segment_instance lambda {|note| segment_instance(note)}
