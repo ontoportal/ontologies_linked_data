@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 87a21a76bc61392d0629a19c8a18593f606b52e5
-  branch: develop
+  revision: 26c0a69e67ac59778a46caf51202ebd38ccac767
+  branch: master
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
@@ -74,7 +74,7 @@ GEM
       launchy (>= 2.1, < 4.0)
       mail (~> 2.7)
     eventmachine (1.2.7)
-    faraday (2.13.2)
+    faraday (2.13.4)
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
@@ -90,7 +90,7 @@ GEM
       domain_name (~> 0.5)
     i18n (0.9.5)
       concurrent-ruby (~> 1.0)
-    json (2.12.2)
+    json (2.13.2)
     json_pure (2.8.1)
     language_server-protocol (3.17.0.4)
     launchy (3.1.1)
@@ -111,7 +111,7 @@ GEM
     mime-types (3.7.0)
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
-    mime-types-data (3.2025.0708)
+    mime-types-data (3.2025.0805)
     mini_mime (1.1.5)
     minitest (4.7.5)
     minitest-reporters (0.14.24)
@@ -167,7 +167,7 @@ GEM
     rake (10.5.0)
     rdf (1.0.8)
       addressable (>= 2.2)
-    redis (5.4.0)
+    redis (5.4.1)
       redis-client (>= 0.22.0)
     redis-client (0.25.1)
       connection_pool
