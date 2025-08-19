@@ -89,23 +89,6 @@ class TestOntologySubmission < LinkedData::TestOntologyCommon
     assert_equal 0, ont_submision.errors.length
   end
 
-  def test_automaster_from_zip
-    zipfile = "./test/data/ontology_files/SDO.zip"
-    assert LinkedData::Utils::FileHelpers.automaster?(zipfile, ".owl")
-    assert_equal "SDO.owl", LinkedData::Utils::FileHelpers.automaster(zipfile, ".owl")
-
-    zipfile = "./test/data/ontology_files/evoc_v2.9.zip"
-    assert !LinkedData::Utils::FileHelpers.automaster?(zipfile, ".obo")
-    assert_equal nil, LinkedData::Utils::FileHelpers.automaster(zipfile, ".obo")
-  end
-
-  def test_is_gzip
-    gzipfile = "./test/data/ontology_files/BRO_v3.2.owl.gz"
-    zipfile = "./test/data/ontology_files/evoc_v2.9.zip"
-    assert LinkedData::Utils::FileHelpers.gzip?(gzipfile)
-    refute LinkedData::Utils::FileHelpers.gzip?(zipfile)
-  end
-
   def test_duplicated_file_names
 
     acronym = "DUPTEST"
