@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/ncbo/goo.git
-  revision: 87a21a76bc61392d0629a19c8a18593f606b52e5
-  branch: develop
+  revision: 26c0a69e67ac59778a46caf51202ebd38ccac767
+  branch: master
   specs:
     goo (0.0.2)
       addressable (~> 2.8)
@@ -111,7 +111,7 @@ GEM
     mime-types (3.7.0)
       logger
       mime-types-data (~> 3.2025, >= 3.2025.0507)
-    mime-types-data (3.2025.0812)
+    mime-types-data (3.2025.0819)
     mini_mime (1.1.5)
     minitest (4.7.5)
     minitest-reporters (0.14.24)
