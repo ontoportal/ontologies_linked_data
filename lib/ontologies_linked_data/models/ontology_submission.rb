@@ -391,7 +391,7 @@ module LinkedData
         end
 
         zip = zipped?
-        files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
+        files = LinkedData::Utils::FileHelpers.filenames_in_archive(uploadFilePath) if zip
 
         if not zip and self.masterFileName.nil?
           return true
@@ -423,7 +423,7 @@ module LinkedData
 
         elsif zip and not self.masterFileName.nil?
           #if zip and the user chose a file then we make sure the file is in the list.
-          files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath)
+          files =  LinkedData::Utils::FileHelpers.filenames_in_archive(self.uploadFilePath)
           if not files.include? self.masterFileName
             if self.errors[:uploadFilePath].nil?
               self.errors[:uploadFilePath] = []
