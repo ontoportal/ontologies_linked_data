@@ -46,7 +46,7 @@ module LinkedData
       # Ontology metadata
       # General metadata
       attribute :versionIRI, namespace: :owl, type: :uri, enforce: [:distinct_of_uri]
-      attribute :version, namespace: :omv
+      attribute :version, namespace: :omv, enforce: [:safe_text_64]
       attribute :status, namespace: :omv, default: ->(x) { 'production' }
       attribute :deprecated, namespace: :owl, type: :boolean, default: ->(x) { false }
       attribute :hasOntologyLanguage, namespace: :omv, type: :ontology_format, enforce: [:existence]
@@ -181,6 +181,9 @@ module LinkedData
 
       # Link to ontology
       attribute :ontology, type: :ontology, enforce: [:existence]
+
+      # System-controlled attributes that should not be set by API clients
+      system_controlled :submissionId, :uploadFilePath, :diffFilePath, :missingImports
 
       def self.agents_attrs
         return [] #TODO implement agent separately
@@ -381,14 +384,14 @@ module LinkedData
         elsif self.pullLocation
           if self.uploadFilePath.nil?
             remote_exists = remote_file_exists?(self.pullLocation.to_s)
-            self.errors[:pullLocation] = ["File at #{self.pullLocation.to_s} does not exist"] unless remote_exists
+            self.errors[:pullLocation] = ["The provided File Pull Location at #{self.pullLocation.to_s} does not point to a valid file."] unless remote_exists
             return remote_exists
           end
           return true
         end
 
         zip = zipped?
-        files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
+        files = LinkedData::Utils::FileHelpers.filenames_in_archive(uploadFilePath) if zip
 
         if not zip and self.masterFileName.nil?
           return true
@@ -420,7 +423,7 @@ module LinkedData
 
         elsif zip and not self.masterFileName.nil?
           #if zip and the user chose a file then we make sure the file is in the list.
-          files =  LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath)
+          files =  LinkedData::Utils::FileHelpers.filenames_in_archive(self.uploadFilePath)
           if not files.include? self.masterFileName
             if self.errors[:uploadFilePath].nil?
               self.errors[:uploadFilePath] = []
