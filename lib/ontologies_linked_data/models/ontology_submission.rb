@@ -380,7 +380,7 @@ module LinkedData
         end
 
         zip = zipped?
-        files = LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath) if zip
+        files = LinkedData::Utils::FileHelpers.filenames_in_archive(self.uploadFilePath) if zip
 
         if not zip and self.masterFileName.nil?
           return true
@@ -410,7 +410,7 @@ module LinkedData
 
         elsif zip and not self.masterFileName.nil?
           # if zip and the user chose a file then we make sure the file is in the list.
-          files = LinkedData::Utils::FileHelpers.files_from_zip(self.uploadFilePath)
+          files = LinkedData::Utils::FileHelpers.filenames_in_archive(self.uploadFilePath)
           if not files.include? self.masterFileName
             if self.errors[:uploadFilePath].nil?
               self.errors[:uploadFilePath] = []
@@ -492,7 +492,8 @@ module LinkedData
 
           # Set master file name automatically if there is only one file
           if extracted.length == 1 && self.masterFileName.nil?
-            self.masterFileName = extracted.first.name
+            # unzip returns absolute paths; masterFileName is the entry name, e.g. "dir/onto.owl"
+            self.masterFileName = extracted.first.delete_prefix(File.expand_path(zip_dst) + File::SEPARATOR)
             self.save
           end
 
