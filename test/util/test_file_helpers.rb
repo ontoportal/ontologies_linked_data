@@ -79,6 +79,63 @@ class TestFileHelpers < Minitest::Test
     refute File.exist?(File.expand_path('../../foo/baz.txt', @dst))
   end
 
+  def test_gzip_file_keeps_original_and_round_trips
+    src = File.join(@dst, 'onto.ttl')
+    File.write(src, "<a> <b> <c> .\n" * 1000)
+
+    gz = LinkedData::Utils::FileHelpers.gzip_file(src)
+
+    assert_equal "#{src}.gz", gz
+    assert File.exist?(src)
+    Zlib::GzipReader.open(gz) do |reader|
+      assert_equal 'onto.ttl', reader.orig_name
+      assert_equal File.binread(src), reader.read
+    end
+    assert_equal ['onto.ttl', 'onto.ttl.gz'], Dir.children(@dst).sort
+  end
+
+  def test_zip_file_keeps_original_and_round_trips
+    src = File.join(@dst, 'onto.owl')
+    File.write(src, "<owl/>\n" * 1000)
+
+    zip = LinkedData::Utils::FileHelpers.zip_file(src)
+
+    assert_equal "#{src}.zip", zip
+    assert File.exist?(src)
+    Zip::File.open(zip) do |z|
+      assert_equal ['onto.owl'], z.entries.map(&:name)
+      assert_equal File.binread(src), z.read('onto.owl')
+    end
+  end
+
+  def test_zip_file_replaces_a_stale_zip
+    src = File.join(@dst, 'onto.owl')
+    File.write(src, 'new content')
+    Zip::File.open("#{src}.zip", create: true) { |z| z.get_output_stream('onto.owl') { |o| o.write('old content') } }
+
+    LinkedData::Utils::FileHelpers.zip_file(src)
+
+    Zip::File.open("#{src}.zip") { |z| assert_equal 'new content', z.read('onto.owl') }
+  end
+
+  def test_compressing_compressed_files_is_a_no_op
+    fh = LinkedData::Utils::FileHelpers
+    gz = write_gz('BRO_v3.2.owl.gz', 'data', orig_name: 'BRO_v3.2.owl')
+    [gz, './test/data/ontology_files/evoc_v2.9.zip'].each do |path|
+      assert_equal path, fh.gzip_file(path)
+      assert_equal path, fh.zip_file(path)
+    end
+  end
+
+  def test_gzip_file_failed_verification_leaves_no_output
+    src = File.join(@dst, 'onto.ttl')
+    File.write(src, 'content')
+    stub_singleton(Zlib::GzipReader, :open, 'mismatch') do
+      assert_raises(IOError) { LinkedData::Utils::FileHelpers.gzip_file(src) }
+    end
+    assert_equal ['onto.ttl'], Dir.children(@dst)
+  end
+
   private
 
   def write_zip(name, entries)
@@ -96,5 +153,14 @@ class TestFileHelpers < Minitest::Test
       gz.write(content)
     end
     path
+  end
+
+  # No mocha here: swap a class method for the block's duration
+  def stub_singleton(klass, name, value)
+    original = klass.method(name)
+    klass.define_singleton_method(name) { |*| value }
+    yield
+  ensure
+    klass.define_singleton_method(name, original)
   end
 end
